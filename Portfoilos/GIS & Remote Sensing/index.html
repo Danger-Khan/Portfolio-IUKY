@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GIS Portfolio</title>
+    <meta
+      name="description"
+      content="Remote sensing and GIS portfolio — Google Earth Engine, Sentinel-2 analysis, and satellite-based environmental monitoring by Imaad Yameen."
+    />
+    <style>
+      :root {
+        --bg: #06140f;
+        --bg-2: #0a1f18;
+        --panel: #0f231c;
+        --primary: #10b981;
+        --secondary: #38bdf8;
+        --highlight: #f59e0b;
+        --text: #ecfdf5;
+        --muted: #b9d4c9;
+        --line: rgba(255,255,255,0.09);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background:
+          radial-gradient(circle at 15% 8%, rgba(56,189,248,0.10), transparent 32%),
+          linear-gradient(rgba(16,185,129,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16,185,129,0.05) 1px, transparent 1px),
+          linear-gradient(135deg, var(--bg), var(--bg-2));
+        background-size: auto, 36px 36px, 36px 36px, auto;
+        color: var(--text);
+      }
+
+      /* ============ Globe visual ============ */
+      .globe-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        max-width: 320px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .globe {
+        position: relative;
+        width: 78%;
+        height: 78%;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 32% 28%, rgba(148,255,214,0.5), transparent 45%),
+          radial-gradient(circle at 60% 70%, rgba(16,185,129,0.55), rgba(6,20,15,0.95) 72%);
+        box-shadow:
+          inset -18px -18px 50px rgba(0,0,0,0.55),
+          inset 10px 10px 30px rgba(148,255,214,0.12),
+          0 0 60px rgba(16,185,129,0.25);
+        overflow: hidden;
+        animation: globe-spin 22s linear infinite;
+      }
+
+      .globe::before, .globe::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+      }
+
+      .globe::before {
+        background-image: repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent calc(12.5% - 1px),
+          rgba(56,189,248,0.35) 12.5%
+        );
+      }
+
+      .globe::after {
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent calc(16.6% - 1px),
+          rgba(56,189,248,0.22) 16.6%
+        );
+      }
+
+      @keyframes globe-spin {
+        from { background-position: 0 0, 0 0; filter: hue-rotate(0deg); }
+        to { background-position: 0 0, 0 0; filter: hue-rotate(8deg); }
+      }
+
+      .globe-ring {
+        position: absolute;
+        inset: -14px;
+        border-radius: 50%;
+        border: 1px dashed rgba(56,189,248,0.35);
+        animation: globe-ring-spin 34s linear infinite;
+      }
+
+      @keyframes globe-ring-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      .globe-pin {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--highlight);
+        box-shadow: 0 0 0 4px rgba(245,158,11,0.22), 0 0 10px rgba(245,158,11,0.8);
+        animation: pin-pulse 2.4s ease-in-out infinite;
+      }
+
+      @keyframes pin-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.35); }
+      }
+
+      .site-legend {
+        list-style: none;
+        margin: 18px 0 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        justify-content: center;
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .site-legend li::before {
+        content: '●';
+        color: var(--highlight);
+        margin-right: 5px;
+        font-size: 0.6rem;
+      }
+
+      .container {
+        width: min(1100px, calc(100% - 2rem));
+        margin: 0 auto;
+      }
+
+      .section {
+        padding: 80px 0;
+      }
+
+      .topbar {
+        padding: 20px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(6,20,15,0.85);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(10px);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .logo {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .logo span { color: var(--primary); }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .hero {
+        padding: 90px 0 60px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 40px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.7;
+        margin: 0;
+      }
+
+      .badge {
+        display: inline-block;
+        color: var(--secondary);
+        font-size: 0.74rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+        font-weight: 700;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 13px 20px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #06140f;
+      }
+
+      .btn-secondary {
+        border: 1px solid var(--line);
+        color: var(--text);
+      }
+
+      .hero-panel {
+        background: linear-gradient(180deg, rgba(16,185,129,0.14), rgba(10,31,24,0.95));
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px;
+      }
+
+      .panel-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+
+      .panel-box:last-child { margin-bottom: 0; }
+
+      .panel-box strong {
+        display: block;
+        font-size: 2rem;
+        color: var(--secondary);
+      }
+
+      .panel-box span {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.7rem;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 24px;
+      }
+
+      .card h3 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+      }
+
+      .card p, .card li {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .card-link {
+        display: inline-block;
+        margin-top: 14px;
+        color: var(--secondary);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .card-link:hover { color: var(--primary); }
+
+      .section-title {
+        margin-bottom: 30px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+      }
+
+      .section-title .badge {
+        margin-bottom: 12px;
+      }
+
+      .section-title p {
+        margin-top: 12px;
+        max-width: 700px;
+      }
+
+      /* Featured / capstone project */
+      .featured {
+        background: linear-gradient(160deg, rgba(16,185,129,0.14), rgba(15,35,28,0.9));
+        border: 1px solid rgba(16,185,129,0.35);
+        border-radius: 28px;
+        padding: 40px;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 36px;
+        margin-bottom: 40px;
+      }
+
+      .featured .badge { color: var(--highlight); }
+
+      .featured h3 {
+        margin: 0 0 14px;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+      }
+
+      .featured p {
+        color: var(--muted);
+        line-height: 1.75;
+        margin: 0 0 18px;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .tag {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+        color: var(--primary);
+        border: 1px solid rgba(16,185,129,0.4);
+        border-radius: 999px;
+        padding: 5px 12px;
+      }
+
+      .featured-links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .featured-links a {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px 18px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.2s ease;
+      }
+
+      .featured-links a:hover { border-color: var(--primary); }
+      .featured-links a span { color: var(--muted); font-weight: 400; font-size: 0.72rem; }
+
+      .note {
+        font-size: 0.78rem;
+        color: var(--muted);
+        opacity: 0.75;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+
+      .contact {
+        padding: 20px 0 90px;
+      }
+
+      .contact-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 32px 28px;
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid,
+        .row,
+        .contact-box,
+        .featured {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .nav {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">GIS<span>_Systems</span></div>
+        <span style="font-size:0.68rem; color:var(--muted); letter-spacing:0.06em; font-family:monospace;">34.0150°N 71.4325°E</span>
+        <nav class="nav-links">
+          <a href="../../index.html">← Portfolio</a>
+          <a href="#about">About</a>
+          <a href="#focus">Focus</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="badge">GIS / Remote Sensing</div>
+            <h1>Turning satellite imagery into environmental evidence.</h1>
+            <p>
+              I build cloud-based remote-sensing workflows on Google Earth Engine — combining
+              Sentinel-2 imagery, spectral indices, and machine-learning classification to screen
+              large areas for environmental risk and track how it changes over time.
+            </p>
+            <div class="hero-actions">
+              <a href="#projects" class="btn btn-primary">View Projects</a>
+              <a href="#contact" class="btn btn-secondary">Contact Me</a>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="globe-wrap">
+              <div class="globe-ring"></div>
+              <div class="globe">
+                <span class="globe-pin" style="top: 28%; left: 46%; animation-delay: 0s;"></span>
+                <span class="globe-pin" style="top: 42%; left: 62%; animation-delay: .3s;"></span>
+                <span class="globe-pin" style="top: 50%; left: 33%; animation-delay: .6s;"></span>
+                <span class="globe-pin" style="top: 62%; left: 52%; animation-delay: .9s;"></span>
+                <span class="globe-pin" style="top: 68%; left: 40%; animation-delay: 1.2s;"></span>
+              </div>
+            </div>
+            <ul class="site-legend">
+              <li>Peshawar</li>
+              <li>Shabqadar</li>
+              <li>Risalpur</li>
+              <li>Jehangira</li>
+              <li>Mohmand</li>
+              <li>Buner</li>
+            </ul>
+            <div class="panel-box" style="margin-top:16px;">
+              <strong>7</strong>
+              <span>Mapped processing-site clusters, KP</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">About</div>
+            <h2>Remote sensing with an evidence-first mindset.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card">
+              <h3>What I do</h3>
+              <p>
+                I build satellite-based monitoring workflows — from spectral-index mapping to
+                AI-assisted hotspot detection — that turn raw Earth observation data into
+                decision-ready risk layers for real places.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Core skills</h3>
+              <ul>
+                <li>Spectral index &amp; change detection</li>
+                <li>Hotspot &amp; multi-hazard mapping</li>
+                <li>Cartographic composition (ArcGIS)</li>
+                <li>Multi-year trend modelling</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Tools</h3>
+              <ul>
+                <li>Google Earth Engine</li>
+                <li>Sentinel-2 / Landsat imagery</li>
+                <li>ArcGIS / ArcMap</li>
+                <li>Python (scikit-learn, pandas)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="focus" class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Focus Areas</div>
+            <h2>Where geospatial analysis creates value.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card">
+              <h3>Environmental Risk Mapping</h3>
+              <p>Screening large regions for contamination and hazard indicators using spectral indices and classification.</p>
+            </div>
+            <div class="card">
+              <h3>Multi-Hazard Assessment</h3>
+              <p>Combining exposure layers to flag areas vulnerable to compounding environmental hazards.</p>
+            </div>
+            <div class="card">
+              <h3>Land Use &amp; Land Cover</h3>
+              <p>Classifying and tracking land cover and population/temperature patterns across provinces and years.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Projects</div>
+            <h2>Geospatial &amp; remote-sensing work.</h2>
+            <p>
+              Coursework and a capstone project for PEW-105 (Geoinformatics), built individually
+              and under the project name "AI GEO Navigators."
+            </p>
+          </div>
+
+          <div class="featured">
+            <div>
+              <div class="badge">Capstone Project</div>
+              <h3>KP Marble Slurry Contamination Risk Portal</h3>
+              <p>
+                A Google Earth Engine application that screens seven verified marble-processing
+                clusters across six districts of Khyber Pakhtunkhwa (Peshawar, Shabqadar, Risalpur,
+                Jehangira, Mohmand, and Buner) for slurry contamination. It combines spectral
+                indices — NDVI, NDWI, NDBI, and a custom Slurry Index — with a Random Forest
+                classifier and a 2018–2026 per-pixel trend model to flag sites with a rising
+                accumulation trajectory near streams, then quantifies candidate contamination area
+                within 100 m and 500 m buffers of each site.
+              </p>
+              <div class="tags">
+                <span class="tag">Sentinel-2</span>
+                <span class="tag">Random Forest</span>
+                <span class="tag">Google Earth Engine</span>
+                <span class="tag">Time-Series Trend</span>
+              </div>
+              <p class="note">
+                Built as a first-pass screening tool that flags candidate sites for field
+                verification — not a standalone determination that contamination exists.
+              </p>
+            </div>
+            <div class="featured-links">
+              <a href="https://gen-lang-client-0708738053.projects.earthengine.app/view/kp-marble-slurry-risk-portal" target="_blank" rel="noopener">
+                Live Web Application <span>Open ↗</span>
+              </a>
+              <a href="https://code.earthengine.google.com/53ceb55f65d76055eb1951d913ea1c8d" target="_blank" rel="noopener">
+                Earth Engine Script <span>Open ↗</span>
+              </a>
+              <a href="FInal Project/PEW-105,Imaad_Ullah_Khan_Yameen,Peshawar.pdf" target="_blank" rel="noopener">
+                Full Report (PDF) <span>Open ↗</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="card">
+              <h3>Pakistan Population Index Map</h3>
+              <p>Cartographic composition of national, provincial, and district boundaries, hydrology, and raster population data for Pakistan, built in ArcMap.</p>
+              <a class="card-link" href="Task%231/PEW-105,Task%231.pdf" target="_blank" rel="noopener">View Report →</a>
+            </div>
+            <div class="card">
+              <h3>Land Surface Temperature vs. Population</h3>
+              <p>Earth Engine app comparing surface-temperature patterns against population density across Pakistan.</p>
+              <a class="card-link" href="https://task-2-503706.projects.earthengine.app/view/pakistan-lst-vs-population" target="_blank" rel="noopener">Open Live App →</a>
+            </div>
+            <div class="card">
+              <h3>Peshawar Multi-Hazard Assessment</h3>
+              <p>Interactive hazard-exposure app for the Peshawar region, layering multiple environmental risk indicators.</p>
+              <a class="card-link" href="https://task-2-503706.projects.earthengine.app/view/peshawar-multi---hazard-assessment" target="_blank" rel="noopener">Open Live App →</a>
+            </div>
+            <div class="card">
+              <h3>Land Use / Land Cover of Pakistan</h3>
+              <p>Nationwide LULC classification built and published as an Earth Engine app, with the full processing script available.</p>
+              <a class="card-link" href="https://task-2-503706.projects.earthengine.app/view/lulc-of-pakistan" target="_blank" rel="noopener">Open Live App →</a>
+              <br />
+              <a class="card-link" href="https://code.earthengine.google.com/6f1daf5a2b6f6c185dc52be086c6b5a4" target="_blank" rel="noopener">View Script →</a>
+            </div>
+            <div class="card">
+              <h3>Environmental Regression Modelling</h3>
+              <p>Python/Colab notebook applying Ridge, Lasso, Random Forest, and Gradient Boosting regressors to PEW-105 field survey data from Peshawar.</p>
+              <a class="card-link" href="https://colab.research.google.com/drive/1a4qNw_fQ7XJKFo8fvQU_icd2I4eygvCB?usp=sharing" target="_blank" rel="noopener">Open Notebook →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div class="container">
+          <div class="contact-box">
+            <div>
+              <div class="badge">Contact</div>
+              <h2 style="margin:0; font-size: clamp(1.7rem, 4vw, 2.5rem);">Let's map the next site.</h2>
+            </div>
+            <a href="mailto:yameenimaad@gmail.com" class="btn btn-primary">yameenimaad@gmail.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

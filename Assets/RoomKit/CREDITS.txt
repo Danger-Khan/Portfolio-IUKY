@@ -1,0 +1,11 @@
+Furniture Kit (v2.0) by Kenney (www.kenney.nl)
+Source: https://kenney.nl/assets/furniture-kit
+License: CC0 1.0 (Creative Commons Zero / Public Domain)
+http://creativecommons.org/publicdomain/zero/1.0/
+
+Free for personal, educational, and commercial use. Attribution is not
+required, but is given here anyway. Only a subset of the original kit's
+140 models is included in this folder — the pieces used by 3dhtml.html:
+bedSingle, desk, chairDesk, bookcaseOpen, books, computerScreen,
+computerKeyboard, computerMouse, lampSquareCeiling, lampRoundTable,
+wallWindow, doorway, rugRectangle, pottedPlant, sideTable.

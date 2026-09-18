@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IMAAD YAMEEN | INDUSTRIAL TERMINAL CV</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        industrial: {
+                        // Original Industrial Palette
+                        orange: "#FF6B00",
+                        blue: "#0047AB",
+                        steel: "#1e293b",
+                        dark: "#0f172a",
+                        purple: "#800080" ,
+                        yellow: "#ffff00" ,
+                        red: "#ff1838"  ,
+                    // Expanded Accent Palette
+                        white: "#FFFFFF",
+                        black: "#000000",
+                        silver: "#C0C0C0",
+                        grey: "#808080",
+                        brown: "#8B4513",
+                        lightbrown: "#f28538",
+                        green: "#00FF00",
+                        indigo: "#4B0082",
+                        violet: "#EE82EE",
+                        maroon: "#800000",
+                        pink: "#FFC0CB",
+                        skyblue: "#87CEEB",
+                        },
+                    },
+                    fontFamily: {
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                },
+            },
+        };
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function printCV() {
+            window.print();
+        }
+    </script>
+
+    <style type="text/css">
+        @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&display=swap");
+
+        body {
+            font-family: "JetBrains Mono", monospace;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark body {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+        }
+
+        .industrial-card {
+            position: relative;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .dark .industrial-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .industrial-card:hover {
+            transform: translate(4px, -4px);
+            box-shadow: -8px 8px 0px #FF6B00;
+        }
+
+        .technical-header {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-left: 4px solid #FF6B00;
+            padding-left: 1rem;
+            font-weight: 800;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .industrial-card { border: 1px solid #ccc !important; box-shadow: none !important; transform: none !important; color: black !important;}
+            .dark body { background: white !important; color: black !important; }
+            .dark .industrial-card { background: white !important; border: 1px solid #ccc !important; color: black !important; }
+            .technical-header { border-left: 4px solid black !important; }
+        }
+    </style>
+</head>
+
+<body class="text-slate-900 dark:text-slate-100 antialiased p-4 md:p-8">
+
+    <div class="fixed top-6 right-6 z-50 flex gap-2 no-print">
+        <button onclick="toggleDarkMode()" class="p-3 industrial-card hover:bg-industrial-orange hover:text-white transition-all shadow-[4px_4px_0px_#ff6b00] hover:shadow-none" title="Toggle Mode">
+            <i class="fas fa-circle-half-stroke"></i>
+        </button>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <header class="industrial-card p-6 mb-8 border-industrial-orange/30">
+            <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                <div class="industrial-card p-1 border-industrial-orange/30 w-32 h-32 shrink-0 overflow-hidden">
+                    <img src="https://uploads.onecompiler.io/449t2q7wg/44h7qty84/dp.jpg" alt="Imaad Yameen" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500">
+                </div>
+
+                <div class="flex-grow text-center md:text-left">
+                    <h1 class="text-4xl font-black uppercase tracking-tighter mb-1">Imaad Ullah Khan Yameen</h1>
+                    <h2 class="text-industrial-orange font-bold uppercase text-xs tracking-widest mb-4">// Industrial Engineer | CAD Designer | FDM/FFF | SSYB & SSWB</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-[10px] font-bold uppercase">
+                        <a href="mailto:yameenimaad@gmail.com" target="_blank" class="hover:text-industrial-orange transition-colors">
+                            <i class="fas fa-envelope mr-2 text-industrial-orange"></i> yameenimaad@gmail.com
+                        </a>
+                        <a href="https://linkedin.com/in/imaad-ullah-khan-yameen" target="_blank" class="hover:text-industrial-orange transition-colors">
+                            <i class="fab fa-linkedin mr-2 text-industrial-orange"></i> LinkedIn_Profile
+                        </a>
+                    <a href="https://maps.app.goo.gl/nKvpDaRm6zaMeiEt7" target="_blank" class="hover:text-industrial-orange transition-colors">
+                        <p><i class="fas fa-map-marker-alt mr-2 text-industrial-orange"></i> Peshawar, KPK, Pakistan</p>
+                    </a>
+                    <a href="https://wa.me/923449295545" target="_blank" class="hover:text-industrial-orange transition-colors">
+                        <p><i class="fas fa-phone mr-2 text-industrial-orange"></i> +92-344-9295545</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="space-y-8">
+                <section>
+                    <h3 class="technical-header text-sm mb-6">Education.sys</h3>
+                    <div class="industrial-card p-4">
+                        <p class="font-black text-xs uppercase text-industrial-blue dark:text-blue-400">BSc Industrial Engineering</p>
+                        <p class="text-[10px] opacity-70 mb-2">UET Peshawar | Sept 2021 - Aug 2025</p>
+                        <div class="bg-industrial-blue/10 dark:bg-industrial-blue/5 p-2 border-l-2 border-industrial-blue flex justify-between">
+                            <span class="text-[10px] font-bold">CGPA:</span>
+                            <span class="text-xs font-black">3.75 / 4.00</span>
+                        </div>
+                        <div class="mt-3 p-2 bg-industrial-green/10 border border-industrial-green/30 flex items-center gap-2">
+                            <i class="fas fa-trophy text-industrial-green text-[10px]"></i>
+                            <span class="text-[9px] font-black uppercase text-industrial-green">3rd Position - FYDP 2025</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="technical-header text-sm mb-6">Credentials.auth</h3>
+                    <div class="industrial-card p-4 space-y-3">
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Lean Six Sigma</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">kennesaw state uni</p>
+                            <p class="text-[11px] font-bold uppercase">Yellow Belt Certification</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Programming</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Sololearn</p>
+                            <p class="text-[11px] font-bold uppercase">HTML</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Documentations</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Coursera,BGMC</p>
+                            <p class="text-[11px] font-bold uppercase">MS Office</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">2D Designing</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Coursera</p>
+                            <p class="text-[11px] font-bold uppercase">Canva</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">FDM Prinitng</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Hp Life</p>
+                            <p class="text-[11px] font-bold uppercase">3D_Printing</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">UAV Management</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Duke University</p>
+                            <p class="text-[11px] font-bold uppercase">Drones for Environmental Science</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">CAD Designing</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Dassault Systemes</p>
+                            <p class="text-[11px] font-bold uppercase">SolidWorks</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Project Management</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">HP Life</p>
+                            <p class="text-[11px] font-bold uppercase">Agile Project Management</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">DEEP Learning</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">NVIDIA</p>
+                            <p class="text-[11px] font-bold uppercase">Fundamentals of Deep Learning</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Quality Management</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">BGMC</p>
+                            <p class="text-[11px] font-bold uppercase">Lean Six Sigma White Belt</p>
+                        </div>
+                         <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Communication Training</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">ICMPD</p>
+                            <p class="text-[11px] font-bold uppercase">Soft Skills Training</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">3D_Printing</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Sinterit</p>
+                            <p class="text-[11px] font-bold uppercase">SLA 3D Printing</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Artificial Intelligrnce</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">HP Life</p>
+                            <p class="text-[11px] font-bold uppercase">AI For Beginners</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Quality Management</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Alison</p>
+                            <p class="text-[11px] font-bold uppercase">ISO 9001:2015 QMS</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Quality Management</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">NPO.gov.pk</p>
+                            <p class="text-[11px] font-bold uppercase">ISO 9001 QMS for SMEs</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Safety Standards</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">TSDC</p>
+                            <p class="text-[11px] font-bold uppercase">Occupational Health & Safety</p>
+                        </div>
+                        <div class="h-[1px] bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="group">
+                            <p class="text-[9px] font-black uppercase opacity-40">Structural Design</p>
+                            <p class="text-[9px] font-Grey uppercase opacity-40">Yeforum.org</p>
+                            <p class="text-[11px] font-bold uppercase">Master Structural Design of Buildings</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section><h3 class="technical-header text-sm mb-6">Tool_Access.cfg</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">MS_Office</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Fusion360</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">SolidWorks</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Minitab_SPSS</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Matlab_Octave</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Arena_Sim</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">MS_Project</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Primavera P6</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">AutoCAD</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">VS_Code</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Divinchi_Resolve</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Canva_Affinity</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Adobe_Illustrator</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Snapseed</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Ultimaker_Cura</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Prusa_Slicer</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Orca_Slicer</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Bambulab_Studio</div>
+                    </div>
+                </section>
+
+                <section><h3 class="technical-header text-sm mb-6">Skill_Access.lst</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Observation_Skills</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Analytical_Skills</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Leadership</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Team_Managment</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Project_Managment</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Mechincal_CAD/CAM</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Designing</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Editing</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Programming</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Computer_Skills</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Quality_Assurance</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Lean_Six_Sigma</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Quality_Control</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">3D_Printing</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">Data_Ethics</div>
+                        <div class="industrial-card p-2 text-center text-[9px] font-bold uppercase">UAV_Operator</div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="md:col-span-2 space-y-8">
+                <section>
+                    <h3 class="technical-header text-sm mb-6">Work_History.log</h3>
+                    <div class="space-y-6">
+
+                        <div class="industrial-card p-6 border-l-4 border-l-industrial-blue">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Graduate Engineer Trainee</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2026.04 - Current</span>
+                            </div>
+                            <p class="text-industrial-purple dark:text-yellow-400 text-[10px] font-bold mb-4 uppercase">PCSIR  | Peshawar, KPK, Pak.</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Woked on FDM 3D Printers, its operations, functions & project related tasks.</li>
+                                <li>Wroked in CNC Workstation in Calibration, Maintaince & Observations of VMC.</li>
+                            </ul>
+                        </div>
+
+                        <div class="industrial-card p-6 border-l-4 border-l-industrial-blue">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Invigilator Staff</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2026.05 - 2026.05</span>
+                            </div>
+                            <p class="text-industrial-maroon dark:text-pink-400 text-[10px] font-bold mb-4 uppercase">BISEP | Peshawar, KPK, Pak.</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Conducted the BISEP HSSC I & II Examination Duties & Activities.</li>
+                                <li>Perfoemance Monitering & Ensure safe conductance of examinations.</li>
+                            </ul>
+                        </div>
+
+                        <div class="industrial-card p-6 border-l-4 border-l-industrial-black">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Mechanical CAD Designer</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2026.01 - 2026.02</span>
+                            </div>
+                            <p class="text-industrial-orange text-[10px] font-bold mb-4 uppercase">SK Engineering | Jalozai, PK</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Designed precise molds for industrial injection molding systems.</li>
+                                <li>Validated production quality using custom "Go/No-Go" gauges.</li>
+                                <li>Optimized mechanical designs to reduce manufacturing lead times.</li>
+                            </ul>
+                        </div>
+
+                        
+
+                        <div class="industrial-card p-6 border-l-4 border-l-industrial-blue">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Deputy Design Head</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2023.09 - 2025.06</span>
+                            </div>
+                            <p class="text-industrial-blue dark:text-blue-400 text-[10px] font-bold mb-4 uppercase">IISE Student Chapter | UET Peshawar, Jalozai Campus</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Led the design team for international engineering symposiums.</li>
+                                <li>Established brand visual identity for society events and technical workshops.</li>
+                            </ul>
+                        </div>
+
+                        <div class="industrial-card p-6 border-l-4 border-l-slate-400">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Internship Trainee</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2024.06 - 2024.09</span>
+                            </div>
+                            <p class="text-industrial-blue dark:text-industrial-skyblue text-[10px] font-bold mb-4 uppercase">SK Engineering & Manufacturing | Jalozai, PK</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Implemented Lean principles to eliminate operational waste.</li>
+                                <li>Standardized workflows using Job Cards and Machine Control Cards.</li>
+                            </ul>
+                        </div>
+
+                         <div class="industrial-card p-6 border-l-4 border-l-slate-500 group transition-all">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Internship Trainee</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2023.06 - 2023.08</span>
+                            </div>
+                            <p class="text-industrial-red text-[10px] font-bold mb-4 uppercase">Dewan Cement Limited | Hattar, PK</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Gained Sufficient Knowledge in Machine, Operations & Processes.</li>
+                            </ul>
+                            <!-- <div class="mt-4 flex gap-3 no-print">
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">#KILN_PYRO_PROCESSING</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">#ENERGY_AUDIT</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">#INDUSTRIAL_AUTOMATION</span>
+                            </div> -->
+                        </div>
+                        <div class="industrial-card p-6 border-l-4 border-l-slate-400">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-black uppercase text-sm">Freelancing</h4>
+                                <span class="text-[10px] opacity-50 font-bold">2023.01 - Current</span>
+                            </div>
+                            <p class="text-industrial-brown dark:text-industrial-green text-[10px] font-bold mb-4 uppercase">Remote Work | Remote</p>
+                            <ul class="list-disc list-inside text-xs space-y-1.5 opacity-80">
+                                <li>Did projects on Mechincal CAD using SolidWorks, AutoCAD & Fusion360.</li>
+                                <li>DId projects on Web Developement, by using three.js, React.js and SQL.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="technical-header text-sm mb-6">Major_Projects.obj</h3>
+                    <div class="space-y-6">
+                        <div class="industrial-card p-6 bg-industrial-purple/5 border-l-4 border-l-industrial-purple">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-black uppercase text-sm">UAV Inventory Control System</h4>
+                                <span class="bg-industrial-green text-black text-[9px] px-2 py-1 font-bold italic">+25% EFFICIENCY</span>
+                            </div>
+                            <p class="text-xs opacity-80 leading-relaxed mb-4">
+                                Developed an autonomous UAV system to automate large-scale warehouse inventory tracking. Integrated Python-based navigation to replace manual counts and minimize human error.
+                            </p>
+                            <div class="flex gap-4">
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#Python</span>
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#Automation</span>
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#Industry_4.0</span>
+                            </div>
+                        </div>
+                        <div class="industrial-card p-6 bg-industrial-purple/5 border-l-4 border-l-industrial-purple">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-black uppercase text-sm">rPET Recylcing System</h4>
+                                <span class="bg-industrial-green text-black text-[9px] px-2 py-1 font-bold italic">Recylcing</span>
+                            </div>
+                            <p class="text-xs opacity-80 leading-relaxed mb-4">
+                            Engineered a circular economy mechanical recycling system, designing a custom extrusion architecture that reclaims PET plastic into 3D-printing filament.</p>
+                            <div class="flex gap-4">
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#Green_Envirnment</span>
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#Recycling,Resue</span>
+                                <span class="text-[9px] font-bold opacity-40 uppercase">#3d_printing</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="industrial-card p-4 border-dashed">
+                                <h5 class="text-[11px] font-black uppercase mb-2">3D Solar System</h5>
+                                <p class="text-[10px] opacity-70">Interactive 3D model developed using Three.js and JavaScript.</p>
+                            </div>
+                            <div class="industrial-card p-4 border-dashed">
+                                <h5 class="text-[11px] font-black uppercase mb-2">Automated Molds</h5>
+                                <p class="text-[10px] opacity-70">SolidWorks designs for high-efficiency injection molding.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <div>
+            <canvas>
+                
+            </canvas>
+        </div>
+        <footer class="mt-12 pt-8 border-t border-slate-800/20 text-center no-print">
+            <button onclick="printCV()" class="industrial-card px-6 py-2 mb-6 inline-flex items-center gap-2 hover:bg-industrial-orange hover:text-white transition-all shadow-[4px_4px_0px_#ff6b00] hover:shadow-none">
+                <i class="fas fa-file-pdf"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest">Generate_PDF.sh</span>
+            </button>
+            <p class="text-[9px] font-black uppercase tracking-[0.5em] opacity-30">
+                System_Output // v2.1.0_CV_STABLE // 2026
+            </p>
+        </footer>
+    </div>
+
+    <a href="../index.html" class="fixed bottom-6 left-6 z-50 group no-print">
+        <div class="industrial-card p-3 flex items-center gap-3 bg-white dark:bg-slate-900 border-industrial-orange shadow-[4px_4px_0px_#ff6b00] hover:shadow-none hover:translate-x-1 hover:-translate-y-1 transition-all">
+            <i class="fas fa-terminal text-industrial-orange animate-pulse"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest">Return_to_Main</span>
+        </div>
+    </a>
+
+</body>
+</html>

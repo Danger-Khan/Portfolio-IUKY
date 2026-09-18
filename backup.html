@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IMAAD YAMEEN | INDUSTRIAL TERMINAL</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        industrial: {
+                        // Original Industrial Palette
+                            orange: "#FF6B00",
+                            blue: "#0047AB",
+                            steel: "#1e293b",
+                            dark: "#0f172a",
+                            purple: "#800080" ,
+                            yellow: "#ffff00" ,
+                            red: "#ff0000"  ,
+                        // Expanded Accent Palette
+                            white: "#FFFFFF",
+                            black: "#000000" ,
+                            silver: "#C0C0C0",
+                            grey: "#808080",
+                            brown: "#8B4513",
+                            green: "#00FF00",
+                            indigo: "#4B0082",
+                            violet: "#EE82EE",
+                            maroon: "#800000",
+                            pink: "#FFC0CB",
+                            skyblue: "#87CEEB",
+                        },
+                    },
+                    fontFamily: {
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style type="text/css">
+        @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&display=swap");
+
+        :root { --grid-opacity: 0.05; }
+        .dark { --grid-opacity: 0.2; }
+
+        body {
+            font-family: "JetBrains Mono", monospace;
+            background-color: #f1f5f9;
+            background-image: 
+                linear-gradient(rgba(0, 71, 171, var(--grid-opacity)) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 71, 171, var(--grid-opacity)) 1px, transparent 1px);
+            background-size: 30px 30px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark body { background-color: #0f172a; }
+
+        .industrial-card {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #1e293b;
+            background: white;
+            transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .dark .industrial-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .industrial-card:hover {
+            transform: translate(4px, -4px);
+            box-shadow: -8px 8px 0px #ff6b00;
+        }
+
+        /* Scanline Effect */
+        .industrial-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .status-blink { animation: blink 1.2s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .technical-header {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-left: 4px solid #ff6b00;
+            padding-left: 1rem;
+            font-weight: 800;
+        }
+
+        /* Smooth progress bar fill */
+        .progress-fill { transition: width 1.5s ease-in-out; }
+
+/* Updated Certification Section to be Reactive */
+.cert-archive {
+    position: relative;
+    padding: 40px 0;
+    transition: all 0.3s ease;
+}
+
+.cert-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 20px 0;
+    /* Hide scrollbar */
+    ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.cert-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ensure cards match the industrial-card style but with fixed width */
+.cert-item {
+    min-width: 300px;
+    flex-shrink: 0;
+}
+
+.nav-btn {
+    @apply border border-slate-800 dark:border-white p-2 px-4 hover:bg-industrial-orange hover:text-white hover:border-industrial-orange transition-all duration-200 uppercase text-[10px] font-bold;
+}
+    </style>
+</head>
+
+<body class="text-slate-900 dark:text-slate-100 antialiased">
+
+    <nav class="fixed w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-industrial-steel/20 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center text-[11px] font-bold tracking-tighter">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-industrial-orange animate-pulse"></span>
+                    <span class="text-industrial-orange uppercase">Connected</span>
+                </div>
+                <span id="pk-clock" class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">PKT: --:--:--</span>
+                <span class="hidden lg:inline opacity-40 uppercase">GPS_COORD: 34.01°N 71.52°E</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <span class="status-blink text-green-600 dark:text-green-400 hidden sm:inline uppercase">● System_Active</span>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-16 px-6 max-w-7xl mx-auto">
+        <div class="grid lg:grid-cols-3 gap-12 items-start">
+            <div class="lg:col-span-2">
+                <p class="text-industrial-orange font-black text-xs mb-4 tracking-[0.3em] uppercase">
+                    // Engineering_Profile: 2026_V2
+                </p>
+                <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-8 uppercase leading-none underline">
+                    Industrial <br />
+                    <span style="-webkit-text-stroke: 0.3px currentColor;">Engineer</span>
+                </h1>
+                <p class="text-xl opacity-70 max-w-xl leading-relaxed font-light">
+                    Optimizing industrial workflows through <span class="text-industrial-orange font-bold">Quality Control</span>,
+                    <span class="text-industrial-blue dark:text-blue-400 font-bold">Six Sigma</span> methodologies, &
+                    <span class="text-industrial-green">autonomous system</span> integration.
+                </p>
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="#portfolios" class="nav-btn inline-flex items-center gap-2">
+                        Explore Specialized Portfolios <i class="fas fa-arrow-down"></i>
+                    </a>
+                    <a href="./3dhtml.html" class="nav-btn inline-flex items-center gap-2">
+                        Enter The 3D Room <i class="fas fa-cube"></i>
+                    </a>
+                </div>
+            </div>
+           <!-- // Performance Block -->
+           <!-- <div class="industrial-card p-6 border-industrial-orange/30">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-black text-xs uppercase tracking-widest">Core_Performance</h3>
+                    <i class="fas fa-microchip text-industrial-orange opacity-50"></i>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase">
+                            <span>Bachelor_CGPA</span><span>3.75 / 4.00</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="progress-fill bg-industrial-orange h-full" style="width:93.75%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase">
+                            <span>Process_Optimization</span><span>Yellow Belt</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="progress-fill bg-yellow-500 h-full" style="width:100%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase">
+                            <span>Compliance_Rating</span><span>ISO 9001</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="progress-fill bg-green-500 h-full" style="width:100%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <p class="text-[9px] opacity-40 uppercase leading-tight italic font-bold">
+                        Verified: UET Peshawar | NVIDIA DLI | ISO Quality Standards
+                    </p>
+                </div>
+            </div>
+        </div> -->
+            <!-- // Picture Block -->
+           <div class="industrial-card p-2 border-industrial-orange/30 w-full max-w-[280px] mx-auto">
+                <div class="flex justify-center items-center overflow-hidden bg-slate-100 dark:bg-slate-800 aspect-square"> 
+                    <img 
+                        src="img/dp.jpg"
+                        alt="Engr_Imaad_Yameen_Profile"
+                        class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                    >
+                </div>
+                <div class="mt-2 text-[9px] text-center uppercase opacity-40 font-bold tracking-widest">
+                    ID_SCAN: Engr_Imaad_Yameen
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6">
+        <a href="resume/cv.html" target="_blank" class="industrial-card p-8 flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-file-pdf text-3xl text-red-600"></i>
+                <div>
+                    <h4 class="font-black uppercase text-lg mb-1">Full_Resume_2026</h4>
+                    <p class="text-[11px] opacity-50 uppercase tracking-tighter">Academic & Professional History</p>
+                </div>
+            </div>
+            <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-orange"></i>
+        </a>
+    </div>
+
+    <section id="portfolios" class="py-12 px-6 max-w-7xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-8">
+            <h2 class="technical-header">specialized_Portfolios.sys</h2>
+            <span class="text-[10px] opacity-40 uppercase tracking-widest">7 Live Modules // Click_To_Enter</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <a href="./Portfoilos/CADCAMCAE/index.html" class="industrial-card p-6 group border-l-4 border-industrial-blue">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-blue/10 transition-colors group-hover:bg-industrial-blue">
+                        <i class="fas fa-ruler-combined text-xl text-industrial-blue group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-blue"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">CAD / CAM / CAE</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">66 real SolidWorks files, live in-browser 3D STL viewer.</p>
+            </a>
+
+            <a href="./Portfoilos/GIS &amp; Remote Sensing/index.html" class="industrial-card p-6 group border-l-4 border-industrial-skyblue">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-skyblue/10 transition-colors group-hover:bg-industrial-skyblue">
+                        <i class="fas fa-globe text-xl text-industrial-skyblue group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-skyblue"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">GIS &amp; Remote Sensing</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">Google Earth Engine work + an interactive rotating globe.</p>
+            </a>
+
+            <a href="./Portfoilos/AI ,ML/ML/index.html" class="industrial-card p-6 group border-l-4 border-industrial-purple">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-purple/10 transition-colors group-hover:bg-industrial-purple">
+                        <i class="fas fa-brain text-xl text-industrial-purple group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-purple"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">AI / ML Lab</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">Live regression &amp; forecasting engine — runs 100% locally.</p>
+            </a>
+
+            <a href="./Portfoilos/Embeded Systems &amp; Circuitry/index.html" class="industrial-card p-6 group border-l-4 border-industrial-green">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-green/10 transition-colors group-hover:bg-industrial-green">
+                        <i class="fas fa-microchip text-xl text-industrial-green group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-green"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">Embedded Systems</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">Circuit-themed showcase of MCU &amp; IoT project work.</p>
+            </a>
+
+            <a href="./Portfoilos/3D,Website &amp; Graphics/index.html" class="industrial-card p-6 group border-l-4 border-industrial-yellow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-yellow/10 transition-colors group-hover:bg-industrial-yellow">
+                        <i class="fas fa-cubes text-xl text-industrial-yellow group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-yellow"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">Creative &amp; 3D</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">Interactive 3D world, plus graphic &amp; motion design systems.</p>
+            </a>
+
+            <a href="./Portfoilos/Programming/index.html" class="industrial-card p-6 group border-l-4 border-industrial-indigo">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-indigo/10 transition-colors group-hover:bg-industrial-indigo">
+                        <i class="fas fa-terminal text-xl text-industrial-indigo group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-indigo"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">Programming</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">A real Python ERP app, live repos, and working code.</p>
+            </a>
+
+            <a href="./Portfoilos/Gamer/index.html" class="industrial-card p-6 group border-l-4 border-industrial-pink">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-pink/10 transition-colors group-hover:bg-industrial-pink">
+                        <i class="fas fa-gamepad text-xl text-industrial-pink group-hover:text-white"></i>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-pink"></i>
+                </div>
+                <h3 class="font-black uppercase text-sm mb-1">Gamer Design</h3>
+                <p class="text-[11px] opacity-60 leading-relaxed">A soft, gacha-inspired gaming portfolio concept.</p>
+            </a>
+
+        </div>
+    </section>
+
+    <section class="py-12 px-6 max-w-7xl mx-auto">
+        <h2 class="technical-header mb-8">experience_DataSheet.sys</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+           <div class="industrial-card p-6 group">
+              <div class="w-12 h-12 flex items-center justify-center bg-industrial-orange/10 mb-4 transition-colors group-hover:bg-industrial-orange">
+                  <i class="fas fa-drafting-compass text-xl text-industrial-orange group-hover:text-white"></i>
+              </div>
+              <h3 class="font-black uppercase text-sm mb-1">SolidWorks Designer</h3>
+              <p class="text-xs opacity-60 italic mb-1">(Jan 2026 – Feb 2026)</p>
+              
+              <h4 class="font-black uppercase text-xs mb-1 text-industrial-orange">SK Engineering:</h4>
+              <ul class="list-disc list-inside space-y-2 text-xs opacity-70">
+                  <li>Engineered industrial molds for injection molding.</li>
+                  <li>Designed & validated "Go/No-Go" gauges with minimum tolerances.</li>
+                  <li>Spearheaded design modifications to enhance manufacturability.</li>
+              </ul>
+          </div>
+          
+          <div class="industrial-card p-6 group">
+              <div class="w-12 h-12 flex items-center justify-center bg-industrial-blue/10 mb-4 transition-colors group-hover:bg-industrial-blue">
+                  <i class="fas fa-microchip text-xl text-industrial-blue group-hover:text-white"></i>
+              </div>
+              <h3 class="font-black uppercase text-sm mb-1">Internship Trainee</h3>
+              
+              <div class="space-y-4">
+                  <div>
+                       <p class="text-xs opacity-60 italic mb-1">(Jun 2024 – Sep 2024)</p>
+                      <h4 class="font-black uppercase text-xs mb-1 text-industrial-blue">SK Engineering:</h4>
+                      <ul class="list-disc list-inside space-y-1.5 text-[11px] opacity-70">
+                          <li>Monitored CNC machines to ensure high operational efficiency.</li>
+                          <li>Designed Job & Machine cards to maintain process discipline.</li>
+                          <li>Worked with RFID & Automation for production tracking.</li>
+                      </ul>
+                  </div>
+                  <div>
+                      <p class="text-xs opacity-60 italic mb-1">(Jun 2023 – Aug 2023)</p>
+                      <h4 class="font-black uppercase text-xs mb-1 text-industrial-blue">Dewan Cement Limited:</h4>
+                      <ul class="list-disc list-inside space-y-1.5 text-[11px] opacity-70">
+                          <li>Gained knowledge of mechanical machines & industrial processes.</li>
+                      </ul>
+                  </div>
+              </div>
+          </div>
+
+                  <div class="industrial-card p-6 group">
+                      <div class="w-12 h-12 flex items-center justify-center bg-industrial-purple/10 mb-4 transition-colors group-hover:bg-industrial-purple">
+                          <i class="fas fa-industry text-xl text-industrial-purple group-hover:text-white"></i>
+                      </div>
+                      <div class="flex justify-between items-start">
+                          <div>
+                              <h3 class="font-black uppercase text-sm mb-1">FYDP Project Head</h3>
+                              <p class="text-xs opacity-60 italic mb-1">(Sep 2024 – Aug 2025)</p>
+                      <h4 class="font-black uppercase text-xs mb-1 text-industrial-purple">NBL Pesh.:</h4>
+                      <ul class="list-disc list-inside space-y-2 text-xs opacity-70">
+                          <li>Engineered and programmed an automated UAV system for warehouse inventory control.</li>
+                          <li>Achieved a 25% optimization in inspection time vs. manual method.</li>
+                          <li>Developed a detailed implementation plan to reduce process bottlenecking.</li>
+                      </ul>
+                         </div>
+                         <a href="./vid/index.html" class="inline-block">
+                            <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-orange"></i>
+                        </a>
+                        </div>
+                    </div>
+                <div class="industrial-card p-6 group">
+                    <div class="w-12 h-12 flex items-center justify-center bg-industrial-green/10 mb-4 transition-colors group-hover:bg-industrial-green">
+                        <i class="fas fa-palette text-xl text-industrial-green group-hover:text-white"></i>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-black uppercase text-sm mb-1">Deputy Design Head</h3>
+                            <p class="text-xs opacity-60 italic mb-1">(Sep 2023 – Jun 2025)</p>                    
+                    <h4 class="font-black uppercase text-xs mb-1 text-industrial-green">IISE Society - UET Peshawar (Jalozai):</h4>
+                    <ul class="list-disc list-inside space-y-2 text-xs opacity-70">
+                        <li>Managed the visual identity and branding protocols for the IISE student chapter.</li>
+                        <li>Executed high-fidelity design iterations for technical event posters and digital assets.</li>
+                        <li>Supervised the finalization process of promotional materials to ensure alignment with society standards.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="mt-20 py-12 px-6 border-t-4 border-industrial-steel bg-slate-900 text-slate-400">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="space-y-2">
+                    <p class="text-white font-bold text-xs uppercase tracking-[0.3em]">Engr. Imaad Yameen</p>
+                    <p class="text-[10px] leading-relaxed max-w-sm uppercase">
+                        Industrial Engineering Graduate // Mechanical Designer // Automation Specialist.
+                    </p>
+                </div>
+                <div class="flex md:justify-end gap-6 text-sm">
+                    <a href="https://www.linkedin.com/in/imaad-ullah-khan-yameen/" class="hover:text-white transition-colors uppercase font-bold text-[10px]">LinkedIn</a>
+                    <a href="https://github.com/yameenimaad/Porfolio_IUKY" class="hover:text-white transition-colors uppercase font-bold text-[10px]">GitHub</a>
+                    <a href="mailto:yameenimaad@gmail.com" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Email_Terminal</a>
+                </div>
+                <div class="flex md:justify-end gap-6 text-sm">
+                    <a href="./Portfoilos/Programming/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Programming_Portfolio</a>
+                    <a href="./Portfoilos/Gamer/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Gamer_Portfolio</a>
+                    <a href="./Portfoilos/3D,Website &amp; Graphics/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Creative_3D_Portfolio</a>
+                    <a href="./Portfoilos/CADCAMCAE/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">CAD/CAM/CAE_Portfolio</a>
+                    <a href="./Portfoilos/AI ,ML/ML/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">AI/ML_Portfolio</a>
+                    <a href="./Portfoilos/Embeded Systems &amp; Circuitry/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Embeded_Systems_Portfolio</a>
+                    <a href="./Portfoilos/GIS &amp; Remote Sensing/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">GIS_Portfolio</a>
+                </div>
+                <div class="md:col-span-2 mt-6">
+                    <p class="text-[10px] opacity-50 uppercase tracking-widest">
+                        Disclaimer: This portfolio is a personal project and does not represent any official affiliation with the mentioned organizations. All content is for educational and demonstration purposes only.
+                    </p>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-slate-800 text-[9px] flex flex-col md:flex-row justify-between gap-4 uppercase font-bold">
+                <p>© 2026 IMAAD ULLAH KHAN YAMEEN // ALL_SYSTEMS_OPERATIONAL</p>
+                <p>Build: v2.0.4-Stable // Encrypted_Static_Site</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Real-time Clock Logic
+        function updatePKT() {
+            const clock = document.getElementById("pk-clock");
+            const now = new Date();
+            const time = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Karachi",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+            }).format(now);
+            clock.innerText = `PKT: ${time}`;
+        }
+        setInterval(updatePKT, 1000);
+        updatePKT();
+
+        // Theme Toggle Persistence
+        const btn = document.getElementById("theme-toggle");
+        const icon = document.getElementById("theme-icon");
+        const html = document.documentElement;
+
+        // Check for saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        btn.addEventListener("click", () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        const track = document.getElementById('certTrack');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+
+        // Amount to scroll per click (width of one card + gap)
+        const scrollAmount = 320; 
+
+        nextBtn.addEventListener('click', () => {
+            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        prevBtn.addEventListener('click', () => {
+            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

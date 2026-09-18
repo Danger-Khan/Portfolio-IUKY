@@ -1,0 +1,13 @@
+Third-party libraries vendored into this project so 3dhtml.html works
+fully offline (no CDN calls at runtime).
+
+react/react.production.min.js, react/react-dom.production.min.js
+  React 18.2.0 — MIT License — https://github.com/facebook/react
+
+three/three.module.js, three/addons/controls/OrbitControls.js,
+three/addons/loaders/GLTFLoader.js, three/addons/utils/BufferGeometryUtils.js
+  Three.js r160 (0.160.0) — MIT License — https://github.com/mrdoob/three.js
+
+All files are unmodified builds fetched directly from their official
+npm packages via unpkg.com. See each project's repository for full
+license text.

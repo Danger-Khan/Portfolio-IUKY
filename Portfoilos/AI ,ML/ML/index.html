@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI/ML Portfolio</title>
+    <meta
+      name="description"
+      content="AI/ML portfolio with a real, fully local forecasting lab — regression models and a from-scratch neural network, trained by backpropagation entirely in the browser, no server or API required."
+    />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #111827;
+        --panel: #121d2d;
+        --primary: #8b5cf6;
+        --secondary: #22d3ee;
+        --highlight: #f59e0b;
+        --text: #edf2ff;
+        --muted: #c4cfe3;
+        --line: rgba(255,255,255,0.09);
+        --good: #34d399;
+        --bad: #f87171;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+
+      .container {
+        width: min(1100px, calc(100% - 2rem));
+        margin: 0 auto;
+      }
+
+      .section { padding: 80px 0; }
+
+      .topbar {
+        padding: 20px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11,16,32,0.8);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(10px);
+        z-index: 30;
+      }
+
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+      .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+      .logo span { color: var(--secondary); }
+      .nav-links { display: flex; gap: 20px; flex-wrap: wrap; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+      .nav-links a:hover { color: var(--secondary); }
+
+      .hero { padding: 90px 0 60px; }
+      .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center; }
+
+      h1 { margin: 0 0 18px; font-size: clamp(2.5rem, 6vw, 5rem); line-height: 0.95; letter-spacing: -0.06em; }
+      .hero p { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0; }
+
+      .badge {
+        display: inline-block; color: var(--secondary); font-size: 0.74rem; letter-spacing: 0.18em;
+        text-transform: uppercase; margin-bottom: 18px; font-weight: 700;
+      }
+
+      .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 30px; }
+      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
+      .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .hero-panel {
+        background: linear-gradient(180deg, rgba(139,92,246,0.14), rgba(17,24,39,0.95));
+        border: 1px solid var(--line); border-radius: 24px; padding: 28px;
+      }
+      .panel-box { background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 16px; }
+      .panel-box:last-child { margin-bottom: 0; }
+      .panel-box strong { display: block; font-size: 2rem; color: var(--secondary); }
+      .panel-box span { color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.7rem; }
+
+      .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+      .card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+      .card h3 { margin: 0 0 12px; font-size: 1.1rem; }
+      .card p, .card li { color: var(--muted); line-height: 1.7; }
+      .card ul { margin: 0; padding-left: 18px; }
+
+      .section-title { margin-bottom: 30px; }
+      .section-title h2 { margin: 0; font-size: clamp(1.9rem, 4vw, 3rem); }
+      .section-title .badge { margin-bottom: 12px; }
+      .section-title p.lead { margin: 10px 0 0; color: var(--muted); max-width: 700px; }
+      .section-title code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+
+      /* ============ Forecasting Lab ============ */
+      .lab-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; margin-bottom: 20px; }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .lab-panel h3 { margin: 0 0 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+
+      table#dataTable { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 14px; }
+      table#dataTable th { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 6px; }
+      table#dataTable td { padding: 4px 6px; }
+      table#dataTable input[type="number"] {
+        width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 6px;
+        color: var(--text); padding: 6px 8px; font-size: 0.85rem; font-family: inherit;
+      }
+      table#dataTable input[type="number"]:focus { outline: none; border-color: var(--secondary); }
+      .row-remove { background: none; border: none; color: var(--bad); cursor: pointer; font-size: 1rem; padding: 4px 8px; }
+
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .lab-row .btn { padding: 9px 16px; font-size: 0.78rem; }
+
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 0.82rem; color: var(--muted); }
+      .field select, .field input[type="number"] {
+        background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--text); padding: 10px 12px; font-size: 0.9rem; font-family: inherit;
+      }
+      .field select:focus, .field input:focus { outline: none; border-color: var(--secondary); }
+      .field .hint { font-size: 0.72rem; opacity: 0.7; }
+
+      .error-box {
+        background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: #fecaca;
+        border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; margin-top: 8px;
+      }
+
+      .lab-output { padding: 26px; }
+      #chartWrap { width: 100%; overflow-x: auto; }
+      canvas#chart { display: block; width: 100%; height: auto; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--line); }
+
+      .legend-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75rem; color: var(--muted); }
+      .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+      .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+      .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+      .stat-chip { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; }
+      .stat-chip strong { display: block; font-size: 1.3rem; color: var(--good); font-family: 'Consolas', monospace; }
+      .stat-chip span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+      .equation-box {
+        margin-top: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px;
+        padding: 14px 16px; font-family: 'Consolas', monospace; font-size: 0.9rem; color: var(--secondary); overflow-x: auto; white-space: nowrap;
+      }
+
+      table#forecastTable { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 0.85rem; }
+      table#forecastTable th, table#forecastTable td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+      table#forecastTable th { color: var(--muted); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; }
+      table#forecastTable td:first-child, table#forecastTable th:first-child { color: var(--highlight); font-family: 'Consolas', monospace; }
+
+      .offline-note {
+        display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good);
+        text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px;
+      }
+      .offline-note::before { content: '●'; }
+
+      .contact { padding: 20px 0 90px; }
+      .contact-box {
+        display: flex; justify-content: space-between; align-items: center; gap: 24px;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 24px; padding: 32px 28px;
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid, .row, .contact-box, .lab-grid, .stats-row { grid-template-columns: 1fr; }
+        .nav { flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">AI / <span>ML</span></div>
+        <nav class="nav-links">
+          <a href="../../../index.html">← Portfolio</a>
+          <a href="#about">About</a>
+          <a href="#lab">Forecasting Lab</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="badge">AI / ML</div>
+            <h1>Turning data into intelligent systems.</h1>
+            <p>
+              I work on machine learning workflows, predictive modeling, data analysis,
+              and intelligent automation. Below is a real, working piece of that: a
+              forecasting lab that fits regression models to your data and predicts
+              forward — entirely in this browser tab, with no server or API call.
+            </p>
+            <div class="hero-actions">
+              <a href="#lab" class="btn btn-primary">Open Forecasting Lab</a>
+              <a href="#contact" class="btn btn-secondary">Contact Me</a>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="panel-box">
+              <strong>4</strong>
+              <span>Models — 3 regressions + a real neural net</span>
+            </div>
+            <div class="panel-box">
+              <strong>0</strong>
+              <span>Network requests to train or run a forecast</span>
+            </div>
+            <div class="panel-box">
+              <strong>Python + JS</strong>
+              <span>Data &amp; model logic</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">About</div>
+            <h2>Machine learning with a practical mindset.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card">
+              <h3>What I do</h3>
+              <p>
+                I build AI-driven solutions for data analysis, predictive models,
+                automation, and intelligent decision support.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Core skills</h3>
+              <ul>
+                <li>Data preprocessing</li>
+                <li>Model development</li>
+                <li>Feature engineering</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Tools</h3>
+              <ul>
+                <li>Python</li>
+                <li>scikit-learn</li>
+                <li>Pandas / NumPy</li>
+                <li>Vanilla JS (this lab)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="lab" class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Local Forecasting Lab · v2</div>
+            <h2>Regression, a real neural net, and forecasting — running in your browser.</h2>
+            <p class="lead">
+              Edit the data table (or paste your own as CSV), pick a model, and run a
+              forecast. Every computation — the regression fit, the neural network's
+              training loop, the metrics, the chart — happens in plain JavaScript on this
+              page via <code>Assets/regression-engine.js</code>. Nothing is sent anywhere,
+              and it works with no internet connection once the page is loaded. Use
+              "Compare All Models" to see every model's fit on the same data side by side.
+              Classification (logistic regression, k-NN) is a natural next addition.
+            </p>
+          </div>
+
+          <div class="lab-grid">
+            <div class="lab-panel">
+              <h3>1 · Data points</h3>
+              <table id="dataTable">
+                <thead>
+                  <tr><th>X</th><th>Y</th><th>Weight</th><th></th></tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+              </table>
+              <div class="lab-row">
+                <button type="button" id="addRow" class="btn btn-ghost">+ Add Point</button>
+                <button type="button" id="loadSample" class="btn btn-ghost">Load Sample Dataset</button>
+                <button type="button" id="toggleCsv" class="btn btn-ghost">Import CSV</button>
+                <button type="button" id="clearAll" class="btn btn-ghost">Clear All</button>
+              </div>
+              <div id="csvPanel" style="display:none; margin-top:12px;">
+                <textarea id="csvInput" rows="4" placeholder="One point per line: x,y  or  x,y,weight&#10;1,12.4&#10;2,15.1&#10;3,14.8" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px; font-family:'Consolas',monospace; font-size:0.82rem; resize:vertical;"></textarea>
+                <div class="lab-row" style="margin-top:8px; align-items:center;">
+                  <button type="button" id="applyCsv" class="btn btn-secondary">Load This Data</button>
+                  <span class="hint">Parsed locally — pasted data never leaves this tab.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lab-panel">
+              <h3>2 · Model &amp; forecast</h3>
+              <div class="field">
+                <label for="modelType">Model type</label>
+                <select id="modelType">
+                  <option value="linear">Linear Regression (OLS)</option>
+                  <option value="weighted">Weighted Linear Regression (WLS)</option>
+                  <option value="poly2">Polynomial Regression — degree 2</option>
+                  <option value="poly3">Polynomial Regression — degree 3</option>
+                  <option value="nn">Neural Network (MLP)</option>
+                </select>
+                <span class="hint" id="modelHint">Fits a straight line minimising total squared error.</span>
+              </div>
+
+              <div id="nnFields" style="display:none;">
+                <div class="field">
+                  <label for="nnHidden">Hidden neurons</label>
+                  <input type="number" id="nnHidden" value="8" min="2" max="32" step="1" />
+                </div>
+                <div class="field">
+                  <label for="nnEpochs">Training epochs</label>
+                  <input type="number" id="nnEpochs" value="400" min="10" max="3000" step="10" />
+                </div>
+                <div class="field">
+                  <label for="nnLr">Learning rate</label>
+                  <input type="number" id="nnLr" value="0.15" min="0.001" max="2" step="0.01" />
+                  <span class="hint">Trains from random weights each run, so results vary slightly run to run — normal for neural nets.</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="horizon">Forecast horizon (points ahead)</label>
+                <input type="number" id="horizon" value="5" min="1" max="50" step="1" />
+                <span class="hint">Extrapolates past the last x using the data's own spacing.</span>
+              </div>
+              <button type="button" id="runBtn" class="btn btn-primary" style="width:100%;">Run Forecast</button>
+              <div class="offline-note">Runs 100% locally — no network request is made</div>
+              <div id="errorBox" class="error-box" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div class="lab-panel lab-output">
+            <h3>3 · Fit &amp; forecast</h3>
+            <div id="chartWrap">
+              <canvas id="chart" width="1000" height="380"></canvas>
+            </div>
+            <div class="legend-row">
+              <span><span class="legend-dot" style="background:#22d3ee;"></span>Training data</span>
+              <span><span class="legend-dot" style="background:#8b5cf6;"></span>Fitted model</span>
+              <span><span class="legend-dot" style="background:#f59e0b;"></span>Forecast</span>
+            </div>
+
+            <div class="equation-box" id="equationBox">Run a forecast to see the fitted equation.</div>
+
+            <div id="lossBox" style="display:none; margin-top:14px;">
+              <div class="hint" style="margin-bottom:6px;">Training loss (MSE), sampled through backpropagation:</div>
+              <canvas id="lossChart" style="width:100%; height:60px; display:block; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--line);"></canvas>
+              <div class="hint" id="lossReadout" style="margin-top:6px;"></div>
+            </div>
+
+            <div class="stats-row" id="statsRow">
+              <div class="stat-chip"><strong id="statR2">—</strong><span>R²</span></div>
+              <div class="stat-chip"><strong id="statRmse">—</strong><span>RMSE</span></div>
+              <div class="stat-chip"><strong id="statMae">—</strong><span>MAE</span></div>
+              <div class="stat-chip"><strong id="statN">—</strong><span>Points Used</span></div>
+            </div>
+
+            <table id="forecastTable" style="display:none;">
+              <thead><tr><th>X</th><th>Forecast Ŷ</th></tr></thead>
+              <tbody id="forecastBody"></tbody>
+            </table>
+
+            <div class="lab-row" style="margin-top:24px;">
+              <button type="button" id="compareBtn" class="btn btn-secondary">Compare All Models On This Data</button>
+            </div>
+            <table id="compareTable" style="display:none;">
+              <thead><tr><th>Model</th><th>R²</th><th>RMSE</th><th>MAE</th></tr></thead>
+              <tbody id="compareBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div class="container">
+          <div class="contact-box">
+            <div>
+              <div class="badge">Contact</div>
+              <h2 style="margin:0; font-size: clamp(1.7rem, 4vw, 2.5rem);">Let’s build an AI-driven solution.</h2>
+            </div>
+            <a href="mailto:yameenimaad@gmail.com" class="btn btn-primary">yameenimaad@gmail.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import {
+        linearRegression,
+        weightedLinearRegression,
+        polynomialRegression,
+        neuralNetworkRegression,
+        computeMetrics,
+        forecast as runForecast
+      } from '../Assets/regression-engine.js';
+
+      const dataBody = document.getElementById('dataBody');
+      const addRowBtn = document.getElementById('addRow');
+      const loadSampleBtn = document.getElementById('loadSample');
+      const toggleCsvBtn = document.getElementById('toggleCsv');
+      const clearAllBtn = document.getElementById('clearAll');
+      const csvPanel = document.getElementById('csvPanel');
+      const csvInput = document.getElementById('csvInput');
+      const applyCsvBtn = document.getElementById('applyCsv');
+      const modelType = document.getElementById('modelType');
+      const modelHint = document.getElementById('modelHint');
+      const nnFields = document.getElementById('nnFields');
+      const nnHidden = document.getElementById('nnHidden');
+      const nnEpochs = document.getElementById('nnEpochs');
+      const nnLr = document.getElementById('nnLr');
+      const horizonInput = document.getElementById('horizon');
+      const runBtn = document.getElementById('runBtn');
+      const errorBox = document.getElementById('errorBox');
+      const equationBox = document.getElementById('equationBox');
+      const lossBox = document.getElementById('lossBox');
+      const lossChart = document.getElementById('lossChart');
+      const lossReadout = document.getElementById('lossReadout');
+      const statR2 = document.getElementById('statR2');
+      const statRmse = document.getElementById('statRmse');
+      const statMae = document.getElementById('statMae');
+      const statN = document.getElementById('statN');
+      const forecastTable = document.getElementById('forecastTable');
+      const forecastBody = document.getElementById('forecastBody');
+      const compareBtn = document.getElementById('compareBtn');
+      const compareTable = document.getElementById('compareTable');
+      const compareBody = document.getElementById('compareBody');
+      const canvas = document.getElementById('chart');
+      const ctx = canvas.getContext('2d');
+      const lossCtx = lossChart.getContext('2d');
+
+      const MODEL_HINTS = {
+        linear: 'Fits a straight line minimising total squared error.',
+        weighted: 'Like linear regression, but points with a higher weight pull the line toward them harder.',
+        poly2: 'Fits a curve (y = a + bx + cx²) — good for gentle acceleration or deceleration trends.',
+        poly3: 'Fits a cubic curve — can capture an inflection point, but can overfit with few points.',
+        nn: 'Trains a small neural network (1 input → tanh hidden layer → linear output) from scratch via backpropagation, right here in the browser.'
+      };
+
+      const MODEL_LABELS = {
+        linear: 'Linear (OLS)',
+        weighted: 'Weighted Linear (WLS)',
+        poly2: 'Polynomial (degree 2)',
+        poly3: 'Polynomial (degree 3)',
+        nn: 'Neural Network (MLP)'
+      };
+
+      const SAMPLE_DATA = [
+        { x: 1, y: 12.4, w: 1 },
+        { x: 2, y: 15.1, w: 1 },
+        { x: 3, y: 14.8, w: 1 },
+        { x: 4, y: 18.6, w: 1.2 },
+        { x: 5, y: 21.2, w: 1.2 },
+        { x: 6, y: 20.9, w: 1.5 },
+        { x: 7, y: 24.7, w: 1.5 },
+        { x: 8, y: 27.3, w: 1.8 },
+        { x: 9, y: 29.0, w: 1.8 },
+        { x: 10, y: 32.5, w: 2 }
+      ];
+
+      function addRow(point = { x: '', y: '', w: 1 }) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="number" class="x-input" step="any" value="${point.x}"></td>
+          <td><input type="number" class="y-input" step="any" value="${point.y}"></td>
+          <td><input type="number" class="w-input" step="any" min="0" value="${point.w}"></td>
+          <td><button type="button" class="row-remove" title="Remove point">✕</button></td>
+        `;
+        tr.querySelector('.row-remove').addEventListener('click', () => {
+          tr.remove();
+        });
+        dataBody.appendChild(tr);
+      }
+
+      function loadSample() {
+        dataBody.innerHTML = '';
+        SAMPLE_DATA.forEach(addRow);
+      }
+
+      function readPoints() {
+        const rows = [...dataBody.querySelectorAll('tr')];
+        const points = [];
+        for (const row of rows) {
+          const x = parseFloat(row.querySelector('.x-input').value);
+          const y = parseFloat(row.querySelector('.y-input').value);
+          const wRaw = parseFloat(row.querySelector('.w-input').value);
+          if (Number.isNaN(x) || Number.isNaN(y)) continue;
+          points.push({ x, y, w: Number.isNaN(wRaw) || wRaw <= 0 ? 1 : wRaw });
+        }
+        return points;
+      }
+
+      function parseCsv(text) {
+        const lines = text
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0 && !/^x\s*,/i.test(line));
+
+        const points = [];
+        for (const line of lines) {
+          const parts = line.split(',').map((p) => p.trim());
+          const x = parseFloat(parts[0]);
+          const y = parseFloat(parts[1]);
+          const w = parts.length > 2 ? parseFloat(parts[2]) : 1;
+          if (Number.isNaN(x) || Number.isNaN(y)) continue;
+          points.push({ x, y, w: Number.isNaN(w) || w <= 0 ? 1 : w });
+        }
+        return points;
+      }
+
+      function nnOptions() {
+        return {
+          hiddenSize: parseInt(nnHidden.value, 10) || 8,
+          epochs: parseInt(nnEpochs.value, 10) || 400,
+          learningRate: parseFloat(nnLr.value) || 0.15
+        };
+      }
+
+      function fitModel(type, points) {
+        switch (type) {
+          case 'linear': return linearRegression(points);
+          case 'weighted': return weightedLinearRegression(points);
+          case 'poly2': return polynomialRegression(points, 2);
+          case 'poly3': return polynomialRegression(points, 3);
+          case 'nn': return neuralNetworkRegression(points, nnOptions());
+          default: throw new Error('Unknown model type.');
+        }
+      }
+
+      function drawChart(points, model, forecastPoints) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const cssWidth = canvas.clientWidth || 1000;
+        const cssHeight = 380;
+        canvas.width = cssWidth * dpr;
+        canvas.height = cssHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+        const pad = { left: 50, right: 24, top: 20, bottom: 34 };
+        const plotW = cssWidth - pad.left - pad.right;
+        const plotH = cssHeight - pad.top - pad.bottom;
+
+        const allX = [...points.map((p) => p.x), ...forecastPoints.map((p) => p.x)];
+        const allY = [...points.map((p) => p.y), ...forecastPoints.map((p) => p.y)];
+        let minX = Math.min(...allX);
+        let maxX = Math.max(...allX);
+        let minY = Math.min(...allY);
+        let maxY = Math.max(...allY);
+        if (minX === maxX) { minX -= 1; maxX += 1; }
+        if (minY === maxY) { minY -= 1; maxY += 1; }
+        const yPadAmt = (maxY - minY) * 0.15;
+        minY -= yPadAmt;
+        maxY += yPadAmt;
+
+        const toPx = (x) => pad.left + ((x - minX) / (maxX - minX)) * plotW;
+        const toPy = (y) => pad.top + plotH - ((y - minY) / (maxY - minY)) * plotH;
+
+        // Gridlines + axis labels.
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillStyle = 'rgba(196,207,227,0.75)';
+        ctx.font = '11px Arial';
+        ctx.lineWidth = 1;
+        const gridLines = 5;
+        for (let i = 0; i <= gridLines; i += 1) {
+          const gy = pad.top + (plotH / gridLines) * i;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, gy);
+          ctx.lineTo(cssWidth - pad.right, gy);
+          ctx.stroke();
+          const yVal = maxY - ((maxY - minY) / gridLines) * i;
+          ctx.fillText(yVal.toFixed(1), 6, gy + 4);
+        }
+        for (let i = 0; i <= gridLines; i += 1) {
+          const gx = pad.left + (plotW / gridLines) * i;
+          const xVal = minX + ((maxX - minX) / gridLines) * i;
+          ctx.fillText(xVal.toFixed(1), gx - 10, cssHeight - 10);
+        }
+
+        // Fitted curve, sampled smoothly across the full visible x range.
+        ctx.strokeStyle = '#8b5cf6';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        const samples = 120;
+        for (let i = 0; i <= samples; i += 1) {
+          const x = minX + ((maxX - minX) * i) / samples;
+          const y = model.predict(x);
+          const px = toPx(x);
+          const py = toPy(y);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Training points.
+        ctx.fillStyle = '#22d3ee';
+        for (const p of points) {
+          ctx.beginPath();
+          ctx.arc(toPx(p.x), toPy(p.y), 4.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Forecast points + connecting dashed guide.
+        if (forecastPoints.length) {
+          ctx.strokeStyle = 'rgba(245,158,11,0.6)';
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          const last = points[points.length - 1];
+          ctx.moveTo(toPx(last.x), toPy(model.predict(last.x)));
+          forecastPoints.forEach((p) => ctx.lineTo(toPx(p.x), toPy(p.y)));
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#f59e0b';
+          for (const p of forecastPoints) {
+            const px = toPx(p.x);
+            const py = toPy(p.y);
+            ctx.beginPath();
+            ctx.moveTo(px, py - 5);
+            ctx.lineTo(px + 5, py);
+            ctx.lineTo(px, py + 5);
+            ctx.lineTo(px - 5, py);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+
+      function drawLossChart(lossHistory) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = lossChart.clientWidth || 1000;
+        const h = 60;
+        lossChart.width = w * dpr;
+        lossChart.height = h * dpr;
+        lossCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        lossCtx.clearRect(0, 0, w, h);
+        if (!lossHistory.length) return;
+
+        const maxLoss = Math.max(...lossHistory);
+        const minLoss = Math.min(...lossHistory);
+        const range = (maxLoss - minLoss) || 1;
+
+        lossCtx.strokeStyle = '#f59e0b';
+        lossCtx.lineWidth = 2;
+        lossCtx.beginPath();
+        lossHistory.forEach((loss, i) => {
+          const x = (i / Math.max(1, lossHistory.length - 1)) * (w - 8) + 4;
+          const y = h - 6 - ((loss - minLoss) / range) * (h - 12);
+          if (i === 0) lossCtx.moveTo(x, y); else lossCtx.lineTo(x, y);
+        });
+        lossCtx.stroke();
+      }
+
+      function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+      }
+
+      function clearError() {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+      }
+
+      function run() {
+        clearError();
+        const points = readPoints();
+        const horizon = Math.max(1, Math.min(50, parseInt(horizonInput.value, 10) || 5));
+
+        if (points.length < 2) {
+          showError('Add at least 2 valid data points (numeric X and Y) before running a forecast.');
+          return;
+        }
+
+        let model;
+        try {
+          model = fitModel(modelType.value, points);
+        } catch (err) {
+          showError(err.message || 'Could not fit this model to the current data.');
+          return;
+        }
+
+        const metrics = computeMetrics(points, model.predict);
+        const forecastPoints = runForecast(model, points, horizon);
+
+        equationBox.textContent = model.equation;
+        statR2.textContent = metrics.r2.toFixed(4);
+        statRmse.textContent = metrics.rmse.toFixed(3);
+        statMae.textContent = metrics.mae.toFixed(3);
+        statN.textContent = String(points.length);
+
+        if (model.lossHistory && model.lossHistory.length) {
+          lossBox.style.display = 'block';
+          drawLossChart(model.lossHistory);
+          const first = model.lossHistory[0];
+          const last = model.lossHistory[model.lossHistory.length - 1];
+          lossReadout.textContent = `Loss: ${first.toFixed(4)} → ${last.toFixed(4)} (${nnOptions().epochs} epochs, ${points.length} training points)`;
+        } else {
+          lossBox.style.display = 'none';
+        }
+
+        forecastBody.innerHTML = '';
+        forecastPoints.forEach((p) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${p.x.toFixed(2)}</td><td>${p.y.toFixed(3)}</td>`;
+          forecastBody.appendChild(tr);
+        });
+        forecastTable.style.display = forecastPoints.length ? 'table' : 'none';
+
+        drawChart(points, model, forecastPoints);
+      }
+
+      function compareModels() {
+        clearError();
+        const points = readPoints();
+        if (points.length < 2) {
+          showError('Add at least 2 valid data points before comparing models.');
+          return;
+        }
+
+        const results = Object.keys(MODEL_LABELS).map((key) => {
+          try {
+            const model = fitModel(key, points);
+            return { key, metrics: computeMetrics(points, model.predict) };
+          } catch (err) {
+            return { key, error: err.message || 'Could not fit this model.' };
+          }
+        });
+
+        results.sort((a, b) => {
+          if (a.error && b.error) return 0;
+          if (a.error) return 1;
+          if (b.error) return -1;
+          return b.metrics.r2 - a.metrics.r2;
+        });
+
+        compareBody.innerHTML = '';
+        results.forEach((r, i) => {
+          const tr = document.createElement('tr');
+          if (r.error) {
+            tr.innerHTML = `<td>${MODEL_LABELS[r.key]}</td><td colspan="3" style="color:var(--bad);">${r.error}</td>`;
+          } else {
+            const crown = i === 0 ? ' ★' : '';
+            tr.innerHTML = `<td>${MODEL_LABELS[r.key]}${crown}</td><td>${r.metrics.r2.toFixed(4)}</td><td>${r.metrics.rmse.toFixed(3)}</td><td>${r.metrics.mae.toFixed(3)}</td>`;
+          }
+          compareBody.appendChild(tr);
+        });
+        compareTable.style.display = 'table';
+      }
+
+      addRowBtn.addEventListener('click', () => addRow());
+      loadSampleBtn.addEventListener('click', () => { loadSample(); clearError(); });
+      clearAllBtn.addEventListener('click', () => {
+        dataBody.innerHTML = '';
+        clearError();
+      });
+      toggleCsvBtn.addEventListener('click', () => {
+        csvPanel.style.display = csvPanel.style.display === 'none' ? 'block' : 'none';
+      });
+      applyCsvBtn.addEventListener('click', () => {
+        const points = parseCsv(csvInput.value);
+        if (!points.length) {
+          showError('Could not parse any valid "x,y" rows from that text — one point per line, comma-separated.');
+          return;
+        }
+        dataBody.innerHTML = '';
+        points.forEach(addRow);
+        csvPanel.style.display = 'none';
+        clearError();
+      });
+      runBtn.addEventListener('click', run);
+      compareBtn.addEventListener('click', compareModels);
+      modelType.addEventListener('change', () => {
+        modelHint.textContent = MODEL_HINTS[modelType.value];
+        nnFields.style.display = modelType.value === 'nn' ? 'block' : 'none';
+      });
+      window.addEventListener('resize', () => {
+        // Redraw at the new canvas width if a fit has already been run.
+        if (equationBox.textContent && !equationBox.textContent.startsWith('Run a forecast')) {
+          run();
+        }
+      });
+
+      // Boot with the sample dataset already loaded and fitted once.
+      loadSample();
+      run();
+    </script>
+  </body>
+</html>

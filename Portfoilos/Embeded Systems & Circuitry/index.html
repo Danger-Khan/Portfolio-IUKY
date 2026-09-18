@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Embedded Systems Portfolio</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #101827;
+        --panel: #121d2d;
+        --panel-soft: #18263a;
+        --primary: #5eead4;
+        --secondary: #7c9cff;
+        --accent: #fbbf24;
+        --text: #ecfdf5;
+        --muted: #b8c7d9;
+        --line: rgba(255,255,255,0.09);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background:
+          repeating-linear-gradient(90deg, rgba(94,234,212,0.07) 0 1px, transparent 1px calc(100%/11)),
+          repeating-linear-gradient(0deg, rgba(94,234,212,0.05) 0 1px, transparent 1px 64px),
+          radial-gradient(circle at 8% 12%, rgba(124,156,255,0.12), transparent 30%),
+          linear-gradient(135deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+
+      /* ============ Circuit / PCB motifs ============ */
+      .trace-divider {
+        position: relative;
+        height: 2px;
+        margin: 0 0 8px;
+        background: var(--line);
+        overflow: visible;
+      }
+
+      .trace-divider::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 8px var(--primary), 0 0 0 3px rgba(94,234,212,0.15);
+        animation: trace-run 3.6s linear infinite;
+      }
+
+      @keyframes trace-run-glow {
+        0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--primary); }
+        50% { opacity: 0.35; box-shadow: 0 0 10px var(--primary); }
+      }
+
+      @keyframes trace-run {
+        0% { left: 0%; opacity: 0; }
+        8% { opacity: 1; }
+        92% { opacity: 1; }
+        100% { left: calc(100% - 8px); opacity: 0; }
+      }
+
+      .chip {
+        position: relative;
+      }
+
+      .chip::before, .chip::after {
+        content: '';
+        position: absolute;
+        top: 14px;
+        bottom: 14px;
+        width: 10px;
+        background-image: repeating-linear-gradient(
+          0deg,
+          var(--primary) 0 3px,
+          transparent 3px 11px
+        );
+        opacity: 0.55;
+      }
+
+      .chip::before { left: -6px; }
+      .chip::after { right: -6px; }
+
+      .node-title::before {
+        content: '◆';
+        color: var(--primary);
+        font-size: 0.7em;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+
+      .container {
+        width: min(1100px, calc(100% - 2rem));
+        margin: 0 auto;
+      }
+
+      .section {
+        padding: 80px 0;
+      }
+
+      .topbar {
+        padding: 20px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(11,16,32,0.8);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(10px);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .logo {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .logo span { color: var(--primary); }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .hero {
+        padding: 90px 0 60px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 40px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.7;
+        margin: 0;
+      }
+
+      .badge {
+        display: inline-block;
+        color: var(--primary);
+        font-size: 0.74rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+        font-weight: 700;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 13px 20px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #09111b;
+      }
+
+      .btn-secondary {
+        border-color: var(--line);
+        color: var(--text);
+      }
+
+      .hero-panel {
+        background: linear-gradient(180deg, rgba(124,156,255,0.15), rgba(17,24,39,0.95));
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px;
+      }
+
+      .panel-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+
+      .panel-box strong {
+        display: block;
+        font-size: 2rem;
+        color: var(--primary);
+      }
+
+      .panel-box span {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.7rem;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 24px;
+      }
+
+      .card h3 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+      }
+
+      .card p, .card li {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .section-title {
+        margin-bottom: 30px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+      }
+
+      .section-title .badge {
+        margin-bottom: 12px;
+      }
+
+      .contact {
+        padding: 20px 0 90px;
+      }
+
+      .contact-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 32px 28px;
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid,
+        .row,
+        .contact-box {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .nav {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo"><span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--primary); box-shadow:0 0 6px var(--primary); margin-right:8px; animation: trace-run-glow 1.6s ease-in-out infinite;"></span>Embedded <span>Systems</span></div>
+        <nav class="nav-links">
+          <a href="../../index.html">← Portfolio</a>
+          <a href="#about">About</a>
+          <a href="#focus">Focus</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="badge">Embedded Systems</div>
+            <h1>Smart hardware. Real-world control.</h1>
+            <p>
+              I design and build embedded solutions for sensing, automation, monitoring,
+              and intelligent control systems that operate reliably in real environments.
+            </p>
+            <div class="hero-actions">
+              <a href="#projects" class="btn btn-primary">View Projects</a>
+              <a href="#contact" class="btn btn-secondary">Contact Me</a>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="panel-box chip">
+              <strong>5+</strong>
+              <span>Embedded projects</span>
+            </div>
+            <div class="panel-box chip">
+              <strong>MCUs</strong>
+              <span>Arduino / ESP / STM</span>
+            </div>
+            <div class="panel-box chip">
+              <strong>IoT</strong>
+              <span>Automation + monitoring</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section">
+        <div class="container">
+          <div class="trace-divider"></div>
+          <div class="section-title">
+            <div class="badge">About</div>
+            <h2 class="node-title">Embedded systems with practical impact.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card chip">
+              <h3>What I build</h3>
+              <p>
+                Embedded solutions for control systems, sensor integration, automation,
+                and responsive hardware communication.
+              </p>
+            </div>
+
+            <div class="card chip">
+              <h3>Core skills</h3>
+              <ul>
+                <li>Microcontroller programming</li>
+                <li>Sensor/data acquisition</li>
+                <li>Real-time control logic</li>
+              </ul>
+            </div>
+
+            <div class="card chip">
+              <h3>Tools</h3>
+              <ul>
+                <li>Arduino</li>
+                <li>ESP32 / ESP8266</li>
+                <li>C/C++, Python</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="focus" class="section">
+        <div class="container">
+          <div class="trace-divider"></div>
+          <div class="section-title">
+            <div class="badge">Focus Areas</div>
+            <h2 class="node-title">Core system capabilities.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card chip">
+              <h3>Automation</h3>
+              <p>Embedded logic for automated devices, switching systems, and task execution.</p>
+            </div>
+            <div class="card chip">
+              <h3>Monitoring</h3>
+              <p>Sensor-driven collection of data for status, alarms, and process visibility.</p>
+            </div>
+            <div class="card chip">
+              <h3>Control</h3>
+              <p>Real-time hardware response using control loops and signal handling.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="container">
+          <div class="trace-divider"></div>
+          <div class="section-title">
+            <div class="badge">Projects</div>
+            <h2 class="node-title">Example embedded work.</h2>
+          </div>
+
+          <div class="row">
+            <div class="card chip">
+              <h3>Smart Sensor Node</h3>
+              <p>Collects environmental data and transmits it for monitoring and analysis.</p>
+            </div>
+            <div class="card chip">
+              <h3>Automation Controller</h3>
+              <p>Handles device switching and logic-driven operations in industrial workflow setups.</p>
+            </div>
+            <div class="card chip">
+              <h3>IoT Monitoring Unit</h3>
+              <p>Connects hardware with cloud or local dashboards for live system feedback.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div class="container">
+          <div class="contact-box">
+            <div>
+              <div class="badge">Contact</div>
+              <h2 style="margin:0; font-size: clamp(1.7rem, 4vw, 2.5rem);">Let’s build the next embedded system.</h2>
+            </div>
+            <a href="mailto:yameenimaad@gmail.com" class="btn btn-primary">yameenimaad@gmail.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

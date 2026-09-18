@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAV_CONTROL // AERIAL_INVENTORY_SYSTEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        industrial: { orange: '#FF6B00', steel: '#2D2D2D', blue: '#0047AB' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&display=swap');
+        
+        :root {
+            /* Dark mode colors (default) */
+            --bg-primary: #0f172a;
+            --bg-secondary: rgba(0, 0, 0, 0.4);
+            --bg-tertiary: rgba(0, 0, 0, 0.6);
+            --text-primary: #f8fafc;
+            --text-secondary: rgba(248, 250, 252, 0.6);
+            --text-tertiary: rgba(248, 250, 252, 0.4);
+            --border-primary: rgba(255, 255, 255, 0.1);
+            --border-secondary: rgba(255, 255, 255, 0.05);
+            --grid-pattern: rgba(0, 71, 171, 0.1);
+            --orange-accent: #FF6B00;
+            --blue-accent: #0047AB;
+            --purple-accent: #800080;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        [data-theme="light"] {
+            /* Light mode colors */
+            --bg-primary: #f1f5f9;
+            --bg-secondary: rgba(255, 255, 255, 0.8);
+            --bg-tertiary: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: rgba(30, 41, 59, 0.7);
+            --text-tertiary: rgba(30, 41, 59, 0.5);
+            --border-primary: rgba(30, 41, 59, 0.2);
+            --border-secondary: rgba(30, 41, 59, 0.1);
+            --grid-pattern: rgba(255, 107, 0, 0.05);
+            --orange-accent: #FF6B00;
+            --blue-accent: #0047AB;
+            --purple-accent: #800080;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+        }
+        
+        body { 
+            font-family: 'JetBrains Mono', monospace; 
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            background-image: radial-gradient(var(--grid-pattern) 1px, transparent 1px);
+            background-size: 30px 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .hud-border { 
+            border: 1px solid rgba(255, 107, 0, 0.3); 
+            background: var(--bg-secondary);
+        }
+        
+        .glitch-hover:hover { 
+            text-shadow: 2px 0 var(--blue-accent), -2px 0 var(--orange-accent); 
+        }
+        
+        .scanline {
+            width: 100%; 
+            height: 2px; 
+            background: rgba(255, 107, 0, 0.1);
+            position: absolute; 
+            animation: move 8s linear infinite;
+        }
+        
+        @keyframes move { 
+            from { top: 0; } 
+            to { top: 100%; } 
+        }
+        
+        .video-player {
+            transition: all 0.3s ease;
+        }
+        
+        .video-controls {
+            background: linear-gradient(to top, var(--bg-tertiary), transparent);
+        }
+
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--orange-accent);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: var(--orange-accent);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        [data-theme="light"] .theme-toggle::before {
+            transform: translateX(28px);
+        }
+
+        .bg-adaptive { background: var(--bg-secondary); }
+        .bg-adaptive-tertiary { background: var(--bg-tertiary); }
+        .text-adaptive { color: var(--text-primary); }
+        .text-adaptive-secondary { color: var(--text-secondary); }
+        .text-adaptive-tertiary { color: var(--text-tertiary); }
+        .border-adaptive { border-color: var(--border-primary); }
+        .border-adaptive-secondary { border-color: var(--border-secondary); }
+
+        .industrial-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <nav class="flex justify-between items-center mb-10 border-b border-adaptive pb-4">
+        <div>
+            <h1 class="text-xl font-black tracking-tighter uppercase glitch-hover text-adaptive">
+                <i class="fas fa-drone mr-2"></i>UAV_SYSTEMS_v4.0
+            </h1>
+            <p class="text-[9px] text-adaptive-tertiary tracking-[0.3em]">UNIT: UET_JALOZAI_CAMPUS_07</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- Theme Toggle -->
+            <div class="flex items-center gap-2">
+                <i class="fas fa-sun text-yellow-500 text-xs"></i>
+                <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode">
+                    <div class="absolute inset-0 flex items-center justify-between px-2 text-[8px] font-bold pointer-events-none">
+                        <span class="text-yellow-500">☀</span>
+                        <span class="text-blue-400">☽</span>
+                    </div>
+                </div>
+                <i class="fas fa-moon text-blue-400 text-xs"></i>
+            </div>
+            
+            <div class="hidden md:flex gap-8 text-[10px] font-bold">
+                <div class="text-right">
+                    <span class="block text-adaptive-tertiary">ALTITUDE_STABILITY</span>
+                    <span style="color: var(--orange-accent)">98.4% NOMINAL</span>
+                </div>
+                <div class="text-right">
+                    <span class="block text-adaptive-tertiary">SIGNAL_LATENCY</span>
+                    <span style="color: var(--success-color)">14ms FAST</span>
+                </div>
+                <a href="../index.html" class="px-4 py-2 text-white hover:bg-white hover:text-black transition" 
+                   style="background-color: var(--orange-accent)">
+                    EXIT_TERMINAL
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto grid lg:grid-cols-3 gap-6">
+        
+        <aside class="space-y-6">
+            <div class="hud-border p-4">
+                <h3 class="text-xs font-bold mb-4 border-l-4 pl-2 uppercase text-adaptive" 
+                    style="border-color: var(--orange-accent)">Core_Telemetry</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-adaptive-secondary">PITCH_ANGLE</span>
+                        <span class="font-bold text-adaptive">0.42°</span>
+                    </div>
+                    <div class="w-full h-1" style="background: var(--border-primary)">
+                        <div class="h-full" style="width: 45%; background: var(--orange-accent)"></div>
+                    </div>
+                    
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-adaptive-secondary">ROLL_VELOCITY</span>
+                        <span class="font-bold text-adaptive">1.2 rad/s</span>
+                    </div>
+                    <div class="w-full h-1" style="background: var(--border-primary)">
+                        <div class="h-full" style="width: 20%; background: var(--blue-accent)"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-adaptive-secondary">THRUST_FORCE</span>
+                        <span class="font-bold text-adaptive">4.01 newtons</span>
+                    </div>
+                    <div class="w-full h-1" style="background: var(--border-primary)">
+                        <div class="h-full" style="width: 50%; background: var(--purple-accent)"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud-border p-4" style="background: rgba(255, 107, 0, 0.05)">
+                <h3 class="text-xs font-bold mb-4 border-l-4 pl-2 uppercase text-adaptive" 
+                    style="border-color: var(--orange-accent)">Battery_Diagnostics</h3>
+                <p class="text-4xl font-black mb-2" style="color: var(--orange-accent)">84%</p>
+                <p class="text-[10px] text-adaptive-tertiary">ESTIMATED_FLIGHT_TIME: 18:42 MIN</p>
+            </div>
+        </aside>
+
+        <section class="lg:col-span-2 space-y-6">
+            <div class="relative aspect-video border-2 overflow-hidden group" 
+                 style="background: var(--bg-primary); border-color: rgba(255, 107, 0, 0.3);">
+                <div class="scanline" id="scanline"></div>
+                
+                <!-- Standby Screen -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6" id="standbyScreen">
+                    <i class="fas fa-video-slash text-5xl mb-4 text-adaptive-tertiary"></i>
+                    <h2 class="text-2xl font-bold uppercase tracking-widest mb-4 text-adaptive">Remote_Video_Link</h2>
+                    <p class="text-xs text-adaptive-secondary mb-8 max-w-sm">Secure Point-to-Point encrypted visual stream currently on standby.</p>
+                    <button onclick="initializeVideoStream()" 
+                            class="border-2 px-8 py-3 font-bold text-sm hover:transition uppercase text-adaptive"
+                            style="border-color: var(--orange-accent); hover:background: var(--orange-accent);">
+                        Initialize_Video_Stream.sh
+                    </button>
+                </div>
+
+                <!-- Video Player -->
+                <div class="absolute inset-0 video-player hidden" id="videoContainer">
+                    <video 
+                        id="droneVideo" 
+                        class="w-full h-full object-cover" 
+                        controls 
+                        preload="metadata">
+                        <source src="./FYDP.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    
+                    <!-- Video Controls Overlay -->
+                    <div class="absolute bottom-0 left-0 right-0 video-controls p-4">
+                        <div class="flex justify-between items-center">
+                            <div class="text-[10px] font-bold">
+                                <span style="color: var(--orange-accent)">◉ LIVE</span> 
+                                <span class="text-adaptive">| STREAM_ACTIVE</span>
+                            </div>
+                            <button onclick="terminateVideoStream()" 
+                                    class="px-3 py-1 text-[10px] font-bold hover:transition text-white"
+                                    style="background-color: var(--error-color); hover:opacity: 0.8;">
+                                TERMINATE_STREAM
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPS Overlay -->
+                <div class="absolute top-4 left-4 text-[10px] font-bold p-2 status-indicator text-adaptive">
+                    GPS: 34.0151° N | 71.5249° E
+                </div>
+
+                <!-- Connection Status -->
+                <div class="absolute top-4 right-4 text-[10px] font-bold p-2 status-indicator" id="connectionStatus">
+                    <span style="color: var(--warning-color)">◉ STANDBY</span>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="industrial-card p-4">
+                    <h4 class="text-[10px] font-black mb-2 uppercase" style="color: var(--orange-accent)">Hardware_Configuration</h4>
+                    <ul class="text-[11px] space-y-2 text-adaptive-secondary">
+                        <li>- Frame: PVC 3D Printed</li>
+                        <li>- Motors: 1280KV Brushless DC</li>
+                        <li>- ESC: 30A  Protocols</li>
+                        <li>- Board: ESP32 Wroom 32</li>
+                        <li>- Wing Span: 10 Inches</li>
+                    </ul>
+                </div>
+                <div class="industrial-card p-4">
+                    <h4 class="text-[10px] font-black mb-2 uppercase" style="color: var(--orange-accent)">Automation_Logic</h4>
+                    <ul class="text-[11px] space-y-2 text-adaptive-secondary">
+                        <li>- Logic: Reinforced Arduino Logic</li>
+                        <li>- Vision: ESP32 Cam Inventory Scanning</li>
+                        <li>- Pathing: Line Warehouse Algorithm</li>
+                        <li>- Control: Remote & Automatic</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-12 pt-6 border-t border-adaptive-secondary flex flex-col md:flex-row justify-between items-center text-[10px] text-adaptive-tertiary uppercase tracking-[0.2em]">
+        <p>© 2026 IMAAD_YAMEEN_IE // UAV_ARCHIVE</p>
+        <p>System_Heartbeat: [OK] | Encryption: AES_256</p>
+    </footer>
+
+    <script>
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('uav-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('uav-theme', newTheme);
+            
+            // Add a subtle flash effect for feedback
+            document.body.style.transition = 'all 0.2s ease';
+            setTimeout(() => {
+                document.body.style.transition = 'all 0.3s ease';
+            }, 200);
+        }
+
+        // Video Management
+        function initializeVideoStream() {
+            const standbyScreen = document.getElementById('standbyScreen');
+            const videoContainer = document.getElementById('videoContainer');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const scanline = document.getElementById('scanline');
+            const video = document.getElementById('droneVideo');
+            
+            // Hide standby screen
+            standbyScreen.style.display = 'none';
+            
+            // Show video container
+            videoContainer.classList.remove('hidden');
+            
+            // Update connection status
+            connectionStatus.innerHTML = `<span style="color: var(--success-color)">◉ CONNECTED</span>`;
+            
+            // Hide scanline
+            scanline.style.display = 'none';
+            
+            // Auto play video (with user interaction requirement handled)
+            video.play().catch(e => {
+                console.log('Autoplay prevented, user interaction required');
+            });
+        }
+        
+        function terminateVideoStream() {
+            const standbyScreen = document.getElementById('standbyScreen');
+            const videoContainer = document.getElementById('videoContainer');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const scanline = document.getElementById('scanline');
+            const video = document.getElementById('droneVideo');
+            
+            // Pause video
+            video.pause();
+            video.currentTime = 0;
+            
+            // Hide video container
+            videoContainer.classList.add('hidden');
+            
+            // Show standby screen
+            standbyScreen.style.display = 'flex';
+            
+            // Update connection status
+            connectionStatus.innerHTML = `<span style="color: var(--warning-color)">◉ STANDBY</span>`;
+            
+            // Show scanline
+            scanline.style.display = 'block';
+        }
+        
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            initializeTheme();
+            
+            const video = document.getElementById('droneVideo');
+            
+            video.addEventListener('loadstart', function() {
+                console.log('Video loading started');
+            });
+            
+            video.addEventListener('canplay', function() {
+                console.log('Video can start playing');
+            });
+            
+            video.addEventListener('error', function(e) {
+                console.log('Video error:', e);
+                alert('Error loading video. Please check if FYDP.mp4 exists in the same directory.');
+            });
+
+            // Add keyboard shortcut for theme toggle
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'l') {
+                    e.preventDefault();
+                    toggleTheme();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

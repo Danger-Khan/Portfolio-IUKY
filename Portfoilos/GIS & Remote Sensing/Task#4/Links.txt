@@ -1,0 +1,5 @@
+GEE Link
+https://code.earthengine.google.com/6f1daf5a2b6f6c185dc52be086c6b5a4
+
+GEE APP Link
+https://task-2-503706.projects.earthengine.app/view/lulc-of-pakistan

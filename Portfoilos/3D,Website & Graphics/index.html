@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creative &amp; 3D Portfolio</title>
+    <meta
+      name="description"
+      content="Creative portfolio for visual design, interactive 3D worlds, and motion graphics by Imaad Yameen."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              design: {
+                gold: '#FFB800',
+                dark: '#0A0A0A',
+                surface: '#121212',
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+      :root {
+        --bg: #090909;
+        --bg-soft: #121212;
+        --panel: rgba(18, 18, 18, 0.8);
+        --gold: #ffb800;
+        --white: #f5f5f5;
+        --muted: rgba(255, 255, 255, 0.7);
+        --line: rgba(255, 255, 255, 0.08);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: 'Space Grotesk', sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(255, 184, 0, 0.12), transparent 25%),
+          linear-gradient(rgba(255, 184, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 184, 0, 0.03) 1px, transparent 1px),
+          var(--bg);
+        background-size: auto, 28px 28px, 28px 28px, auto;
+        color: var(--white);
+      }
+
+      .mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .glass-card {
+        background: rgba(18, 18, 18, 0.8);
+        border: 1px solid rgba(255, 184, 0, 0.12);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        transition: all 0.3s ease;
+      }
+
+      .glass-card:hover {
+        border-color: rgba(255, 184, 0, 0.6);
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(255, 184, 0, 0.08);
+      }
+
+      .tech-badge {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 184, 0, 0.35);
+        color: var(--gold);
+        text-transform: uppercase;
+        border-radius: 999px;
+        letter-spacing: 0.08em;
+      }
+
+      .hero-grid {
+        position: relative;
+      }
+
+      .hero-grid::before {
+        content: '';
+        position: absolute;
+        inset: -40px 10% 40px auto;
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(255, 184, 0, 0.22), transparent 65%);
+        filter: blur(18px);
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* World-launch banner */
+      .world-banner {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(120deg, rgba(255, 184, 0, 0.14), rgba(18, 18, 18, 0.9));
+        border: 1px solid rgba(255, 184, 0, 0.3);
+      }
+
+      .world-banner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(255, 184, 0, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 184, 0, 0.05) 1px, transparent 1px);
+        background-size: 26px 26px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body class="text-zinc-300">
+    <nav class="fixed w-full z-50 border-b border-white/5 bg-black/80 backdrop-blur-lg px-6 py-4">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="mono text-[10px] tracking-[0.35em] text-design-gold font-bold uppercase">
+          IMAAD_YAMEEN // CREATIVE_CORE
+        </div>
+
+        <div class="hidden md:flex gap-6 text-[9px] mono uppercase tracking-[0.15em]">
+          <a href="../../index.html" class="hover:text-design-gold transition">← Portfolio</a>
+          <a href="#spatial" class="hover:text-design-gold transition">3D_World</a>
+          <a href="#graphics" class="hover:text-design-gold transition">Graphic_Systems</a>
+          <a href="#motion" class="hover:text-design-gold transition">Motion_Engine</a>
+          <a href="#contact" class="hover:text-design-gold transition">Contact</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="pt-40 pb-20 px-6 max-w-7xl mx-auto">
+      <div class="hero-grid grid lg:grid-cols-[1.3fr_0.7fr] items-center gap-12">
+        <div class="reveal">
+          <p class="mono text-design-gold text-xs mb-4 tracking-[0.2em] uppercase">
+            // multidisciplinary_designer
+          </p>
+          <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold tracking-[-0.06em] text-white mb-6 uppercase leading-[0.9]">
+            Visual <br />
+            <span class="text-design-gold">Intelligence.</span>
+          </h1>
+          <p class="max-w-xl text-lg leading-relaxed text-zinc-300/80 border-l-2 border-design-gold pl-6">
+            I shape visual stories through cinematic direction, interactive 3D
+            worlds, and digital craftsmanship — experiences that feel premium
+            and intelligent. (Precision CAD, CAM, and CAE modelling now lives
+            in its own dedicated portfolio.)
+          </p>
+
+          <div class="mt-8 flex flex-wrap gap-4">
+            <a href="#spatial" class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-design-gold text-black font-bold transition hover:scale-[1.02]">
+              Explore Work
+            </a>
+            <a href="#contact" class="inline-flex items-center justify-center px-6 py-3 rounded-full border border-white/10 bg-white/5 text-white hover:border-design-gold hover:text-design-gold transition">
+              Contact Me
+            </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-5 reveal">
+          <div class="glass-card p-6 text-center rounded-2xl">
+            <div class="text-4xl font-bold text-design-gold mb-2">50+</div>
+            <div class="mono text-[9px] uppercase tracking-[0.15em] opacity-60">3D Renders</div>
+          </div>
+          <div class="glass-card p-6 text-center rounded-2xl">
+            <div class="text-4xl font-bold text-design-gold mb-2">100+</div>
+            <div class="mono text-[9px] uppercase tracking-[0.15em] opacity-60">Assets</div>
+          </div>
+          <div class="glass-card p-6 text-center col-span-2 rounded-2xl">
+            <div class="text-sm mono uppercase tracking-[0.2em] text-zinc-400 mb-3">Focus</div>
+            <div class="text-xl font-bold text-white">3D World + Graphics + Motion</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="spatial" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="flex items-center gap-4 mb-12 reveal">
+          <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-[-0.05em]">
+            01. Interactive_3D_World
+          </h2>
+          <div class="h-px flex-grow bg-white/10"></div>
+        </div>
+
+        <a href="world.html" class="world-banner glass-card rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 reveal">
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+              <i class="fas fa-cube text-2xl text-design-gold"></i>
+              <span class="tech-badge">Three.js</span>
+              <span class="tech-badge">WebGL</span>
+              <span class="tech-badge">Live Day/Night Cycle</span>
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">Explore an interactive low-poly 3D world</h3>
+            <p class="text-sm leading-relaxed text-zinc-300/75 max-w-xl">
+              A navigable low-poly environment built in Three.js — drive the camera with
+              WASD, rotate with Q/E, and click structures to reveal portfolio info. The
+              sun and sky cycle in real time, synced to Pakistan Standard Time.
+            </p>
+          </div>
+          <div class="relative z-10 inline-flex items-center justify-center px-8 py-4 rounded-full bg-design-gold text-black font-bold whitespace-nowrap transition hover:scale-[1.03]">
+            Enter World <i class="fas fa-arrow-right ml-2"></i>
+          </div>
+        </a>
+
+        <div class="grid md:grid-cols-2 gap-8 mt-8">
+          <article class="glass-card p-8 rounded-3xl reveal">
+            <div class="flex items-center justify-between mb-6">
+              <i class="fas fa-drafting-compass text-3xl text-design-gold"></i>
+              <span class="mono text-[9px] uppercase tracking-[0.15em] opacity-40">Systems_Driven</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Precision CAD / CAM / CAE</h3>
+            <p class="text-sm leading-relaxed text-zinc-300/75 mb-6">
+              SolidWorks part &amp; assembly design, manufacturing-focused modelling, and
+              simulation work now lives in its own dedicated portfolio.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="tech-badge">SolidWorks</span>
+              <span class="tech-badge">STEP / IGES</span>
+              <span class="tech-badge">CAM Toolpaths</span>
+            </div>
+            <a href="../CADCAMCAE/index.html" class="mono text-[10px] uppercase tracking-[0.15em] text-design-gold hover:text-white transition">
+              View CAD/CAM/CAE Portfolio →
+            </a>
+          </article>
+
+          <article class="glass-card p-8 rounded-3xl reveal">
+            <div class="flex items-center justify-between mb-6">
+              <i class="fas fa-cube text-3xl text-design-gold"></i>
+              <span class="mono text-[9px] uppercase tracking-[0.15em] opacity-40">Visual_Driven</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Creative 3D &amp; Rendering</h3>
+            <p class="text-sm leading-relaxed text-zinc-300/75 mb-6">
+              Conceptual spatial design, cinematic lighting, and product visualization
+              built for bold storytelling and premium presentation.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <span class="tech-badge">Blender</span>
+              <span class="tech-badge">Cycles</span>
+              <span class="tech-badge">Geometry Nodes</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="graphics" class="py-20 px-6 max-w-7xl mx-auto bg-white/[0.02] border-y border-white/5">
+        <div class="flex items-center gap-4 mb-12 reveal">
+          <div class="h-px flex-grow bg-white/10"></div>
+          <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-[-0.05em] text-right">
+            02. Graphic_Systems
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="glass-card p-6 rounded-2xl reveal">
+            <i class="fas fa-pen-nib text-design-gold mb-4 text-xl"></i>
+            <h4 class="font-bold text-sm mb-2 uppercase tracking-[0.12em]">Brand Identity</h4>
+            <p class="text-[11px] leading-relaxed text-zinc-300/60">
+              Logo systems, visual language, and typographic direction for brands with strong identity.
+            </p>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl reveal">
+            <i class="fas fa-images text-design-gold mb-4 text-xl"></i>
+            <h4 class="font-bold text-sm mb-2 uppercase tracking-[0.12em]">Poster Design</h4>
+            <p class="text-[11px] leading-relaxed text-zinc-300/60">
+              Campaign visuals and digital posters designed for attention, clarity, and visual impact.
+            </p>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl reveal">
+            <i class="fas fa-sliders-h text-design-gold mb-4 text-xl"></i>
+            <h4 class="font-bold text-sm mb-2 uppercase tracking-[0.12em]">Photo Editing</h4>
+            <p class="text-[11px] leading-relaxed text-zinc-300/60">
+              Retouching, enhancement, and finishing for polished imagery with refined color and depth.
+            </p>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl reveal">
+            <i class="fas fa-th-large text-design-gold mb-4 text-xl"></i>
+            <h4 class="font-bold text-sm mb-2 uppercase tracking-[0.12em]">Layout Design</h4>
+            <p class="text-[11px] leading-relaxed text-zinc-300/60">
+              Clean editorial layouts and digital compositions built around structure and rhythm.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="motion" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="flex items-center gap-4 mb-12 reveal">
+          <h2 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-[-0.05em]">
+            03. Motion_Post-Production
+          </h2>
+          <div class="h-px flex-grow bg-white/10"></div>
+        </div>
+
+        <div class="glass-card p-1 rounded-[28px] reveal">
+          <div class="grid lg:grid-cols-3">
+            <div class="p-8 border-b lg:border-b-0 lg:border-r border-white/5">
+              <i class="fas fa-film text-design-gold mb-4 text-2xl"></i>
+              <h5 class="font-bold uppercase tracking-[0.12em] mb-2">DaVinci Resolve</h5>
+              <p class="text-sm leading-relaxed text-zinc-300/60">
+                Color grading, compositing, and cinematic finishing for polished story-driven work.
+              </p>
+            </div>
+
+            <div class="p-8 border-b lg:border-b-0 lg:border-r border-white/5">
+              <i class="fas fa-mobile-alt text-design-gold mb-4 text-2xl"></i>
+              <h5 class="font-bold uppercase tracking-[0.12em] mb-2">Short-Form Motion</h5>
+              <p class="text-sm leading-relaxed text-zinc-300/60">
+                Fast-paced videos built for social media, reels, and digital campaign storytelling.
+              </p>
+            </div>
+
+            <div class="p-8">
+              <i class="fas fa-magic text-design-gold mb-4 text-2xl"></i>
+              <h5 class="font-bold uppercase tracking-[0.12em] mb-2">Visual Effects</h5>
+              <p class="text-sm leading-relaxed text-zinc-300/60">
+                Layered effects and transitions that add depth, rhythm, and visual emphasis to motion work.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="glass-card rounded-[32px] p-8 md:p-12 reveal">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div>
+              <p class="mono text-design-gold text-xs mb-4 tracking-[0.2em] uppercase">
+                // Let’s build something bold
+              </p>
+              <h3 class="text-3xl md:text-5xl font-bold text-white tracking-[-0.05em]">
+                Need visuals that feel premium and memorable?
+              </h3>
+            </div>
+
+            <a
+              href="mailto:yameenimaad@gmail.com"
+              class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-design-gold text-black font-bold transition hover:scale-[1.02]"
+            >
+              yameenimaad@gmail.com
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="py-12 border-t border-white/5 px-6">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="mono text-[9px] uppercase tracking-[0.18em] opacity-45">
+          // system_designed_by: ENGR_IMAAD_YAMEEN <br />
+          // build: <span id="year">2026</span>_stable
+        </div>
+
+        <div class="flex gap-6 text-[10px] mono uppercase tracking-[0.14em]">
+          <a href="mailto:yameenimaad@gmail.com" class="text-design-gold hover:text-white transition">Email</a>
+          <a href="https://linkedin.com/in/imaad-ullah-khan-yameen/" class="text-design-gold hover:text-white transition">LinkedIn</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const year = document.getElementById('year');
+        if (year) year.textContent = new Date().getFullYear();
+
+        const revealItems = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+              }
+            });
+          },
+          { threshold: 0.12 }
+        );
+
+        revealItems.forEach((item) => observer.observe(item));
+      });
+    </script>
+  </body>
+</html>

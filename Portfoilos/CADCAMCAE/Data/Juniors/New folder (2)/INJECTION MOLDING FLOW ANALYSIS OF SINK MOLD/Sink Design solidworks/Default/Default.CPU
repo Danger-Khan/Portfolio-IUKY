@@ -1,0 +1,66 @@
+[Flpk_ComputeData]
+   Strc= 40000     Matd= 0     Valu= 0          Sr1= 0         Sr2= 0     | edit
+   Strc= 41000     Matd= 0     Valu= 0          Sr1= 0         Sr2= 0     | edit
+   Strc= 41001     Matd= 0     Valu= 1          Sr1= 0         Sr2= 0     | switch      | Off:0       | On:1
+   strc= 41101     Matd= 0     Valu= 1          Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 41002     Matd= 0     Valu= 5.e-3      Sr1= 0         Sr2= 0     | edit_p
+   Strc= 41003     Matd= 0     Valu= 0.1        Sr1= 0         Sr2= 0     | spinner     | Min:0.01    | Max:1.0     | Step:0.05
+   Strc= 41004     Matd= 0     Valu= 0.4        Sr1= 0         Sr2= 0     | spinner     | Min:0.1     | Max:0.5     | Step:0.1
+   Strc= 41005     Matd= 0     Valu= 1.0        Sr1= 0         Sr2= 0     | spinner     | Min:0.5     | Max:1.0     | St ep:0.1
+   Strc= 41006     Matd= 0     Valu= 40         Sr1= 0         Sr2= 0     | spinner     | Min:40      | Max:100     | Step:1
+   Strc= 41007     Matd= 0     Valu= 15         Sr1= 0         Sr2= 0     | spinner     | Min:10      | Max:16      | Step:1
+   Strc= 41008     Matd= 0     Valu= 1.e-2      Sr1= 0         Sr2= 0     | edit_p
+   Strc= 41009     Matd= 0     Valu= 1.e-3      Sr1= 0         Sr2= 0     | edit_p
+   Strc= 41011     Matd= 0     Valu= 0.8       Sr1= 0         Sr2= 0     | spinner     | Min:0.1     | Max:1.0     | Step:0.05
+   Strc= 41012     Matd= 0     Valu= 0.2       Sr1= 0         Sr2= 0     | spinner     | Min:0.1     | Max:1.0     | Step:0.05
+   Strc= 41013     Matd= 0     Valu= 80         Sr1= 0         Sr2= 0     | spinner     | Min:40      | Max:300     | Step:1
+   Strc= 41014     Matd= 0     Valu= 2.         Sr1= 0         Sr2= 0     | spinner     | Min:0.1     | Max:10.0    | Step:0.1
+   Strc= 41015     Matd= 0     Valu= 0.75       Sr1= 0         Sr2= 0     | spinner     | Min:0.25    | Max:1.0     | Step:0.05
+   Strc= 41016     Matd= 0     Valu= 2          Sr1= 0         Sr2= 0     | spinner     | Min:1       | Max:5       | Step:1
+   Strc= 41017     Matd= 0     Valu= 2          Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 41018     Matd= 0     Valu= 2          Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 41019     Matd= 0     Valu= 3          Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 41021     Matd= 0     Valu= 0.001      Sr1= 0         Sr2= 0     | spinner     | Min:0.0001  | Max:0.01    | Step:0.001
+   Strc= 41022     Matd= 0     Valu= 150        Sr1= 0         Sr2= 0     | spinner     | Min:90      | Max:150     | Step:1
+   Strc= 41023     Matd= 0     Valu= 1          Sr1= 0         Sr2= 0     | spinner     | Min:1       | Max:3       | Step:1
+   Strc= 41024     Matd= 0     Valu= 1           Sr1= 0        Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 41025     Matd= 0     Valu= 1           Sr1= 0        Sr2= 0     | switch      | Off:0       | On:1
+   Strc= 41026     Matd= 0     Valu= 2           Sr1= 0        Sr2= 0     | switch      | Off:1       | On:2
+[EOF]
+
+[Cool_ComputeData]
+   Strc= 40000     Matd= 0     Valu= 0           Sr1= 0         Sr2= 0     | edit
+   Strc= 41000     Matd= 0     Valu= 0           Sr1= 0         Sr2= 0     | edit
+   Strc= 42001     Matd= 0     Valu= 15          Sr1= 0         Sr2= 0     | spinner     | Min:1       | Max:16      | Step:1
+   Strc= 42002     Matd= 0     Valu= 0.8         Sr1= 0         Sr2= 0     | spinner     | Min:0.4     | Max:1.0     | Step:0.1
+   Strc= 42003     Matd= 0     Valu= 8           Sr1= 0         Sr2= 0     | spinner     | Min:8       | Max:15      | Step:1
+   Strc= 42004     Matd= 0     Valu= 0.01        Sr1= 0         Sr2= 0     | edit_p
+   Strc= 42005     Matd= 0     Valu= 0.4         Sr1= 0         Sr2= 0     | spinner     | Min:0.2     | Max:0.8     | Step:0.1
+   Strc= 42006     Matd= 0     Valu= 500         Sr1= 0         Sr2= 0     | spinner     | Min:300     | Max:800     | Step:10
+   Strc= 42007     Matd= 0     Valu= 1.e-6       Sr1= 0         Sr2= 0     | edit_p
+   Strc= 42008     Matd= 0     Valu= 4           Sr1= 0         Sr2= 0     | switch      | Off:4       | On:6
+   Strc= 42009     Matd= 0     Valu= 4          Sr1= 0         Sr2= 0     | switch      | Off:4       | On:13
+   Strc= 42010     Matd= 0     Valu= 1           Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 42011     Matd= 0     Valu= 1           Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 42012     Matd= 0     Valu= 2           Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 42013     Matd= 0     Valu= 5           Sr1= 0         Sr2= 0     | spinner     | Min:1       | Max:10      | Step:1
+   Strc= 42014     Matd= 0     Valu= 1           Sr1= 0         Sr2= 0     | spinner     | Min:1       | Max:3      | Step:1
+   Strc= 42015     Matd= 0     Valu= 2           Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+[EOF]
+
+[Warp_ComputeData]
+   Strc= 40000     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | edit
+   Strc= 41000     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | edit
+  #Strc= 43001     Matd= 0     Valu= 20            Sr1= 0         Sr2= 0     | spinner     | Min:10      | Max:30      | Step:1
+   Strc= 43002     Matd= 0     Valu= 1             Sr1= 0         Sr2= 0     | switch      | Off:1       | On:2
+   Strc= 43003     Matd= 0     Valu= 1.e-8         Sr1= 0         Sr2= 0     | edit_p
+   Strc= 43004     Matd= 0     Valu= 15000         Sr1= 0         Sr2= 0     | spinner     | Min:1000    | Max:30000   | Step:1000
+  #Strc= 43005     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | edit_ip
+  #Strc= 43006     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | edit_ip
+  #Strc= 43007     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | edit_ip
+   Strc= 43008     Matd= 0     Valu= 3             Sr1= 0         Sr2= 0     | edit_ip
+   Strc= 43009     Matd= 0     Valu= 1.e-3         Sr1= 0         Sr2= 0     | edit_p
+   Strc= 43010     Matd= 0     Valu= 3000          Sr1= 0         Sr2= 0     | spinner     | Min:100     | Max:3000     | Step:100
+   Strc= 43011     Matd= 0     Valu= 0             Sr1= 0         Sr2= 0     | switch      | Off:0       | On:1
+[EOF]
+

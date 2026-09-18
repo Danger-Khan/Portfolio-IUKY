@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CAD/CAM/CAE Portfolio</title>
+    <meta
+      name="description"
+      content="SolidWorks CAD design, mold and mechanism engineering, and CAM manufacturing work by Imaad Yameen — with in-browser 3D viewers for real STL exports."
+    />
+    <style>
+      :root {
+        --bg: #0a0d12;
+        --bg-2: #10151d;
+        --panel: #131a24;
+        --primary: #38bdf8;
+        --secondary: #94a3b8;
+        --highlight: #f59e0b;
+        --text: #eaf1f8;
+        --muted: #9fb0c2;
+        --line: rgba(148,163,184,0.18);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+        background:
+          linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px),
+          linear-gradient(160deg, var(--bg), var(--bg-2));
+        background-size: 32px 32px, 32px 32px, auto;
+        color: var(--text);
+      }
+
+      .container { width: min(1140px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 80px 0; }
+
+      .topbar {
+        padding: 18px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(10,13,18,0.85);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(10px);
+        z-index: 20;
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+      .logo { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Consolas', monospace; }
+      .logo span { color: var(--primary); }
+      .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Consolas', monospace; }
+      .nav-links a:hover { color: var(--primary); }
+
+      .mono { font-family: 'Consolas', monospace; }
+
+      .hero { padding: 80px 0 50px; }
+      .hero-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 40px; align-items: center; }
+      h1 { margin: 0 0 16px; font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.02; letter-spacing: -0.03em; }
+      .hero p.lead { color: var(--muted); font-size: 1.02rem; line-height: 1.7; max-width: 620px; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--primary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+        margin-bottom: 16px; font-weight: 700; font-family: 'Consolas', monospace;
+      }
+      .badge::before { content: ''; width: 8px; height: 8px; background: var(--highlight); border-radius: 2px; }
+
+      .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+      .btn { display: inline-block; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 0.85rem; }
+      .btn-primary { background: var(--primary); color: #06140f; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); }
+
+      .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .stat-box {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+        padding: 18px; text-align: center;
+      }
+      .stat-box strong { display: block; font-size: 1.8rem; color: var(--primary); font-family: 'Consolas', monospace; }
+      .stat-box span { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+      .section-title { margin-bottom: 34px; }
+      .section-title h2 { margin: 0 0 8px; font-size: clamp(1.6rem, 3.4vw, 2.4rem); }
+      .section-title p { color: var(--muted); max-width: 680px; margin: 0; }
+      .section-title .index { color: var(--highlight); font-family: 'Consolas', monospace; font-size: 0.85rem; margin-right: 10px; }
+
+      /* Project cards */
+      .project-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .project-card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+        padding: 26px; display: flex; flex-direction: column; gap: 14px;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+      }
+      .project-card:hover { border-color: rgba(56,189,248,0.45); transform: translateY(-3px); }
+      .project-tag {
+        display: inline-flex; align-self: flex-start; font-size: 0.64rem; text-transform: uppercase;
+        letter-spacing: 0.1em; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+        border: 1px solid rgba(245,158,11,0.4); color: var(--highlight); font-family: 'Consolas', monospace;
+      }
+      .project-card h3 { margin: 0; font-size: 1.25rem; }
+      .project-card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: 0.9rem; }
+      .file-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+      .file-tag {
+        font-size: 0.65rem; font-family: 'Consolas', monospace; color: var(--secondary);
+        border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px;
+      }
+      .card-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+      .card-actions a {
+        text-decoration: none; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.05em; padding: 9px 14px; border-radius: 7px; font-family: 'Consolas', monospace;
+      }
+      .action-view { background: var(--primary); color: #06140f; }
+      .action-download { border: 1px solid var(--line); color: var(--text); }
+      .action-view:hover { background: #7dd3fc; }
+      .action-download:hover { border-color: var(--primary); color: var(--primary); }
+
+      /* Gallery */
+      .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+      .gallery-card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+        padding: 18px; display: flex; flex-direction: column; gap: 10px;
+      }
+      .gallery-card h4 { margin: 0; font-size: 0.92rem; }
+      .gallery-card p { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.55; }
+      .gallery-card .card-actions a { font-size: 0.66rem; padding: 7px 10px; }
+
+      /* Manufacturing strip */
+      .manu {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+        padding: 34px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; align-items: center;
+      }
+      .manu h3 { margin: 0 0 10px; font-size: 1.4rem; }
+      .manu p { color: var(--muted); line-height: 1.7; margin: 0; font-size: 0.92rem; }
+      .manu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+      .manu-list li {
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px dashed var(--line); padding-bottom: 10px; font-size: 0.82rem;
+      }
+      .manu-list strong { color: var(--primary); font-family: 'Consolas', monospace; }
+
+      .contact-box {
+        display: flex; justify-content: space-between; align-items: center; gap: 24px;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 30px 28px;
+      }
+      .contact-box h2 { margin: 0; font-size: clamp(1.5rem, 3.6vw, 2.2rem); }
+
+      footer { padding: 30px 0 50px; border-top: 1px solid var(--line); }
+      .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 0.75rem; }
+
+      @media (max-width: 900px) {
+        .hero-grid, .project-grid, .manu { grid-template-columns: 1fr; }
+        .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+        .contact-box { flex-direction: column; align-items: flex-start; }
+      }
+      @media (max-width: 560px) {
+        .gallery-grid { grid-template-columns: 1fr; }
+        .stat-strip { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">CAD<span>/</span>CAM<span>/</span>CAE</div>
+        <nav class="nav-links">
+          <a href="../../index.html">← Portfolio</a>
+          <a href="#projects">Projects</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#manufacturing">Manufacturing</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="badge">Mechanical Design // Manufacturing</div>
+            <h1>Design that survives contact with the real part.</h1>
+            <p class="lead">
+              SolidWorks modelling, mold &amp; mechanism engineering, and the CAM
+              toolpaths that turn a model into a physical build. The parts below are
+              real exports from active projects — open any of them in the in-browser
+              3D viewer, or download the native SolidWorks / STEP file.
+            </p>
+            <div class="hero-actions">
+              <a href="#projects" class="btn btn-primary">View Projects</a>
+              <a href="#contact" class="btn btn-secondary">Contact Me</a>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-box"><strong>66</strong><span>Native CAD Files</span></div>
+            <div class="stat-box"><strong>89</strong><span>STL Exports</span></div>
+            <div class="stat-box"><strong>65</strong><span>CAM Toolpaths</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="container">
+          <div class="section-title">
+            <h2><span class="index">01</span>Featured Projects</h2>
+            <p>Multi-part assemblies and mechanism design, from sketch to manufactured component.</p>
+          </div>
+
+          <div class="project-grid">
+            <div class="project-card">
+              <span class="project-tag">Mechanism · Assembly</span>
+              <h3>2D Pen Plotter</h3>
+              <p>
+                An X/Y motion rig built around a linear rail, dry-link bearings, and a
+                cable-management holder — modelled as a multi-part SolidWorks assembly
+                with matched STL exports for print-fit verification.
+              </p>
+              <div class="file-tags">
+                <span class="file-tag">Assembly.SLDASM</span>
+                <span class="file-tag">Drylink Bearing.SLDPRT</span>
+                <span class="file-tag">RAil.SLDPRT</span>
+                <span class="file-tag">cable holder.SLDPRT</span>
+              </div>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/2d%20plotter/Drylink%20Bearing.STL&title=2D%20Pen%20Plotter%20-%20Dry-Link%20Bearing">View in 3D →</a>
+                <a class="action-download" href="Data/SDWRKS/2d plotter/Assembly.SLDASM" download>Download Assembly</a>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="project-tag">Full Machine · 42 Parts</span>
+              <h3>Desktop Filament Recycler</h3>
+              <p>
+                A complete FDM filament-recycling machine — body panels, a planetary
+                gear-driven extruder train, spool and guide system, and control housing.
+                42 parts modelled and exported for print, each with its own generated
+                CAM toolpath.
+              </p>
+              <div class="file-tags">
+                <span class="file-tag">Front_body.stl</span>
+                <span class="file-tag">Worm_gear.stl</span>
+                <span class="file-tag">Spool_main.stl</span>
+                <span class="file-tag">+39 more</span>
+              </div>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/Recycler/Part%202/files/Front_body.stl&title=Desktop%20Filament%20Recycler%20-%20Front%20Body">View in 3D →</a>
+                <a class="action-download" href="Data/SDWRKS/Recycler/Part 2/files/Front_body.stl" download>Download STL</a>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="project-tag">Mechanism · Assembly</span>
+              <h3>Filament Gate Assembly</h3>
+              <p>
+                The Base / Guider / Lower / Upper guide mechanism that controls filament
+                path into the Recycler's extruder — designed as a four-part assembly with
+                matched print exports.
+              </p>
+              <div class="file-tags">
+                <span class="file-tag">Filament Gate.SLDASM</span>
+                <span class="file-tag">Base.SLDPRT</span>
+                <span class="file-tag">Guider.SLDPRT</span>
+                <span class="file-tag">Upper / Lower.SLDPRT</span>
+              </div>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/Filament%20Gate%20-%20Filament%20Gate%20Base-1-1.STL&title=Filament%20Gate%20Assembly%20-%20Base">View in 3D →</a>
+                <a class="action-download" href="Data/SDWRKS/Filament Gate.SLDASM" download>Download Assembly</a>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="project-tag">Manufacturing · Mold Design</span>
+              <h3>PCSIR Injection Mold Design</h3>
+              <p>
+                Core/cavity mold design for a sink component, engineered and iterated
+                (including a 2022 revision pass) for the Pakistan Council of Scientific
+                &amp; Industrial Research — direct continuation of injection-mold design
+                work from SK Engineering.
+              </p>
+              <div class="file-tags">
+                <span class="file-tag">Sink Design Modify.STEP</span>
+                <span class="file-tag">Mold sheet.STEP</span>
+                <span class="file-tag">Parasolid (.x_t)</span>
+              </div>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/Juniors/Sink Design Modify.STEP" download>Download STEP</a>
+                <a class="action-download" href="Data/SDWRKS/Juniors/Sink Design Modify.SLDPRT" download>Download SLDPRT</a>
+              </div>
+            </div>
+
+            <div class="project-card" style="grid-column: 1 / -1;">
+              <span class="project-tag">CAE · Design Validation</span>
+              <h3>Material Testing Specimens (DfAM)</h3>
+              <p>
+                Tensile, compression, bending, and infill test coupons modelled and
+                3D-printed to validate material and infill behaviour before committing a
+                design to full-scale manufacture — the CAE step that closes the loop
+                between CAD and CAM.
+              </p>
+              <div class="file-tags">
+                <span class="file-tag">Tensile Test.STL</span>
+                <span class="file-tag">Compression Test.STL</span>
+                <span class="file-tag">Bending Test.STL</span>
+                <span class="file-tag">Infill Testing Plate.stl</span>
+              </div>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/Tensile%20Test.STL&title=Tensile%20Test%20Specimen">View in 3D →</a>
+                <a class="action-download" href="Data/SDWRKS/Compression Test.STL" download>Download Compression Test</a>
+                <a class="action-download" href="Data/SDWRKS/Bending Test.STL" download>Download Bending Test</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gallery" class="section">
+        <div class="container">
+          <div class="section-title">
+            <h2><span class="index">02</span>Component Gallery</h2>
+            <p>Standalone parts and product-design work — smaller in scope, still real geometry.</p>
+          </div>
+
+          <div class="gallery-grid">
+            <div class="gallery-card">
+              <h4>Attar Box Holder</h4>
+              <p>Product-design holder for an attar (perfume oil) tester bottle.</p>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/Attar%20Box/Holder.STL&title=Attar%20Box%20-%20Holder">View →</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>TV Corner Bracket</h4>
+              <p>Load-bearing corner mounting bracket, modelled and print-tested.</p>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/tv%20corner%20brackets.STL&title=TV%20Corner%20Bracket">View →</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>Stamp Maker Head</h4>
+              <p>Custom stamp head geometry for a small maker/prototyping project.</p>
+              <div class="card-actions">
+                <a class="action-view" href="viewer.html?model=Data/SDWRKS/Stamp%20Musk.STL&title=Stamp%20Maker%20Head">View →</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>Bed Plate</h4>
+              <p>Structural bed-plate part, modelled natively and exported to IGES.</p>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/BEDPLATE.SLDPRT" download>Download SLDPRT</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>Laser-Cut Enclosure</h4>
+              <p>2D panel layout for a laser-cut box, drafted as a DXF cut file.</p>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/LAzer box/Laser Box Maker.dxf" download>Download DXF</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>Threaded Rod</h4>
+              <p>Custom-pitch threaded rod, modelled from raw stock to finished thread.</p>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/Thread Rod.SLDPRT" download>Download SLDPRT</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>24-Tooth Gear</h4>
+              <p>Mechanical spur gear, part of a small drive-train component set.</p>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/24 tooth mechanical gear part.SLDPRT" download>Download SLDPRT</a>
+              </div>
+            </div>
+            <div class="gallery-card">
+              <h4>12-Tooth Gear Shaft</h4>
+              <p>Matching shaft-mounted pinion gear for the drive-train set above.</p>
+              <div class="card-actions">
+                <a class="action-download" href="Data/SDWRKS/gear shaft 12 tooth.SLDPRT" download>Download SLDPRT</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="manufacturing" class="section">
+        <div class="container">
+          <div class="section-title">
+            <h2><span class="index">03</span>Manufacturing &amp; CAM</h2>
+            <p>Modelling is half the job — these files reflect the path from part to production.</p>
+          </div>
+
+          <div class="manu">
+            <div>
+              <h3>From model to build plate</h3>
+              <p>
+                Every part in the Desktop Filament Recycler and its planetary gear train
+                was sliced into its own G-code build file — batched across print beds by
+                material (PLA / PETG / TPU / FLEX) and print time, so each run stays
+                predictable on the shop floor. Separate reference material was compiled
+                for CNC machining practice: quick-reference cards and a full CNC
+                handbook, alongside injection-mold work carried over from professional
+                experience at SK Engineering.
+              </p>
+            </div>
+            <ul class="manu-list">
+              <li>CAM toolpaths generated (G-code) <strong>65</strong></li>
+              <li>Print materials used <strong>PLA / PETG / TPU / FLEX</strong></li>
+              <li>Mold design revisions (PCSIR) <strong>2</strong></li>
+              <li>CNC reference documents compiled <strong>6+</strong></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section" style="padding-top: 0;">
+        <div class="container">
+          <div class="contact-box">
+            <div>
+              <div class="badge">Contact</div>
+              <h2>Have a part that needs to go from model to manufacture?</h2>
+            </div>
+            <a href="mailto:yameenimaad@gmail.com" class="btn btn-primary">yameenimaad@gmail.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-inner">
+        <span class="mono">// ENGR_IMAAD_YAMEEN — CAD/CAM/CAE_SYSTEMS</span>
+        <span class="mono">Files served directly from this portfolio's own SolidWorks export folder.</span>
+      </div>
+    </footer>
+  </body>
+</html>

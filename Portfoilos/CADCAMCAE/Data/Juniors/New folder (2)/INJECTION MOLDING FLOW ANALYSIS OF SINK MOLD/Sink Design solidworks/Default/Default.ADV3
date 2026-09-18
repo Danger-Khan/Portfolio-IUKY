@@ -1,0 +1,25 @@
+[Language= ENGLISH]
+ ## Summary of Simulation ##
+
+ Filling end at time= 10.155
+   Clamping force=   2.44 Tonne (  2.69 Ton U.S)
+   Requiring injection pressure=   8.36 Mpa (1212.67 psi)
+   Max. temperature= 230.16 oC (446.28 oF)
+   Max. temperature growth=   0.01 oC (  0.01 oF)
+   Max. volume shrinkage=  15.05 % 
+   Max. shear stress=   0.24 Mpa ( 34.94 psi)
+   Max. shear rate= 2.883399e+03 1/sec
+ Max. Cooling time= 816.16 sec
+ Max. Cooling end temperature= 168.63 oC (335.53 oF)
+
+
+ ## Design Advise ##
+ 2012.0
+ 2 
+ 71001   8.4  1212.67
+ 71002
+ 72001
+ 72004
+ 75001
+ 75002
+[EoF]

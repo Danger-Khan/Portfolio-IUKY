@@ -1,0 +1,24 @@
+# Root package.json is unused scaffolding (no source code depends on it) —
+# never install or commit its output.
+node_modules/
+
+# Raw downloaded asset archives and Apple AR-only formats. Confirmed with
+# `grep -r` that no .html or .js in this repo ever loads a .zip or .usdz
+# file — the site only ever fetches specific named .glb files.
+*.zip
+*.usdz
+
+# Unreferenced duplicate/unused 3D models left over from the same asset
+# download batch. world.html's modelDefinitions list only loads
+# anime_nature_tree_01.glb, buildings.glb, city.glb,
+# generic_factory_with_smoke_towers.glb, low_poly_business_buildings_pack.glb,
+# and low_poly_house_5.glb — these are not among them.
+Portfoilos/3D,Website & Graphics/Assets/anime_nature_tree_01 (1).glb
+Portfoilos/3D,Website & Graphics/Assets/generic_factory_with_smoke_towers (1).glb
+Portfoilos/3D,Website & Graphics/Assets/patch_of_grass.glb
+Portfoilos/3D,Website & Graphics/Assets/stylized_nature_pack_vol-1__3d_tree.glb
+
+# 114MB — exceeds GitHub's 100MB hard per-file limit, so a normal push
+# rejects it outright. Kept locally; not pushed. See the push summary for
+# how to add it back via Git LFS if you want it live on GitHub.
+Portfoilos/GIS & Remote Sensing/Task#1/Task#1.pdf
