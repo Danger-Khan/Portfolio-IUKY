@@ -1,6 +1,9 @@
 # Root package.json is unused scaffolding (no source code depends on it) —
-# never install or commit its output.
+# left ignored by default, but Assets/node_modules is explicitly un-ignored
+# below per request even though nothing in the site loads from it.
 node_modules/
+!Assets/node_modules/
+!Assets/node_modules/**
 
 # Raw downloaded asset archives and Apple AR-only formats. Confirmed with
 # `grep -r` that no .html or .js in this repo ever loads a .zip or .usdz
@@ -13,10 +16,10 @@ node_modules/
 # anime_nature_tree_01.glb, buildings.glb, city.glb,
 # generic_factory_with_smoke_towers.glb, low_poly_business_buildings_pack.glb,
 # and low_poly_house_5.glb — these are not among them.
-Portfoilos/3D,Website & Graphics/Assets/anime_nature_tree_01 (1).glb
-Portfoilos/3D,Website & Graphics/Assets/generic_factory_with_smoke_towers (1).glb
-Portfoilos/3D,Website & Graphics/Assets/patch_of_grass.glb
-Portfoilos/3D,Website & Graphics/Assets/stylized_nature_pack_vol-1__3d_tree.glb
+Portfoilos/3D & Graphics Desginer/Assets/Outside/anime_nature_tree_01 (1).glb
+Portfoilos/3D & Graphics Desginer/Assets/Outside/generic_factory_with_smoke_towers (1).glb
+Portfoilos/3D & Graphics Desginer/Assets/Outside/patch_of_grass.glb
+Portfoilos/3D & Graphics Desginer/Assets/Outside/stylized_nature_pack_vol-1__3d_tree.glb
 
 # 114MB — exceeds GitHub's 100MB hard per-file limit, so a normal push
 # rejects it outright. Kept locally; not pushed. See the push summary for
