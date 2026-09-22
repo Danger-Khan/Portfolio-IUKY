@@ -103,6 +103,14 @@
         padding: 80px 0;
       }
 
+      footer { padding: 30px 0 50px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; }
+      .footer-nav a, .footer-nav button {
+        color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+        background: none; border: none; padding: 0; font-family: inherit; cursor: pointer;
+      }
+      .footer-nav a:hover, .footer-nav button:hover { color: var(--primary); }
+
       .topbar {
         padding: 20px 0;
         border-bottom: 1px solid var(--line);
@@ -301,6 +309,24 @@
         }
       }
     </style>
+    <style>
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel, #14181f);
+        border-top: 1px solid var(--line, var(--border, rgba(255,255,255,0.15)));
+        color: var(--text, #f2f2f2); font-family: inherit; font-size: 0.85rem;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; color: inherit; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line, var(--border, rgba(255,255,255,0.2))); background: transparent;
+        color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem;
+        font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--primary, #38bdf8); color: #06140f; border-color: transparent; }
+    </style>
   </head>
   <body>
     <header class="topbar">
@@ -422,8 +448,11 @@
 
           <div class="row">
             <div class="card chip">
-              <h3>Smart Sensor Node</h3>
-              <p>Collects environmental data and transmits it for monitoring and analysis.</p>
+              <img src="Assets/ESP_32_Station.png" alt="ESP32 Station schematic — GPS, IMU, and barometric sensor wiring" style="width:100%; border-radius:10px; margin-bottom:14px; border:1px solid var(--line);" loading="lazy">
+              <h3>ESP32 Station</h3>
+              <p>A real KiCad schematic: ESP32-WROOM-32U at the core, with an OLED display, a NEO-M8T GPS/GNSS module,
+                an MPU6500 IMU and QMC5309 magnetometer for orientation, an MPL3115A2R1 barometric sensor,
+                microSD storage, EEPROM, and USB-C (CH340C serial) — a GPS-enabled sensor &amp; telemetry station.</p>
             </div>
             <div class="card chip">
               <h3>Automation Controller</h3>
@@ -449,5 +478,44 @@
         </div>
       </section>
     </main>
+    <footer>
+      <div class="container footer-nav">
+        <a href="../../index.html">Home</a>
+        <button type="button" onclick="history.back()">Back</button>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
   </body>
 </html>

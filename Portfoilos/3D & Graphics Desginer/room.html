@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IMAAD YAMEEN | 3D PORTFOLIO ROOM</title>
+
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #cfe8ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #root { position: fixed; inset: 0; }
+        #scene-container { position: fixed; inset: 0; z-index: 1; }
+        #scene-container canvas { display: block; width: 100%; height: 100%; }
+
+        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+
+        .brand-pill {
+            position: absolute; top: 20px; left: 20px; pointer-events: auto;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 16px; border-radius: 999px;
+            background: rgba(15, 23, 42, 0.78); color: #fff; text-decoration: none;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: background 0.2s ease;
+        }
+        .brand-pill:hover { background: rgba(255, 107, 0, 0.85); }
+
+        .controls-hint {
+            position: absolute; left: 20px; bottom: 20px; pointer-events: none;
+            padding: 14px 16px; border-radius: 16px; max-width: 260px;
+            background: rgba(15, 23, 42, 0.72); color: #e5f3ff; font-size: 12px; line-height: 1.8;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .hint-label {
+            color: #ffd166; text-transform: uppercase; letter-spacing: 0.14em;
+            font-size: 10px; font-weight: 800; margin-bottom: 6px;
+        }
+
+        .exhibit-count {
+            position: absolute; top: 20px; right: 20px; pointer-events: none;
+            padding: 9px 14px; border-radius: 999px;
+            background: rgba(15, 23, 42, 0.72); color: #e5f3ff;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tooltip {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            pointer-events: none; min-width: 240px; max-width: 340px;
+            padding: 14px 18px; border-radius: 16px; border: 2px solid #ff6b00;
+            background: rgba(15, 23, 42, 0.86); color: #fff; text-align: center;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .tooltip-title { font-weight: 800; font-size: 14px; letter-spacing: 0.04em; margin-bottom: 4px; text-transform: uppercase; }
+        .tooltip-sub { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+        .tooltip-cta { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffd166; font-weight: 700; }
+
+        .asset-warning {
+            position: absolute; top: 68px; left: 20px; pointer-events: none;
+            max-width: min(360px, calc(100% - 40px));
+            padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 214, 102, 0.5);
+            background: rgba(15, 23, 42, 0.82); color: #ffd166; font-size: 11px; line-height: 1.5;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+
+        #loading-screen {
+            position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 14px;
+            background: radial-gradient(circle at center, #1e293b, #0f172a);
+            color: #e5f3ff; text-align: center; padding: 20px;
+        }
+        .loader-ring {
+            width: 52px; height: 52px; border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.15); border-top-color: #ff6b00;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading-screen p { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+        .loader-sub { font-size: 11px !important; font-weight: 400 !important; opacity: 0.65; max-width: 360px; }
+        #loading-screen a { color: #ffd166; }
+
+        @media (max-width: 640px) {
+            .controls-hint { max-width: 210px; font-size: 11px; padding: 10px 12px; }
+            .brand-pill { font-size: 9px; padding: 8px 12px; }
+            .exhibit-count { display: none; }
+            .tooltip { max-width: 82vw; }
+        }
+    </style>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "../../Assets/vendor/three/three.module.js",
+            "three/addons/": "../../Assets/vendor/three/addons/"
+        }
+    }
+    </script>
+    <style>
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel, #14181f);
+        border-top: 1px solid var(--line, var(--border, rgba(255,255,255,0.15)));
+        color: var(--text, #f2f2f2); font-family: inherit; font-size: 0.85rem;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; color: inherit; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line, var(--border, rgba(255,255,255,0.2))); background: transparent;
+        color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem;
+        font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--primary, #38bdf8); color: #06140f; border-color: transparent; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="../../Assets/vendor/react/react.production.min.js"></script>
+    <script src="../../Assets/vendor/react/react-dom.production.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        const { useEffect, useRef, useState } = React;
+
+        /* ==================== Portfolio Exhibit Data ====================
+           Every href below matches a real, verified folder on this site. */
+        const PORTFOLIOS = {
+            hub: {
+                title: 'Home / Main Portfolio',
+                subtitle: 'Back to the classic 2D command center.',
+                href: '../../index.html',
+                accent: '#ff6b00',
+            },
+            cad: {
+                title: 'CAD / CAM / CAE',
+                subtitle: '66 real SolidWorks files, live in-browser 3D STL viewer.',
+                href: '../CADCAMCAE/index.html',
+                accent: '#0047ab',
+            },
+            gis: {
+                title: 'GIS & Remote Sensing',
+                subtitle: 'Google Earth Engine work + an interactive rotating globe.',
+                href: '../GIS & Remote Sensing/index.html',
+                accent: '#3aa0c8',
+            },
+            aiml: {
+                title: 'AI / ML Lab',
+                subtitle: 'Live regression & forecasting engine — runs 100% locally.',
+                href: '../AI & ML/index.html',
+                accent: '#9b3fc4',
+            },
+            embedded: {
+                title: 'Embedded Systems',
+                subtitle: 'Circuit-themed showcase of MCU & IoT project work.',
+                href: '../Embeded Systems & Circuitry/index.html',
+                accent: '#00b140',
+            },
+            creative: {
+                title: 'Creative & 3D',
+                subtitle: 'Interactive 3D world, plus graphic & motion design systems.',
+                href: './index.html',
+                accent: '#e0a800',
+            },
+            programming: {
+                title: 'Programming',
+                subtitle: 'A real Python ERP app, live repos, and working code.',
+                href: '../Programming/index.html',
+                accent: '#6a1fb0',
+            },
+            gamer: {
+                title: 'Gamer Design',
+                subtitle: 'A soft, gacha-inspired gaming portfolio concept.',
+                href: '../Gamer/index.html',
+                accent: '#ff8fb1',
+            },
+        };
+
+        /* ==================== Cartoon Shading Helpers ==================== */
+        function buildToonGradient(THREE) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 4; canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+            ['#33323d', '#71708a', '#b3b2c9', '#ffffff'].forEach((c, i) => {
+                ctx.fillStyle = c; ctx.fillRect(i, 0, 1, 1);
+            });
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.minFilter = THREE.NearestFilter;
+            tex.magFilter = THREE.NearestFilter;
+            tex.generateMipmaps = false;
+            return tex;
+        }
+
+        function makeFloorTexture(THREE) {
+            const size = 256;
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#dcb98a';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#cfa877';
+            const plank = size / 8;
+            for (let i = 0; i < 8; i++) {
+                if (i % 2 === 0) ctx.fillRect(0, i * plank, size, plank);
+            }
+            ctx.strokeStyle = 'rgba(90, 60, 30, 0.15)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 8; i++) {
+                ctx.beginPath(); ctx.moveTo(0, i * plank); ctx.lineTo(size, i * plank); ctx.stroke();
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(4, 3.5);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        function makePersianRugTexture(THREE) {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#7a1f2b';
+            ctx.fillRect(0, 0, size, size);
+            ctx.strokeStyle = '#e8c873';
+            ctx.lineWidth = 14;
+            ctx.strokeRect(20, 20, size - 40, size - 40);
+            ctx.strokeStyle = '#1c3d5a';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(42, 42, size - 84, size - 84);
+
+            const corners = [[74, 74], [size - 74, 74], [74, size - 74], [size - 74, size - 74]];
+            corners.forEach(([cx, cy]) => {
+                ctx.fillStyle = '#e8c873';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - 22); ctx.lineTo(cx + 22, cy); ctx.lineTo(cx, cy + 22); ctx.lineTo(cx - 22, cy);
+                ctx.closePath(); ctx.fill();
+            });
+
+            const cx = size / 2, cy = size / 2;
+            [150, 108, 66].forEach((r, i) => {
+                ctx.strokeStyle = i % 2 === 0 ? '#e8c873' : '#1c3d5a';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy);
+                ctx.closePath(); ctx.stroke();
+            });
+            ctx.fillStyle = '#e8c873';
+            ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#e8c873';
+            for (let i = 0; i < 22; i++) {
+                const t = i / 22;
+                const px = 32 + t * (size - 64);
+                ctx.beginPath(); ctx.arc(px, 10, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(px, size - 10, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(10, px, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(size - 10, px, 3, 0, Math.PI * 2); ctx.fill();
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        function addOutline(THREE, mesh, thickness, color) {
+            const outline = new THREE.Mesh(
+                mesh.geometry,
+                new THREE.MeshBasicMaterial({ color: color || 0x1c1830, side: THREE.BackSide })
+            );
+            outline.userData.isOutline = true;
+            outline.scale.setScalar(1 + (thickness || 0.06));
+            outline.raycast = () => {};
+            mesh.add(outline);
+            return outline;
+        }
+
+        function toonMesh(THREE, geometry, color, gradientMap) {
+            const mesh = new THREE.Mesh(geometry, new THREE.MeshToonMaterial({ color, gradientMap }));
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            addOutline(THREE, mesh);
+            return mesh;
+        }
+
+        function makeClockHand(THREE, gradientMap, length, width, color) {
+            const geo = new THREE.BoxGeometry(width, length, 0.02);
+            geo.translate(0, length / 2, 0);
+            return toonMesh(THREE, geo, color, gradientMap);
+        }
+
+        /* ==================== Hand-Built Cartoon Exhibit Icons ==================== */
+        function buildCadIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const ring = toonMesh(THREE, new THREE.TorusGeometry(0.55, 0.13, 8, 16), color, gradientMap);
+            ring.position.y = 1.15;
+            g.add(ring);
+            for (let i = 0; i < 8; i++) {
+                const a = (i / 8) * Math.PI * 2;
+                const tooth = toonMesh(THREE, new THREE.BoxGeometry(0.2, 0.22, 0.16), color, gradientMap);
+                tooth.position.set(Math.cos(a) * 0.62, 1.15, Math.sin(a) * 0.62);
+                tooth.rotation.y = -a;
+                g.add(tooth);
+            }
+            const core = toonMesh(THREE, new THREE.BoxGeometry(0.5, 0.5, 0.5), 0xffffff, gradientMap);
+            core.position.y = 1.15;
+            core.rotation.y = Math.PI / 4;
+            g.add(core);
+            return g;
+        }
+
+        function buildGlobeIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const centerY = 1.25;
+            const sphere = toonMesh(THREE, new THREE.SphereGeometry(0.55, 20, 16), color, gradientMap);
+            sphere.position.y = centerY;
+            g.add(sphere);
+            const ring = toonMesh(THREE, new THREE.TorusGeometry(0.78, 0.04, 8, 32), 0xffffff, gradientMap);
+            ring.rotation.x = Math.PI / 2.4;
+            ring.position.y = centerY;
+            g.add(ring);
+            [[0.5, 0.3, 0.3], [-0.4, 0.4, 0.35], [0.2, -0.3, 0.5]].forEach((spot) => {
+                const dir = new THREE.Vector3(spot[0], spot[1], spot[2]).normalize();
+                const pin = toonMesh(THREE, new THREE.ConeGeometry(0.07, 0.22, 8), 0xff5252, gradientMap);
+                pin.position.copy(dir.clone().multiplyScalar(0.62)).add(new THREE.Vector3(0, centerY, 0));
+                pin.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+                g.add(pin);
+            });
+            return g;
+        }
+
+        function buildBrainIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const centerY = 1.25;
+            const brain = toonMesh(THREE, new THREE.IcosahedronGeometry(0.5, 1), color, gradientMap);
+            brain.position.y = centerY;
+            g.add(brain);
+            [[0.85, 0.2, 0], [-0.8, 0.3, 0.2], [0, 0.5, 0.8], [0.1, -0.4, -0.8]].forEach((spot) => {
+                const node = toonMesh(THREE, new THREE.SphereGeometry(0.09, 10, 10), 0xffe066, gradientMap);
+                node.position.set(spot[0], centerY + spot[1], spot[2]);
+                g.add(node);
+            });
+            return g;
+        }
+
+        function buildCircuitIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const board = toonMesh(THREE, new THREE.BoxGeometry(1.0, 0.08, 0.7), color, gradientMap);
+            board.position.y = 1.0;
+            g.add(board);
+            const chip = toonMesh(THREE, new THREE.BoxGeometry(0.32, 0.14, 0.32), 0x1e1e2b, gradientMap);
+            chip.position.set(-0.15, 1.11, 0);
+            g.add(chip);
+            [[0.25, 0.15], [0.35, -0.2], [0.05, -0.25]].forEach((p) => {
+                const cap = toonMesh(THREE, new THREE.CylinderGeometry(0.06, 0.06, 0.16, 10), 0x3ba0ff, gradientMap);
+                cap.position.set(p[0], 1.12, p[1]);
+                g.add(cap);
+            });
+            const led = toonMesh(THREE, new THREE.SphereGeometry(0.06, 10, 10), 0x39ff6a, gradientMap);
+            led.position.set(-0.4, 1.13, 0.25);
+            g.add(led);
+            return g;
+        }
+
+        function buildSculptureIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const knot = toonMesh(THREE, new THREE.TorusKnotGeometry(0.4, 0.13, 64, 8), color, gradientMap);
+            knot.position.y = 1.3;
+            g.add(knot);
+            return g;
+        }
+
+        function buildControllerIcon(THREE, gradientMap, color) {
+            const g = new THREE.Group();
+            const body = toonMesh(THREE, new THREE.BoxGeometry(1.0, 0.28, 0.5), color, gradientMap);
+            body.position.y = 1.1;
+            g.add(body);
+            const gripGeo = new THREE.CylinderGeometry(0.14, 0.1, 0.4, 10);
+            const gripL = toonMesh(THREE, gripGeo, color, gradientMap);
+            gripL.position.set(-0.42, 0.92, 0);
+            gripL.rotation.z = 0.3;
+            g.add(gripL);
+            const gripR = toonMesh(THREE, gripGeo.clone(), color, gradientMap);
+            gripR.position.set(0.42, 0.92, 0);
+            gripR.rotation.z = -0.3;
+            g.add(gripR);
+            const stickL = toonMesh(THREE, new THREE.CylinderGeometry(0.09, 0.09, 0.08, 12), 0xffffff, gradientMap);
+            stickL.position.set(-0.25, 1.25, 0.05);
+            g.add(stickL);
+            [0xff6b6b, 0x6bff9d, 0x6bb8ff, 0xffe066].forEach((c, i) => {
+                const a = (i / 4) * Math.PI * 2;
+                const btn = toonMesh(THREE, new THREE.SphereGeometry(0.05, 10, 10), c, gradientMap);
+                btn.position.set(0.3 + Math.cos(a) * 0.1, 1.25 + Math.sin(a) * 0.1, 0.05);
+                g.add(btn);
+            });
+            return g;
+        }
+
+        /* ==================== Scene Assembly ==================== */
+        async function buildScene(container, callbacks) {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xcfe8ff);
+            scene.fog = new THREE.Fog(0xcfe8ff, 26, 50);
+
+            /* ---- Isometric camera: true iso angle = direction (1,1,1) ---- */
+            const viewSize = 9;
+            const aspect = width / height;
+            const camera = new THREE.OrthographicCamera(-viewSize * aspect, viewSize * aspect, viewSize, -viewSize, 0.1, 100);
+            const camTarget = new THREE.Vector3(0, 1.6, -2);
+            const isoDir = new THREE.Vector3(1, 1, 1).normalize();
+            camera.position.copy(camTarget).addScaledVector(isoDir, 20);
+            camera.lookAt(camTarget);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(width, height);
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+            controls.target.copy(camTarget);
+            controls.enablePan = false;
+            const isoAzimuth = Math.PI / 4;
+            const isoPolar = Math.acos(1 / Math.sqrt(3));
+            controls.minAzimuthAngle = isoAzimuth - 0.4;
+            controls.maxAzimuthAngle = isoAzimuth + 0.4;
+            controls.minPolarAngle = isoPolar - 0.25;
+            controls.maxPolarAngle = isoPolar + 0.25;
+            controls.minZoom = 0.6;
+            controls.maxZoom = 2.2;
+            controls.update();
+
+            const gradientMap = buildToonGradient(THREE);
+
+            /* ---- Lighting ---- */
+            scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const sun = new THREE.DirectionalLight(0xfff3d6, 1.1);
+            sun.position.set(8, 14, 10);
+            sun.castShadow = true;
+            sun.shadow.mapSize.set(1024, 1024);
+            sun.shadow.camera.left = -10;
+            sun.shadow.camera.right = 10;
+            sun.shadow.camera.top = 10;
+            sun.shadow.camera.bottom = -10;
+            sun.shadow.camera.far = 40;
+            scene.add(sun);
+            const lamp = new THREE.PointLight(0xffe3b0, 0.7, 18, 2);
+            lamp.position.set(0, 5.6, -2.5);
+            scene.add(lamp);
+
+            /* ---- Room shell ---- */
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(16, 14.2),
+                new THREE.MeshToonMaterial({ map: makeFloorTexture(THREE), gradientMap })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(0, 0, -1.1);
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            const wallMat = new THREE.MeshToonMaterial({ color: 0xfdf6ec, gradientMap });
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(16, 6.5, 0.4), wallMat);
+            backWall.position.set(0, 3.25, -8.4);
+            backWall.receiveShadow = true;
+            scene.add(backWall);
+
+            const sideWallGeo = new THREE.BoxGeometry(0.4, 6.5, 14.2);
+            const leftWallMat = wallMat.clone();
+            leftWallMat.color.set(0xf4ecdd);
+            const leftWall = new THREE.Mesh(sideWallGeo, leftWallMat);
+            leftWall.position.set(-8.2, 3.25, -1.1);
+            leftWall.receiveShadow = true;
+            scene.add(leftWall);
+
+            const rightWallMat = wallMat.clone();
+            rightWallMat.color.set(0xf4ecdd);
+            const rightWall = new THREE.Mesh(sideWallGeo, rightWallMat);
+            rightWall.position.set(8.2, 3.25, -1.1);
+            rightWall.receiveShadow = true;
+            scene.add(rightWall);
+
+            const baseboard = new THREE.Mesh(
+                new THREE.BoxGeometry(16, 0.3, 0.5),
+                new THREE.MeshToonMaterial({ color: 0xffb703, gradientMap })
+            );
+            baseboard.position.set(0, 0.15, -8.35);
+            scene.add(baseboard);
+
+            const rug = new THREE.Mesh(
+                new THREE.PlaneGeometry(6, 4),
+                new THREE.MeshToonMaterial({ map: makePersianRugTexture(THREE), gradientMap })
+            );
+            rug.rotation.x = -Math.PI / 2;
+            rug.position.set(0, 0.02, -2);
+            rug.receiveShadow = true;
+            scene.add(rug);
+
+            /* ---- AC unit + wall clock (procedural — no kit model for these) ---- */
+            const ac = toonMesh(THREE, new THREE.BoxGeometry(1.1, 0.4, 0.35), 0xf4f6fa, gradientMap);
+            ac.position.set(-1.5, 5.7, -8.15);
+            scene.add(ac);
+            for (let i = 0; i < 3; i++) {
+                const vent = toonMesh(THREE, new THREE.BoxGeometry(0.9, 0.03, 0.02), 0x9fb3c8, gradientMap);
+                vent.position.set(-1.5, 5.6 - i * 0.08, -7.95);
+                scene.add(vent);
+            }
+
+            const clockFace = toonMesh(THREE, new THREE.CylinderGeometry(0.35, 0.35, 0.05, 24), 0xfff8e7, gradientMap);
+            clockFace.rotation.x = Math.PI / 2;
+            clockFace.position.set(6.0, 5.4, -8.15);
+            scene.add(clockFace);
+            const clockPivot = new THREE.Group();
+            clockPivot.position.set(6.0, 5.4, -8.05);
+            const hourHand = makeClockHand(THREE, gradientMap, 0.16, 0.035, 0x1c1830);
+            const minuteHand = makeClockHand(THREE, gradientMap, 0.23, 0.02, 0x1c1830);
+            clockPivot.add(hourHand, minuteHand);
+            scene.add(clockPivot);
+
+            /* ---- Load real furniture models (CC0, Kenney Furniture Kit) ---- */
+            const ASSET_BASE = './Assets/RoomKit/';
+            const modelFiles = {
+                bed: 'bedSingle.glb',
+                desk: 'desk.glb',
+                chair: 'chairDesk.glb',
+                bookcase: 'bookcaseOpen.glb',
+                books: 'books.glb',
+                screen: 'computerScreen.glb',
+                keyboard: 'computerKeyboard.glb',
+                mouse: 'computerMouse.glb',
+                ceilingLamp: 'lampSquareCeiling.glb',
+                deskLamp: 'lampRoundTable.glb',
+                windowModel: 'wallWindow.glb',
+                doorway: 'doorway.glb',
+                sideTable: 'sideTable.glb',
+                plant: 'pottedPlant.glb',
+            };
+            const gltfLoader = new GLTFLoader();
+            const loaded = {};
+            const failedModels = [];
+            await Promise.all(Object.entries(modelFiles).map(async ([key, file]) => {
+                try {
+                    const gltf = await gltfLoader.loadAsync(ASSET_BASE + file);
+                    loaded[key] = gltf.scene;
+                } catch (err) {
+                    console.warn('Room furniture: could not load "' + file + '" — skipping it.', err);
+                    failedModels.push(file);
+                }
+            }));
+            if (failedModels.length) {
+                callbacks.onAssetWarning(failedModels);
+            }
+
+            function placeFurniture(model, opts) {
+                if (!model) return null;
+                const x = opts.x, z = opts.z, rotationY = opts.rotationY || 0, scale = opts.scale || 1;
+                const restOn = 'restOn' in opts ? opts.restOn : 0;
+                const hangAtY = 'hangAtY' in opts ? opts.hangAtY : null;
+                const group = new THREE.Group();
+                model.scale.setScalar(scale);
+                model.rotation.y = rotationY;
+                model.traverse((child) => {
+                    if (child.isMesh && !child.userData.isOutline) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        const srcColor = (child.material && child.material.color)
+                            ? child.material.color.clone() : new THREE.Color(0xffffff);
+                        child.material = new THREE.MeshToonMaterial({ color: srcColor, gradientMap });
+                        addOutline(THREE, child, 0.05, 0x14141f);
+                    }
+                });
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.x -= center.x;
+                model.position.z -= center.z;
+                if (hangAtY !== null) {
+                    model.position.y = -center.y;
+                    group.position.set(x, hangAtY, z);
+                } else {
+                    model.position.y = -box.min.y;
+                    group.position.set(x, restOn, z);
+                }
+                group.add(model);
+                scene.add(group);
+                return group;
+            }
+
+            function surfaceTopY(obj, fallback) {
+                if (!obj) return fallback != null ? fallback : 0.75;
+                return new THREE.Box3().setFromObject(obj).max.y;
+            }
+
+            const bedGroup = placeFurniture(loaded.bed, { x: -6.3, z: -4, rotationY: Math.PI / 2 });
+            const sideTableGroup = placeFurniture(loaded.sideTable, { x: -6.3, z: -1 });
+            const bookcaseGroup = placeFurniture(loaded.bookcase, { x: 6.3, z: -5.5, rotationY: -Math.PI / 2 });
+            const deskGroup = placeFurniture(loaded.desk, { x: 6.3, z: -1, rotationY: -Math.PI / 2 });
+            placeFurniture(loaded.chair, { x: 4.7, z: -1, rotationY: Math.PI / 2 });
+            placeFurniture(loaded.doorway, { x: -5, z: -8.0 });
+            placeFurniture(loaded.windowModel, { x: 2.5, z: -8.0 });
+            placeFurniture(loaded.plant, { x: 6.5, z: 4.5 });
+            placeFurniture(loaded.ceilingLamp, { x: 0, z: -2.5, hangAtY: 6.0 });
+
+            const deskTopY = surfaceTopY(deskGroup, 0.75);
+            placeFurniture(loaded.screen, { x: 6.0, z: -1.7, restOn: deskTopY, rotationY: -Math.PI / 2 });
+            placeFurniture(loaded.keyboard, { x: 6.3, z: -0.9, restOn: deskTopY, rotationY: -Math.PI / 2 });
+            placeFurniture(loaded.mouse, { x: 6.6, z: -0.75, restOn: deskTopY, rotationY: -Math.PI / 2 });
+            placeFurniture(loaded.deskLamp, { x: 6.5, z: -1.9, restOn: deskTopY });
+
+            const bookcaseTopY = surfaceTopY(bookcaseGroup, 1.8);
+            placeFurniture(loaded.books, { x: 6.0, z: -5.8, restOn: bookcaseTopY, rotationY: -Math.PI / 2 });
+
+            const bedTopY = surfaceTopY(bedGroup, 0.5);
+            const sideTableTopY = surfaceTopY(sideTableGroup, 0.55);
+
+            /* ---- Clickable portfolio exhibits, placed as items within the room ---- */
+            const exhibits = [];
+            const hotspots = [];
+
+            function placeIcon(iconGroup, x, z, surfaceY, scale, hoverGap) {
+                iconGroup.scale.setScalar(scale);
+                const box = new THREE.Box3().setFromObject(iconGroup);
+                iconGroup.position.set(x, surfaceY - box.min.y + (hoverGap || 0.03), z);
+                scene.add(iconGroup);
+                return iconGroup;
+            }
+
+            function registerHotspot(iconGroup, portfolioData, size) {
+                const box = new THREE.Box3().setFromObject(iconGroup);
+                const center = box.getCenter(new THREE.Vector3());
+                const hotspot = new THREE.Mesh(
+                    new THREE.BoxGeometry(size[0], size[1], size[2]),
+                    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+                );
+                hotspot.position.copy(center);
+                hotspot.userData.portfolio = portfolioData;
+                scene.add(hotspot);
+                hotspots.push(hotspot);
+                exhibits.push({ group: iconGroup, baseY: iconGroup.position.y, phase: Math.random() * Math.PI * 2 });
+            }
+
+            const globeIcon = placeIcon(buildGlobeIcon(THREE, gradientMap, 0x3aa0c8), 6.5, -5.2, bookcaseTopY, 0.55, 0.04);
+            registerHotspot(globeIcon, PORTFOLIOS.gis, [0.9, 0.9, 0.9]);
+
+            const brainIcon = placeIcon(buildBrainIcon(THREE, gradientMap, 0x9b3fc4), 6.15, -5.6, bookcaseTopY, 0.4, 0.04);
+            registerHotspot(brainIcon, PORTFOLIOS.aiml, [0.8, 0.8, 0.8]);
+
+            const gearIcon = placeIcon(buildCadIcon(THREE, gradientMap, 0x0047ab), 6.6, -2.1, deskTopY, 0.4, 0.03);
+            registerHotspot(gearIcon, PORTFOLIOS.cad, [0.7, 0.7, 0.7]);
+
+            const sculptureIcon = placeIcon(buildSculptureIcon(THREE, gradientMap, 0xe0a800), 5.6, -1.9, deskTopY, 0.4, 0.03);
+            registerHotspot(sculptureIcon, PORTFOLIOS.creative, [0.7, 0.7, 0.7]);
+
+            const circuitIcon = placeIcon(buildCircuitIcon(THREE, gradientMap, 0x00b140), -6.3, -1, sideTableTopY, 0.5, 0.03);
+            registerHotspot(circuitIcon, PORTFOLIOS.embedded, [0.7, 0.7, 0.7]);
+
+            const controllerIcon = placeIcon(buildControllerIcon(THREE, gradientMap, 0xff8fb1), -6.0, -3.2, bedTopY, 0.45, 0.03);
+            registerHotspot(controllerIcon, PORTFOLIOS.gamer, [0.7, 0.7, 0.7]);
+
+            // The "computer on the desk" is itself the Programming exhibit.
+            const programmingHotspot = new THREE.Mesh(
+                new THREE.BoxGeometry(0.8, 0.9, 0.6),
+                new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+            );
+            programmingHotspot.position.set(6.0, deskTopY + 0.4, -1.7);
+            programmingHotspot.userData.portfolio = PORTFOLIOS.programming;
+            scene.add(programmingHotspot);
+            hotspots.push(programmingHotspot);
+
+            // The doorway is the way back to the main 2D site.
+            const hubHotspot = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 3.2, 1.2),
+                new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+            );
+            hubHotspot.position.set(-5, 1.6, -7.7);
+            hubHotspot.userData.portfolio = PORTFOLIOS.hub;
+            scene.add(hubHotspot);
+            hotspots.push(hubHotspot);
+
+            /* ---- Interaction ---- */
+            const raycaster = new THREE.Raycaster();
+            const pointer = new THREE.Vector2();
+            let hoveredHotspot = null;
+            let pointerDownPos = null;
+
+            function updatePointer(event) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            }
+
+            function handlePointerDown(event) {
+                pointerDownPos = { x: event.clientX, y: event.clientY };
+            }
+
+            function handlePointerMove(event) {
+                updatePointer(event);
+                raycaster.setFromCamera(pointer, camera);
+                const hits = raycaster.intersectObjects(hotspots, false);
+                if (hits.length) {
+                    const hit = hits[0].object;
+                    if (hoveredHotspot !== hit) {
+                        hoveredHotspot = hit;
+                        renderer.domElement.style.cursor = 'pointer';
+                        callbacks.onHover(hit.userData.portfolio);
+                    }
+                } else if (hoveredHotspot) {
+                    hoveredHotspot = null;
+                    renderer.domElement.style.cursor = 'grab';
+                    callbacks.onHover(null);
+                }
+            }
+
+            function handleClick(event) {
+                if (pointerDownPos) {
+                    const dx = event.clientX - pointerDownPos.x;
+                    const dy = event.clientY - pointerDownPos.y;
+                    if (Math.hypot(dx, dy) > 6) return; // was a camera drag, not a click
+                }
+                updatePointer(event);
+                raycaster.setFromCamera(pointer, camera);
+                const hits = raycaster.intersectObjects(hotspots, false);
+                if (hits.length) {
+                    const target = hits[0].object.userData.portfolio;
+                    callbacks.onSelect(target);
+                    window.setTimeout(() => { window.location.href = target.href; }, 180);
+                }
+            }
+
+            renderer.domElement.style.cursor = 'grab';
+            renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+            renderer.domElement.addEventListener('pointermove', handlePointerMove);
+            renderer.domElement.addEventListener('click', handleClick);
+
+            function handleResize() {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                const a = w / h;
+                camera.left = -viewSize * a;
+                camera.right = viewSize * a;
+                camera.top = viewSize;
+                camera.bottom = -viewSize;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            }
+            window.addEventListener('resize', handleResize);
+
+            /* ---- Render loop ---- */
+            let rafId = null;
+            const clock = new THREE.Clock();
+            function animate() {
+                rafId = requestAnimationFrame(animate);
+                const t = clock.getElapsedTime();
+                exhibits.forEach((ex) => {
+                    ex.group.position.y = ex.baseY + Math.sin(t * 1.2 + ex.phase) * 0.05;
+                    ex.group.rotation.y += 0.0035;
+                });
+                const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' }));
+                const hourFrac = (now.getHours() % 12) / 12 + now.getMinutes() / 720;
+                const minuteFrac = now.getMinutes() / 60 + now.getSeconds() / 3600;
+                hourHand.rotation.z = -hourFrac * Math.PI * 2;
+                minuteHand.rotation.z = -minuteFrac * Math.PI * 2;
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            callbacks.onReady();
+
+            return function cleanup() {
+                cancelAnimationFrame(rafId);
+                window.removeEventListener('resize', handleResize);
+                renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
+                renderer.domElement.removeEventListener('pointermove', handlePointerMove);
+                renderer.domElement.removeEventListener('click', handleClick);
+                controls.dispose();
+                renderer.dispose();
+                if (renderer.domElement.parentNode) {
+                    renderer.domElement.parentNode.removeChild(renderer.domElement);
+                }
+            };
+        }
+
+        /* ==================== React App ==================== */
+        function App() {
+            const containerRef = useRef(null);
+            const cleanupRef = useRef(null);
+            const [loading, setLoading] = useState(true);
+            const [hovered, setHovered] = useState(null);
+            const [errorDetail, setErrorDetail] = useState('');
+            const [assetWarning, setAssetWarning] = useState(null);
+
+            useEffect(() => {
+                let cancelled = false;
+
+                buildScene(containerRef.current, {
+                    onReady: () => { if (!cancelled) setLoading(false); },
+                    onHover: (portfolio) => { if (!cancelled) setHovered(portfolio); },
+                    onSelect: (portfolio) => { if (!cancelled) setHovered(portfolio); },
+                    onAssetWarning: (files) => { if (!cancelled) setAssetWarning(files); },
+                }).then((cleanup) => {
+                    if (cancelled) { cleanup(); } else { cleanupRef.current = cleanup; }
+                }).catch((err) => {
+                    console.error('Failed to build the 3D portfolio room:', err);
+                    if (!cancelled) {
+                        setErrorDetail(err && (err.message || String(err)) || 'Unknown error');
+                        setLoading('error');
+                    }
+                });
+
+                return () => {
+                    cancelled = true;
+                    if (cleanupRef.current) cleanupRef.current();
+                };
+            }, []);
+
+            const h = React.createElement;
+
+            const tooltip = hovered ? h('div', { className: 'tooltip', style: { borderColor: hovered.accent } },
+                h('div', { className: 'tooltip-title', style: { color: hovered.accent } }, hovered.title),
+                h('div', { className: 'tooltip-sub' }, hovered.subtitle),
+                h('div', { className: 'tooltip-cta' }, 'Click to enter →')
+            ) : null;
+
+            const loadingScreen = loading === true ? h('div', { id: 'loading-screen' },
+                h('div', { className: 'loader-ring' }),
+                h('p', null, 'Furnishing The Room…'),
+                h('p', { className: 'loader-sub' },
+                    'Loading React, Three.js, and the CC0 furniture models — all from files in this project. No internet connection required.')
+            ) : null;
+
+            const errorScreen = loading === 'error' ? h('div', { id: 'loading-screen' },
+                h('p', null, 'Could not start the 3D room.'),
+                h('p', { className: 'loader-sub' },
+                    'Try a different browser, or use the ',
+                    h('a', { href: '../../index.html' }, 'classic 2D site'),
+                    ' instead.'
+                ),
+                h('p', { className: 'loader-sub', style: { marginTop: '10px', fontFamily: 'monospace', opacity: 0.85 } },
+                    'Details: ' + errorDetail
+                )
+            ) : null;
+
+            const warningBanner = assetWarning ? h('div', { className: 'asset-warning' },
+                (assetWarning.length === 1 ? '1 furniture piece' : assetWarning.length + ' furniture pieces') +
+                    " didn't load (" + assetWarning.join(', ') + ') — the rest of the room still works.'
+            ) : null;
+
+            return h(React.Fragment, null,
+                h('div', { ref: containerRef, id: 'scene-container' }),
+                h('div', { id: 'hud' },
+                    h('a', { href: '../../index.html', className: 'brand-pill' }, '← Imaad Yameen // 3D Portfolio Room'),
+                    h('div', { className: 'controls-hint' },
+                        h('div', { className: 'hint-label' }, 'Controls'),
+                        h('div', null, 'Drag — Tilt The Room'),
+                        h('div', null, 'Scroll — Zoom'),
+                        h('div', null, 'Hover Any Object — See What It Is'),
+                        h('div', null, 'Click It — Enter That Portfolio')
+                    ),
+                    h('div', { className: 'exhibit-count' }, '8 Exhibits · Isometric Study Room'),
+                    tooltip,
+                    warningBanner
+                ),
+                loadingScreen,
+                errorScreen
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+    </script>
+<div class="cookie-banner" id="cookieBanner">
+  <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+  <div class="cookie-actions">
+    <button type="button" id="cookieDecline">Decline</button>
+    <button type="button" id="cookieAccept">Accept</button>
+  </div>
+</div>
+<script>
+  function setCookie(name, value, days) {
+    var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+  }
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+  function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+  (function initCookieBanner() {
+    var banner = document.getElementById('cookieBanner');
+    var acceptBtn = document.getElementById('cookieAccept');
+    var declineBtn = document.getElementById('cookieDecline');
+    if (!banner) return;
+    if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+    acceptBtn.addEventListener('click', function () {
+      setCookie('cookie_consent', 'accepted', 365);
+      banner.style.display = 'none';
+    });
+    declineBtn.addEventListener('click', function () {
+      setCookie('cookie_consent', 'declined', 365);
+      banner.style.display = 'none';
+    });
+  })();
+</script>
+</body>
+</html>

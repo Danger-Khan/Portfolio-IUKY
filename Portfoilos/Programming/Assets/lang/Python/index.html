@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python — Programming Skills</title>
+    <meta name="description" content="Python — what it's for, core concepts, and where it's really used." />
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-2: #161b22;
+        --panel: #161b22;
+        --panel-soft: #1c2330;
+        --line: #30363d;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --accent-2: #7ee787;
+        --gold: #e3b341;
+        --pink: #ff7b72;
+        --purple: #d2a8ff;
+        --lang-color: var(--accent-2);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+        background: var(--bg);
+        color: var(--text);
+        background-image: radial-gradient(circle at 10% 0%, rgba(88,166,255,0.08), transparent 40%);
+      }
+
+      .container { width: min(760px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 56px 0; }
+
+      .topbar {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(13,17,23,0.9);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(8px);
+        z-index: 30;
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+      .logo { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.02em; }
+      .logo .dim { color: var(--muted); }
+      .logo .accent { color: var(--lang-color); }
+      .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; }
+      .nav-links a:hover { color: var(--lang-color); }
+      .nav-links a::before { content: '#'; color: var(--pink); margin-right: 2px; }
+
+      .win {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+      }
+      .win-bar {
+        display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+        background: var(--panel-soft); border-bottom: 1px solid var(--line);
+      }
+      .dot { width: 11px; height: 11px; border-radius: 50%; }
+      .dot.red { background: #ff5f56; }
+      .dot.yellow { background: #ffbd2e; }
+      .dot.green { background: #27c93f; }
+      .win-title { margin-left: 10px; color: var(--muted); font-size: 0.75rem; }
+      .win-body { padding: 22px 24px; }
+
+      .hero { padding: 54px 0 10px; }
+      .lang-badge {
+        display: inline-block; color: var(--lang-color); font-size: 0.72rem; letter-spacing: 0.14em;
+        margin-bottom: 14px; font-weight: 700; text-transform: uppercase;
+      }
+      h1 {
+        font-family: 'Consolas', monospace; margin: 0 0 16px; color: var(--lang-color);
+        font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1.05; letter-spacing: -0.01em;
+      }
+      .lead { color: var(--muted); font-size: 0.98rem; line-height: 1.75; }
+
+      .back-link {
+        display: inline-block; margin-top: 22px; color: var(--muted); text-decoration: none; font-size: 0.8rem;
+      }
+      .back-link:hover { color: var(--lang-color); }
+      .back-link::before { content: '\2190 '; }
+
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 12px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--lang-color); }
+
+      .section-title { margin-bottom: 22px; }
+      .section-title .tag { color: var(--lang-color); font-size: 0.8rem; }
+      .section-title h2 { margin: 6px 0 8px; font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; }
+
+      .feature-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+      .feature-list li { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
+      .feature-list li::before { content: '\2192 '; color: var(--lang-color); }
+
+      .used-box { border-left: 3px solid var(--lang-color); padding: 4px 0 4px 16px; }
+      .used-box p { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin: 6px 0 12px; }
+      .used-box a {
+        display: inline-block; text-decoration: none; font-size: 0.78rem; font-weight: 700;
+        padding: 8px 14px; border-radius: 6px; background: var(--lang-color); color: #041220;
+      }
+
+      .placeholder-note {
+        color: var(--muted); font-size: 0.85rem; line-height: 1.7; border: 1px dashed var(--line);
+        border-radius: 8px; padding: 16px;
+      }
+
+      .shot-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+      .shot-strip figure { margin: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel-soft); }
+      .shot-strip img { display: block; width: 100%; height: auto; }
+      .shot-strip figcaption { padding: 6px 8px; font-size: 0.64rem; color: var(--muted); border-top: 1px solid var(--line); }
+      @media (max-width: 700px) { .shot-strip { grid-template-columns: 1fr; } }
+
+      footer { padding: 30px 0 50px; border-top: 1px solid var(--line); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel, #14181f);
+        border-top: 1px solid var(--line, rgba(255,255,255,0.15));
+        color: var(--text, #f2f2f2); font-family: inherit; font-size: 0.85rem;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; color: inherit; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line, rgba(255,255,255,0.2)); background: transparent;
+        color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem;
+        font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--lang-color); color: #041220; border-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo"><span class="dim">~/</span>imaad<span class="accent">/python</span></div>
+        <nav class="nav-links">
+          <a href="../../../index.html">programming</a>
+          <a href="../../../../../index.html">portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="lang-badge">Language</div>
+          <h1>Python</h1>
+          <p class="lead">General-purpose scripting, data tooling, automation, and backend services — readable syntax, a huge standard library.</p>
+          <a class="back-link" href="../../../index.html#languages">Back to all languages</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-title">
+            <div class="tag">core_concepts</div>
+            <h2>What it's built on.</h2>
+          </div>
+          <div class="win">
+            <div class="win-bar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="win-title">python.notes</span>
+            </div>
+            <div class="win-body">
+              <ul class="feature-list">
+                <li>Dynamic typing with optional type hints</li>
+                <li>List/dict comprehensions</li>
+                <li>Virtual environments &amp; pip for dependencies</li>
+                <li>Web frameworks (Flask, Django)</li>
+                <li>The "batteries included" standard library</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="tag">used_here</div>
+            <h2>See it used — Atelier Ledger</h2>
+          </div>
+          <div class="used-box">
+            <p>A real desktop app for Jhagra Textile &amp; Clothing, built with Python, Flask, and Tkinter — order tracking, finance, and a bilingual UI.</p>
+            <a href="../../../index.html#projects">Open it →</a>
+          </div>
+          <div class="shot-strip">
+            <figure>
+              <img src="Assets/JTC App/Dark Mode 0.png" alt="Atelier Ledger dashboard, dark theme" loading="lazy">
+              <figcaption>Dashboard — order &amp; finance overview</figcaption>
+            </figure>
+            <figure>
+              <img src="Assets/JTC App/Light Mode.png" alt="Atelier Ledger dashboard with Urdu-localized sidebar" loading="lazy">
+              <figcaption>Urdu-localized sidebar, light theme</figcaption>
+            </figure>
+            <figure>
+              <img src="Assets/JTC App/Dark Mode.png" alt="Atelier Ledger finance ledger, dark theme" loading="lazy">
+              <figcaption>Finance — paid/remaining ledger</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../../index.html">Home</a>
+          <a href="../../../index.html#languages">Back to Programming</a>
+        </div>
+        <div class="footer-inner">
+        <span>imaad@portfolio:~/programming/python$ <span class="cursor"></span></span>
+        <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+  </body>
+</html>

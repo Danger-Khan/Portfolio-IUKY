@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume, CV &amp; Cover Letter Builder</title>
+    <meta name="description" content="A real, in-browser resume, CV and cover letter builder — fill a form, get a live preview, print to PDF, or export the draft as JSON for the companion Python formatter." />
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-2: #161b22;
+        --panel: #161b22;
+        --panel-soft: #1c2330;
+        --line: #30363d;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --accent-2: #7ee787;
+        --gold: #e3b341;
+        --pink: #ff7b72;
+        --purple: #d2a8ff;
+        --lang-color: var(--gold);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+        background: var(--bg);
+        color: var(--text);
+        background-image: radial-gradient(circle at 10% 0%, rgba(88,166,255,0.08), transparent 40%);
+      }
+
+      .container { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 40px 0 70px; }
+
+      .topbar {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(13,17,23,0.9);
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(8px);
+        z-index: 30;
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+      .logo { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.02em; }
+      .logo .dim { color: var(--muted); }
+      .logo .accent { color: var(--lang-color); }
+      .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; }
+      .nav-links a:hover { color: var(--lang-color); }
+      .nav-links a::before { content: '#'; color: var(--pink); margin-right: 2px; }
+
+      .win {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+      }
+      .win-bar {
+        display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+        background: var(--panel-soft); border-bottom: 1px solid var(--line);
+      }
+      .dot { width: 11px; height: 11px; border-radius: 50%; }
+      .dot.red { background: #ff5f56; }
+      .dot.yellow { background: #ffbd2e; }
+      .dot.green { background: #27c93f; }
+      .win-title { margin-left: 10px; color: var(--muted); font-size: 0.75rem; }
+      .win-body { padding: 20px; }
+
+      .hero { padding: 44px 0 6px; }
+      .lang-badge {
+        display: inline-block; color: var(--lang-color); font-size: 0.72rem; letter-spacing: 0.14em;
+        margin-bottom: 14px; font-weight: 700; text-transform: uppercase;
+      }
+      h1 {
+        font-family: 'Consolas', monospace; margin: 0 0 12px; color: var(--lang-color);
+        font-size: clamp(1.8rem, 4.6vw, 2.8rem); line-height: 1.1; letter-spacing: -0.01em;
+      }
+      .lead { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 720px; }
+
+      .back-link {
+        display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.8rem;
+      }
+      .back-link:hover { color: var(--lang-color); }
+      .back-link::before { content: '\2190 '; }
+
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 12px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--lang-color); }
+
+      /* Builder layout */
+      .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+      @media (max-width: 980px) { .builder-grid { grid-template-columns: 1fr; } }
+
+      .field { margin-bottom: 12px; }
+      .field label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 5px; }
+      .field input, .field textarea {
+        width: 100%; font-family: inherit; font-size: 0.85rem; color: var(--text);
+        background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px;
+        padding: 9px 10px; resize: vertical;
+      }
+      .field input:focus, .field textarea:focus { outline: none; border-color: var(--lang-color); }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+      .form-section-title {
+        font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lang-color);
+        margin: 18px 0 10px; font-weight: 700;
+      }
+      .form-section-title:first-child { margin-top: 0; }
+
+      .entry-block { border: 1px dashed var(--line); border-radius: 8px; padding: 12px; margin-bottom: 10px; position: relative; }
+      .entry-remove {
+        position: absolute; top: 8px; right: 8px; font-family: inherit; font-size: 0.68rem; font-weight: 700;
+        background: transparent; border: 1px solid var(--line); color: var(--pink); border-radius: 6px;
+        padding: 4px 8px; cursor: pointer;
+      }
+      .entry-remove:hover { border-color: var(--pink); }
+      .add-entry-btn {
+        font-family: inherit; font-size: 0.78rem; font-weight: 700; color: var(--lang-color);
+        background: transparent; border: 1px dashed var(--lang-color); border-radius: 6px;
+        padding: 8px 12px; cursor: pointer; width: 100%;
+      }
+      .add-entry-btn:hover { background: rgba(227,179,65,0.08); }
+
+      .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+      .toolbar button {
+        font-family: inherit; font-size: 0.78rem; font-weight: 700; border-radius: 6px;
+        padding: 9px 16px; cursor: pointer; border: 1px solid var(--line);
+      }
+      #btnPrint { background: var(--lang-color); color: #041220; border-color: transparent; }
+      #btnExportJson, #btnImportJson, #btnClear { background: transparent; color: var(--text); }
+      #btnClear:hover { border-color: var(--pink); color: var(--pink); }
+      .save-note { font-size: 0.7rem; color: var(--muted); margin-top: 10px; }
+      .save-note .ok { color: var(--accent-2); }
+
+      .cli-note {
+        margin-top: 14px; font-size: 0.78rem; color: var(--muted); line-height: 1.6;
+        border-left: 3px solid var(--lang-color); padding: 4px 0 4px 12px;
+      }
+      .cli-note code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+      /* Preview: real document look, deliberately not the terminal theme */
+      #previewWrap { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
+      .preview-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .preview-panel-bar {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        padding: 9px 14px; background: var(--panel-soft); border-bottom: 1px solid var(--line);
+      }
+      .preview-panel-title { font-size: 0.78rem; font-weight: 700; color: var(--lang-color); }
+      .mini-btn {
+        font-family: inherit; font-size: 0.68rem; font-weight: 700; color: var(--text);
+        background: transparent; border: 1px solid var(--line); border-radius: 6px;
+        padding: 5px 10px; cursor: pointer;
+      }
+      .mini-btn:hover { border-color: var(--lang-color); color: var(--lang-color); }
+      .preview-doc {
+        background: #ffffff; color: #1a1a1a; padding: 28px 30px;
+        font-family: 'Georgia', 'Times New Roman', serif; font-size: 0.85rem; line-height: 1.55;
+        max-height: 50vh; overflow-y: auto;
+      }
+      .preview-doc h2.doc-name { font-family: 'Georgia', serif; font-size: 1.4rem; margin: 0 0 2px; color: #111; }
+      .preview-doc .doc-contact { font-size: 0.75rem; color: #444; margin-bottom: 16px; }
+      .preview-doc .doc-h { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #111; border-bottom: 1.5px solid #111; padding-bottom: 3px; margin: 18px 0 8px; }
+      .preview-doc .doc-h:first-of-type { margin-top: 0; }
+      .preview-doc .doc-entry { margin-bottom: 10px; }
+      .preview-doc .doc-entry-title { font-weight: 700; }
+      .preview-doc .doc-entry-meta { font-size: 0.75rem; color: #555; font-style: italic; }
+      .preview-doc ul { margin: 4px 0 0; padding-left: 18px; }
+      .preview-doc p.empty-hint { color: #999; font-style: italic; }
+      .preview-doc p.letter-p { margin: 0 0 12px; }
+
+      .placeholder-note {
+        color: var(--muted); font-size: 0.8rem; line-height: 1.7; border: 1px dashed var(--line);
+        border-radius: 8px; padding: 14px; margin-top: 16px;
+      }
+
+      footer { padding: 30px 0 50px; border-top: 1px solid var(--line); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel, #14181f);
+        border-top: 1px solid var(--line, rgba(255,255,255,0.15));
+        color: var(--text, #f2f2f2); font-family: inherit; font-size: 0.85rem;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; color: inherit; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line, rgba(255,255,255,0.2)); background: transparent;
+        color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem;
+        font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--lang-color); color: #041220; border-color: transparent; }
+
+      @media print {
+        body * { visibility: hidden; }
+        #previewWrap, #previewWrap * { visibility: visible; }
+        #previewWrap {
+          position: absolute; top: 0; left: 0; width: 100%;
+        }
+        .preview-panel { border: none; break-after: page; }
+        .preview-panel-bar { display: none; }
+        .preview-doc { max-height: none; overflow: visible; padding: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo"><span class="dim">~/</span>imaad<span class="accent">/resume-builder</span></div>
+        <nav class="nav-links">
+          <a href="../../index.html">AI / ML</a>
+          <a href="../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="lang-badge">Tool</div>
+          <h1>Resume, CV &amp; Cover Letter Builder</h1>
+          <p class="lead">
+            A real, working document builder — not a mockup. Fill in the form once to get six
+            live previews side by side: a resume, a longer CV, a matching cover letter, an
+            ATS-friendly plain resume, a Europass CV, and a Japanese rirekisho (履歴書) — print any
+            of it straight to PDF, or export the draft as JSON and hand it to <code>Printer.py</code>,
+            a command-line companion in this same folder that formats the identical data outside the browser.
+          </p>
+          <a class="back-link" href="../../index.html#tools">Back to AI / ML</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="builder-grid">
+            <div class="win">
+              <div class="win-bar">
+                <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                <span class="win-title">form.input</span>
+              </div>
+              <div class="win-body">
+                <div class="form-section-title">Contact</div>
+                <div class="field-row">
+                  <div class="field"><label for="fName">Full name</label><input id="fName" placeholder="Imaad Ullah Khan Yameen"></div>
+                  <div class="field"><label for="fTitle">Headline / target role</label><input id="fTitle" placeholder="Software Engineer"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="fEmail">Email</label><input id="fEmail" placeholder="you@example.com"></div>
+                  <div class="field"><label for="fPhone">Phone</label><input id="fPhone" placeholder="+92 300 0000000"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="fLocation">Location</label><input id="fLocation" placeholder="City, Country"></div>
+                  <div class="field"><label for="fLinks">Links (GitHub, LinkedIn, site)</label><input id="fLinks" placeholder="github.com/you  •  linkedin.com/in/you"></div>
+                </div>
+
+                <div class="form-section-title">Summary</div>
+                <div class="field"><textarea id="fSummary" rows="3" placeholder="Two or three sentences on what you do and what you're looking for."></textarea></div>
+
+                <div class="form-section-title">Skills</div>
+                <div class="field"><input id="fSkills" placeholder="Comma-separated: Python, JavaScript, Three.js, SQL..."></div>
+
+                <div class="form-section-title">Experience</div>
+                <div id="expList"></div>
+                <button type="button" class="add-entry-btn" id="addExp">+ Add experience entry</button>
+
+                <div class="form-section-title">Education</div>
+                <div id="eduList"></div>
+                <button type="button" class="add-entry-btn" id="addEdu">+ Add education entry</button>
+
+                <div id="cvOnlyFields">
+                  <div class="form-section-title">Certifications / Publications / Projects <span style="color:var(--muted); text-transform:none; letter-spacing:0; font-weight:400;">(CV only)</span></div>
+                  <div class="field"><textarea id="fExtra" rows="3" placeholder="One per line."></textarea></div>
+                </div>
+
+                <div id="coverOnlyFields">
+                  <div class="form-section-title">Cover Letter Details</div>
+                  <div class="field-row">
+                    <div class="field"><label for="fCoCompany">Company</label><input id="fCoCompany" placeholder="Company name"></div>
+                    <div class="field"><label for="fCoRole">Role applying for</label><input id="fCoRole" placeholder="Position title"></div>
+                  </div>
+                  <div class="field"><label for="fCoHiring">Addressed to</label><input id="fCoHiring" placeholder="Hiring Manager"></div>
+                  <div class="field"><label for="fCoOpen">Opening — why this role/company</label><textarea id="fCoOpen" rows="3" placeholder="What drew you to this role."></textarea></div>
+                  <div class="field"><label for="fCoBody">Middle — relevant strengths</label><textarea id="fCoBody" rows="3" placeholder="Why you're a fit, tied to real experience above."></textarea></div>
+                  <div class="field"><label for="fCoClose">Closing</label><textarea id="fCoClose" rows="2" placeholder="Thank-you + call to action."></textarea></div>
+                </div>
+
+                <div class="form-section-title">Regional Format Fields <span style="color:var(--muted); text-transform:none; letter-spacing:0; font-weight:400;">(Europass &amp; Japanese only)</span></div>
+                <div class="field-row">
+                  <div class="field"><label for="fNationality">Nationality</label><input id="fNationality" placeholder="Pakistani"></div>
+                  <div class="field"><label for="fDob">Date of birth</label><input id="fDob" type="date"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="fFurigana">Name reading (furigana)</label><input id="fFurigana" placeholder="For the Japanese format only"></div>
+                  <div class="field"><label for="fDrivingLicence">Driving licence</label><input id="fDrivingLicence" placeholder="e.g. Category B"></div>
+                </div>
+                <div class="field"><label for="fLanguages">Languages</label><input id="fLanguages" placeholder="English (C1), Urdu (Native)"></div>
+                <div class="field"><label for="fJpRequest">Personal request (本人希望記入欄)</label><textarea id="fJpRequest" rows="2" placeholder="Leave blank to reuse your Summary."></textarea></div>
+
+                <div class="toolbar">
+                  <button type="button" id="btnPrint">Print All / Save as PDF</button>
+                  <button type="button" id="btnExportJson">Export Draft (JSON)</button>
+                  <button type="button" id="btnImportJson">Import Draft</button>
+                  <button type="button" id="btnClear">Clear draft</button>
+                </div>
+                <input type="file" id="importJsonFile" accept="application/json" hidden>
+                <p class="save-note" id="saveNote">Draft saves automatically to this browser — nothing is sent anywhere.</p>
+                <p class="cli-note">
+                  Prefer the terminal? Export the draft above, then run
+                  <code>python Printer.py your_draft.json --type all</code>
+                  from this folder to get all six formats as plain text — add
+                  <code>--type ats</code>, <code>europass</code>, or <code>japanese</code> for just one.
+                </p>
+              </div>
+            </div>
+
+            <div id="previewWrap">
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Resume</span>
+                  <button type="button" class="mini-btn" data-download="resume">Download .txt</button>
+                </div>
+                <div id="previewResume" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">CV</span>
+                  <button type="button" class="mini-btn" data-download="cv">Download .txt</button>
+                </div>
+                <div id="previewCv" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Cover Letter</span>
+                  <button type="button" class="mini-btn" data-download="cover">Download .txt</button>
+                </div>
+                <div id="previewCover" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">ATS Resume</span>
+                  <button type="button" class="mini-btn" data-download="ats">Download .txt</button>
+                </div>
+                <div id="previewAts" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Europass CV</span>
+                  <button type="button" class="mini-btn" data-download="europass">Download .txt</button>
+                </div>
+                <div id="previewEuropass" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Japanese Resume (履歴書)</span>
+                  <button type="button" class="mini-btn" data-download="japanese">Download .txt</button>
+                </div>
+                <div id="previewJapanese" class="preview-doc"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../index.html">Home</a>
+          <a href="../../index.html#tools">Back to AI / ML</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/ai-ml/resume-builder$ <span class="cursor"></span></span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs — including your draft here. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+    <script src="Builder.js"></script>
+  </body>
+</html>

@@ -138,6 +138,24 @@
     @apply border border-slate-800 dark:border-white p-2 px-4 hover:bg-industrial-orange hover:text-white hover:border-industrial-orange transition-all duration-200 uppercase text-[10px] font-bold;
 }
     </style>
+    <style>
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel, #14181f);
+        border-top: 1px solid var(--line, var(--border, rgba(255,255,255,0.15)));
+        color: var(--text, #f2f2f2); font-family: inherit; font-size: 0.85rem;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; color: inherit; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line, var(--border, rgba(255,255,255,0.2))); background: transparent;
+        color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem;
+        font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--primary, #38bdf8); color: #06140f; border-color: transparent; }
+    </style>
 </head>
 
 <body class="text-slate-900 dark:text-slate-100 antialiased">
@@ -181,7 +199,7 @@
                     <a href="#portfolios" class="nav-btn inline-flex items-center gap-2">
                         Explore Specialized Portfolios <i class="fas fa-arrow-down"></i>
                     </a>
-                    <a href="./3dhtml.html" class="nav-btn inline-flex items-center gap-2">
+                    <a href="./Portfoilos/3D & Graphics Desginer/room.html" class="nav-btn inline-flex items-center gap-2">
                         Enter The 3D Room <i class="fas fa-cube"></i>
                     </a>
                 </div>
@@ -233,7 +251,7 @@
            <div class="industrial-card p-2 border-industrial-orange/30 w-full max-w-[280px] mx-auto">
                 <div class="flex justify-center items-center overflow-hidden bg-slate-100 dark:bg-slate-800 aspect-square"> 
                     <img 
-                        src="img/dp.jpg"
+                        src="Assets/img/dp.jpg"
                         alt="Engr_Imaad_Yameen_Profile"
                         class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
                     >
@@ -246,7 +264,7 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-6">
-        <a href="resume/cv.html" target="_blank" class="industrial-card p-8 flex items-center justify-between group">
+        <a href="Assets/resume/cv.html" target="_blank" class="industrial-card p-8 flex items-center justify-between group">
             <div class="flex items-center gap-4">
                 <i class="fas fa-file-pdf text-3xl text-red-600"></i>
                 <div>
@@ -287,7 +305,7 @@
                 <p class="text-[11px] opacity-60 leading-relaxed">Google Earth Engine work + an interactive rotating globe.</p>
             </a>
 
-            <a href="./Portfoilos/AI ,ML/ML/index.html" class="industrial-card p-6 group border-l-4 border-industrial-purple">
+            <a href="./Portfoilos/AI & ML/index.html" class="industrial-card p-6 group border-l-4 border-industrial-purple">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 flex items-center justify-center bg-industrial-purple/10 transition-colors group-hover:bg-industrial-purple">
                         <i class="fas fa-brain text-xl text-industrial-purple group-hover:text-white"></i>
@@ -309,7 +327,7 @@
                 <p class="text-[11px] opacity-60 leading-relaxed">Circuit-themed showcase of MCU &amp; IoT project work.</p>
             </a>
 
-            <a href="./Portfoilos/3D,Website &amp; Graphics/index.html" class="industrial-card p-6 group border-l-4 border-industrial-yellow">
+            <a href="./Portfoilos/3D & Graphics Desginer/index.html" class="industrial-card p-6 group border-l-4 border-industrial-yellow">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 flex items-center justify-center bg-industrial-yellow/10 transition-colors group-hover:bg-industrial-yellow">
                         <i class="fas fa-cubes text-xl text-industrial-yellow group-hover:text-white"></i>
@@ -405,7 +423,7 @@
                           <li>Developed a detailed implementation plan to reduce process bottlenecking.</li>
                       </ul>
                          </div>
-                         <a href="./vid/index.html" class="inline-block">
+                         <a href="./Assets/vid/index.html" class="inline-block">
                             <i class="fas fa-arrow-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-industrial-orange"></i>
                         </a>
                         </div>
@@ -446,9 +464,9 @@
                 <div class="flex md:justify-end gap-6 text-sm">
                     <a href="./Portfoilos/Programming/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Programming_Portfolio</a>
                     <a href="./Portfoilos/Gamer/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Gamer_Portfolio</a>
-                    <a href="./Portfoilos/3D,Website &amp; Graphics/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Creative_3D_Portfolio</a>
+                    <a href="./Portfoilos/3D & Graphics Desginer/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Creative_3D_Portfolio</a>
                     <a href="./Portfoilos/CADCAMCAE/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">CAD/CAM/CAE_Portfolio</a>
-                    <a href="./Portfoilos/AI ,ML/ML/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">AI/ML_Portfolio</a>
+                    <a href="./Portfoilos/AI & ML/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">AI/ML_Portfolio</a>
                     <a href="./Portfoilos/Embeded Systems &amp; Circuitry/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Embeded_Systems_Portfolio</a>
                     <a href="./Portfoilos/GIS &amp; Remote Sensing/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">GIS_Portfolio</a>
                 </div>
@@ -519,5 +537,38 @@
             track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         });
     </script>
+<div class="cookie-banner" id="cookieBanner">
+  <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+  <div class="cookie-actions">
+    <button type="button" id="cookieDecline">Decline</button>
+    <button type="button" id="cookieAccept">Accept</button>
+  </div>
+</div>
+<script>
+  function setCookie(name, value, days) {
+    var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+  }
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+  function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+  (function initCookieBanner() {
+    var banner = document.getElementById('cookieBanner');
+    var acceptBtn = document.getElementById('cookieAccept');
+    var declineBtn = document.getElementById('cookieDecline');
+    if (!banner) return;
+    if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+    acceptBtn.addEventListener('click', function () {
+      setCookie('cookie_consent', 'accepted', 365);
+      banner.style.display = 'none';
+    });
+    declineBtn.addEventListener('click', function () {
+      setCookie('cookie_consent', 'declined', 365);
+      banner.style.display = 'none';
+    });
+  })();
+</script>
 </body>
 </html>

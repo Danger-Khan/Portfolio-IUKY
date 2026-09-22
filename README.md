@@ -1,22 +1,21 @@
 # [SYSTEM_LOG]: INDUSTRIAL_PORTFOLIO_V2
 **Operator:** Engr. Imaad Ullah Khan Yameen  
-**Link:** [https://yameenimaad.github.io/Porfolio_IUKY/](https://yameenimaad.github.io/Porfolio_IUKY/)
-
----
-
-## 🖥️ SYSTEM_INTERFACE_PREVIEW
-
-![Interface Preview](img/Portfolio-ss.png)
-
----
+**Link:** [https://danger-khan.github.io/Portfolio-IUKY/](https://danger-khan.github.io/Portfolio-IUKY/)
 
 ## 🛠️ TECHNICAL_SPECIFICATIONS
-This terminal is built to showcase high-efficiency engineering operations and CAD design capabilities.
+A multi-portfolio engineering site — seven themed sections, each with real,
+working functionality rather than static mockups: an offline-first AI/ML lab
+(regression, image processing, NLP, a resume/CV/cover-letter builder in six
+formats including ATS, Europass and Japanese rirekisho), an in-browser
+CAD/CAM/CAE STL/G-code viewer, an embedded systems showcase, GIS work, a
+programming-languages archive, and a Three.js creative/3D space.
 
 ### 🏗️ CORE_STACK
-- **Frontend:** HTML5 / Tailwind CSS (Industrial UI Kit)
-- **Logic:** JavaScript (Dynamic PKT Time-Sync & Theme Engine)
-- **Deployment:** GitHub Pages (Automated CI/CD)
+- **Frontend:** Hand-written HTML5 / CSS3 across most pages, Tailwind CSS on the hub and a few standalone tools
+- **Logic:** Vanilla JavaScript (ES6+) — regression engines, k-means color extraction, sentiment analysis, and more, all built from scratch with zero external libraries
+- **3D:** Three.js (CAD/CAM/CAE STL viewer, the Creative/3D world)
+- **Companion tooling:** Python (e.g. `Printer.py`, a CLI formatter for the resume builder's exported drafts)
+- **Deployment:** GitHub Pages, static — no build step
 
 ### 📊 OPERATIONAL_METRICS
 - **Academic:** 3.75/4.00 CGPA (UET Peshawar)
@@ -26,18 +25,9 @@ This terminal is built to showcase high-efficiency engineering operations and CA
 ---
 
 ## 📁 DOCUMENT_ARCHIVE
-The following technical records are accessible via the live dashboard:
-1. **Full_Resume_2026.pdf** - Professional IE Work History
-2. **Training_Credentials** - Multi-doc folder containing Lean & AI certifications
-3. **FYDP_Technical_Specs** - UAV Inventory Automation Project (3rd Position Awarded)
-
----
-
-## 📸 PROJECT_GALLERY
-
-![Technical Design](vid/FYDP.mp4)
-
----
+The following are accessible via the live dashboard:
+1. **[Resume / CV](./Assets/resume/cv.html)** — education, credentials & work history
+2. **[FYDP — UAV Inventory Automation](./Assets/vid/index.html)** — the Final Year Design Project dashboard (3rd Position Awarded)
 
 ## 📟 CONTACT_ACCESS
 - **LinkedIn:** [Imaad Ullah Khan Yameen](https://www.linkedin.com/in/imaad-ullah-khan-yameen/)
