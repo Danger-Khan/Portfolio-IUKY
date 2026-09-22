@@ -8,7 +8,8 @@ working functionality rather than static mockups: an offline-first AI/ML lab
 (regression, image processing, NLP, a resume/CV/cover-letter builder in six
 formats including ATS, Europass and Japanese rirekisho), an in-browser
 CAD/CAM/CAE STL/G-code viewer, an embedded systems showcase, GIS work, a
-programming-languages archive, and a Three.js creative/3D space.
+programming-languages archive, a gaming portfolio, and a Three.js creative/3D
+space.
 
 ### 🏗️ CORE_STACK
 - **Frontend:** Hand-written HTML5 / CSS3 across most pages, Tailwind CSS on the hub and a few standalone tools
