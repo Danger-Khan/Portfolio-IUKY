@@ -93,6 +93,19 @@
       .footer-nav a:hover { color: var(--lang-color); }
 
       /* Builder layout */
+      .format-picker { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+      .format-picker-label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+      .format-picker-options { display: flex; gap: 8px; flex-wrap: wrap; }
+      .format-opt {
+        font-family: inherit; font-size: 0.78rem; font-weight: 700; color: var(--muted);
+        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 999px;
+        padding: 7px 14px; cursor: pointer;
+      }
+      .format-opt:hover { border-color: var(--lang-color); color: var(--text); }
+      .format-opt.is-active { background: var(--lang-color); color: #041220; border-color: transparent; }
+
+      .preview-panel.is-selected { border-color: var(--lang-color); box-shadow: 0 0 0 2px rgba(227,179,65,0.25); }
+
       .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
       @media (max-width: 980px) { .builder-grid { grid-template-columns: 1fr; } }
 
@@ -208,6 +221,16 @@
         .preview-panel { border: none; break-after: page; }
         .preview-panel-bar { display: none; }
         .preview-doc { max-height: none; overflow: visible; padding: 0; }
+        /* "Print Selected" sets data-print-only on <body> to just this one format */
+        body[data-print-only] .preview-panel { display: none; }
+        body[data-print-only="resume"] .preview-panel[data-format="resume"],
+        body[data-print-only="cv"] .preview-panel[data-format="cv"],
+        body[data-print-only="cover"] .preview-panel[data-format="cover"],
+        body[data-print-only="ats"] .preview-panel[data-format="ats"],
+        body[data-print-only="europass"] .preview-panel[data-format="europass"],
+        body[data-print-only="japanese"] .preview-panel[data-format="japanese"] {
+          display: block;
+        }
       }
     </style>
   </head>
@@ -240,6 +263,18 @@
 
       <section class="section">
         <div class="container">
+          <div class="format-picker">
+            <span class="format-picker-label">Which do you need?</span>
+            <div class="format-picker-options" id="formatPicker">
+              <button type="button" class="format-opt is-active" data-format="resume">Resume</button>
+              <button type="button" class="format-opt" data-format="cv">CV</button>
+              <button type="button" class="format-opt" data-format="cover">Cover Letter</button>
+              <button type="button" class="format-opt" data-format="ats">ATS Resume</button>
+              <button type="button" class="format-opt" data-format="europass">Europass</button>
+              <button type="button" class="format-opt" data-format="japanese">Japanese (履歴書)</button>
+            </div>
+          </div>
+
           <div class="builder-grid">
             <div class="win">
               <div class="win-bar">
@@ -305,7 +340,8 @@
                 <div class="field"><label for="fJpRequest">Personal request (本人希望記入欄)</label><textarea id="fJpRequest" rows="2" placeholder="Leave blank to reuse your Summary."></textarea></div>
 
                 <div class="toolbar">
-                  <button type="button" id="btnPrint">Print All / Save as PDF</button>
+                  <button type="button" id="btnPrintSelected">Print Selected / Save as PDF</button>
+                  <button type="button" id="btnPrint">Print All</button>
                   <button type="button" id="btnExportJson">Export Draft (JSON)</button>
                   <button type="button" id="btnImportJson">Import Draft</button>
                   <button type="button" id="btnClear">Clear draft</button>
@@ -318,46 +354,52 @@
                   from this folder to get all six formats as plain text — add
                   <code>--type ats</code>, <code>europass</code>, or <code>japanese</code> for just one.
                 </p>
+                <p class="cli-note">
+                  Or skip the form entirely: fill in <code>template.txt</code> by hand (any text
+                  editor), then run <code>python Extractor.py template.txt --print</code> — it
+                  produces the same <code>draft.json</code> this page exports, which you can also
+                  load back in with "Import Draft" above.
+                </p>
               </div>
             </div>
 
             <div id="previewWrap">
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="resume">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">Resume</span>
                   <button type="button" class="mini-btn" data-download="resume">Download .txt</button>
                 </div>
                 <div id="previewResume" class="preview-doc"></div>
               </div>
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="cv">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">CV</span>
                   <button type="button" class="mini-btn" data-download="cv">Download .txt</button>
                 </div>
                 <div id="previewCv" class="preview-doc"></div>
               </div>
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="cover">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">Cover Letter</span>
                   <button type="button" class="mini-btn" data-download="cover">Download .txt</button>
                 </div>
                 <div id="previewCover" class="preview-doc"></div>
               </div>
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="ats">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">ATS Resume</span>
                   <button type="button" class="mini-btn" data-download="ats">Download .txt</button>
                 </div>
                 <div id="previewAts" class="preview-doc"></div>
               </div>
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="europass">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">Europass CV</span>
                   <button type="button" class="mini-btn" data-download="europass">Download .txt</button>
                 </div>
                 <div id="previewEuropass" class="preview-doc"></div>
               </div>
-              <div class="preview-panel">
+              <div class="preview-panel" data-format="japanese">
                 <div class="preview-panel-bar">
                   <span class="preview-panel-title">Japanese Resume (履歴書)</span>
                   <button type="button" class="mini-btn" data-download="japanese">Download .txt</button>

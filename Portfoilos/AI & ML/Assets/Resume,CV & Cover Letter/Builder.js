@@ -8,6 +8,30 @@
 (function () {
   'use strict';
   var STORAGE_KEY = 'resume_builder_draft_v1';
+  var selectedFormat = 'resume';
+
+  var FORMAT_LABELS = {
+    resume: 'Resume', cv: 'CV', cover: 'Cover Letter',
+    ats: 'ATS Resume', europass: 'Europass', japanese: 'Japanese Resume'
+  };
+
+  function selectFormat(format) {
+    if (!FORMAT_LABELS[format]) return;
+    selectedFormat = format;
+
+    document.querySelectorAll('.format-opt').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-format') === format);
+    });
+    document.querySelectorAll('.preview-panel').forEach(function (panel) {
+      panel.classList.toggle('is-selected', panel.getAttribute('data-format') === format);
+    });
+
+    var printBtn = el('btnPrintSelected');
+    if (printBtn) printBtn.textContent = 'Print ' + FORMAT_LABELS[format] + ' / Save as PDF';
+
+    var panel = document.querySelector('.preview-panel[data-format="' + format + '"]');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
   var state = {
     name: '', title: '', email: '', phone: '', location: '', links: '',
@@ -421,7 +445,13 @@
         state[kind].push(kind === 'experience' ? { role: '', company: '', dates: '', bullets: '' } : { degree: '', school: '', dates: '' });
       }
       renderEntryLists(); render(); scheduleSave();
+    } else if (t.classList && t.classList.contains('format-opt')) {
+      selectFormat(t.getAttribute('data-format'));
     } else if (t.id === 'btnPrint') {
+      document.body.removeAttribute('data-print-only');
+      window.print();
+    } else if (t.id === 'btnPrintSelected') {
+      document.body.setAttribute('data-print-only', selectedFormat);
       window.print();
     } else if (t.classList && t.classList.contains('mini-btn') && t.getAttribute('data-download')) {
       downloadTxt(t.getAttribute('data-download'));
@@ -484,4 +514,5 @@
   loadDraft();
   applyStateToInputs();
   render();
+  selectFormat('resume');
 })();

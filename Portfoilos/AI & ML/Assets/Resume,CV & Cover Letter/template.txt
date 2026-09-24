@@ -1,0 +1,54 @@
+# Resume Builder — fill-in template
+#
+# Fill in the fields below (replace the [bracketed] hints, or leave a field
+# blank if it doesn't apply to you). Lines starting with # are ignored.
+# Save this file, then run:
+#
+#     python Extractor.py template.txt
+#
+# That writes draft.json — the exact format Index.html's "Import Draft"
+# button reads, and what Printer.py takes directly. Either use the browser
+# tool from here, or skip it entirely and run Printer.py on draft.json.
+
+NAME: [Full name]
+TITLE: [Headline / target role]
+EMAIL: [you@example.com]
+PHONE: [+1 555 555 5555]
+LOCATION: [City, Country]
+LINKS: [github.com/you, linkedin.com/in/you]
+SUMMARY: [Two or three sentences about what you do and what you're looking for]
+SKILLS: [Comma-separated: Python, JavaScript, Three.js, SQL]
+EXTRA: [Certifications / publications / projects — one per line, keep on separate lines below]
+
+# --- Experience — copy this whole block for each job, most recent first ---
+EXPERIENCE:
+ROLE: [Job title]
+COMPANY: [Company name]
+DATES: [2023 - Present]
+BULLETS:
+- [What you actually did]
+- [What you shipped]
+END EXPERIENCE
+
+# --- Education — copy this whole block for each entry ---
+EDUCATION:
+DEGREE: [Degree, field]
+SCHOOL: [Institution]
+DATES: [2021 - 2025]
+END EDUCATION
+
+# --- Regional format fields (optional — Europass / Japanese rirekisho only) ---
+NATIONALITY: [Nationality]
+DOB: [YYYY-MM-DD]
+FURIGANA: [Name reading, Japanese format only]
+LANGUAGES: [English (C1), Urdu (Native)]
+DRIVING_LICENCE: [e.g. Category B]
+JP_REQUEST: [Personal request note (本人希望記入欄) — leave blank to reuse Summary]
+
+# --- Cover letter fields (optional) ---
+CO_COMPANY: [Company you're applying to]
+CO_ROLE: [Role you're applying for]
+CO_HIRING: [Hiring Manager]
+CO_OPEN: [Opening paragraph — why this role/company]
+CO_BODY: [Middle paragraph — relevant strengths]
+CO_CLOSE: [Closing paragraph]
