@@ -3,6 +3,10 @@
 # are build output, regenerated automatically on first run.
 *.db
 
+# Python bytecode cache from running the CLI companion scripts locally.
+__pycache__/
+*.pyc
+
 # Root package.json is unused scaffolding (no source code depends on it) —
 # left ignored by default, but Assets/node_modules is explicitly un-ignored
 # below per request even though nothing in the site loads from it.

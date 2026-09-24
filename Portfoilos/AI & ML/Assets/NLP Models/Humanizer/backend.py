@@ -11,6 +11,7 @@ Usage:
     python backend.py notes.txt
     echo "We need to utilize this in order to demonstrate the results." | python backend.py
     python backend.py notes.txt --out humanized.txt --quiet
+    python backend.py notes.txt --intensity medium --length shorten --dialect uk --jargon
 """
 
 import argparse
@@ -29,6 +30,14 @@ def main():
     parser.add_argument("--db", default=str(backend_pipeline.DEFAULT_DB), help="Path to the rules SQLite database.")
     parser.add_argument("--out", metavar="FILE", help="Write the humanized text to a file instead of stdout.")
     parser.add_argument("--quiet", action="store_true", help="Skip the change report — just output the text.")
+    parser.add_argument("--intensity", choices=["light", "medium", "full"], default="full",
+                         help="How much to humanize: light=contractions only, medium=+word swaps, full=+AI-phrase cliches.")
+    parser.add_argument("--length", choices=["shorten", "normal", "extend"], default="normal",
+                         help="shorten=strip filler words, extend=add transition phrases between sentences.")
+    parser.add_argument("--dialect", choices=["us", "uk", "aus"], default="us",
+                         help="Spelling variant. aus reuses the UK spelling table.")
+    parser.add_argument("--jargon", action="store_true", help="Also swap business/tech jargon for plain English.")
+    parser.add_argument("--no-fluency", action="store_true", help="Skip whitespace/capitalization cleanup.")
     args = parser.parse_args()
 
     text = open(args.input, encoding="utf-8").read() if args.input else sys.stdin.read()
@@ -36,7 +45,14 @@ def main():
         sys.exit("error: no input text (pass a file path or pipe text in via stdin)")
 
     rules = backend_pipeline.load_rules(args.db)
-    result, changes = backend_pipeline.humanize_text(text, rules)
+    options = {
+        "intensity": args.intensity,
+        "length": args.length,
+        "dialect": args.dialect,
+        "remove_jargon": args.jargon,
+        "fluency": not args.no_fluency,
+    }
+    result, changes = backend_pipeline.humanize_text(text, rules, options)
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:

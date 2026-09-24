@@ -72,6 +72,19 @@
       .offline-note { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
       .offline-note::before { content: '\25cf '; color: var(--good); }
 
+      .options-title { margin: 20px 0 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+      .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+      @media (max-width: 520px) { .options-grid { grid-template-columns: 1fr; } }
+      .field { display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--muted); }
+      .field select {
+        background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--text); padding: 9px 10px; font-size: 0.85rem; font-family: inherit;
+      }
+      .field select:focus { outline: none; border-color: var(--secondary); }
+      .field.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
+      .field.checkbox-field label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+      .field.checkbox-field input { accent-color: var(--secondary); width: 16px; height: 16px; }
+
       #humanizerOutput {
         min-height: 220px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
         border-radius: 10px; padding: 14px; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;
@@ -162,6 +175,40 @@
                 <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
               </div>
               <div class="offline-note">Runs 100% locally — no network request is made</div>
+
+              <div class="options-title">Options</div>
+              <div class="options-grid">
+                <div class="field">
+                  <label for="optIntensity">How much to humanize</label>
+                  <select id="optIntensity">
+                    <option value="light">Light — contractions only</option>
+                    <option value="medium">Medium — + word swaps</option>
+                    <option value="full" selected>Full — + AI-phrase cliches</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="optLength">Length</label>
+                  <select id="optLength">
+                    <option value="shorten">Shorten — strip filler words</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="extend">Extend — add transitions</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="optDialect">Spelling</label>
+                  <select id="optDialect">
+                    <option value="us" selected>US English</option>
+                    <option value="uk">UK English</option>
+                    <option value="aus">AUS English (UK spelling)</option>
+                  </select>
+                </div>
+                <div class="field checkbox-field">
+                  <label><input type="checkbox" id="optFluency" checked> Fluency cleanup</label>
+                </div>
+                <div class="field checkbox-field">
+                  <label><input type="checkbox" id="optJargon"> Remove business jargon</label>
+                </div>
+              </div>
             </div>
 
             <div class="lab-panel">
@@ -186,15 +233,22 @@
           <div class="cli-note">
             Prefer the terminal? <code>echo "your text" | python backend.py</code> from this
             folder runs the identical rule set through <code>backend_pipeline.py</code> and
-            SQLite instead of the browser — useful for batch-processing files.
+            SQLite instead of the browser — useful for batch-processing files. All five options
+            above have CLI flags too: <code>--intensity {light,medium,full}</code>,
+            <code>--length {shorten,normal,extend}</code>, <code>--dialect {us,uk,aus}</code>,
+            <code>--jargon</code>, and <code>--no-fluency</code>.
           </div>
 
           <div class="honesty-note">
-            <strong>What this actually is:</strong> a fixed set of phrase, word, and
-            contraction substitutions — the same ones listed in <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">database.sql</code>.
-            It's not a language model and it doesn't understand meaning — it just recognizes
-            specific stock phrasing and swaps it. Good for catching the obvious tells, not a
-            substitute for actually rewriting in your own voice.
+            <strong>What this actually is:</strong> fixed lookup tables — phrases, words,
+            contractions, filler terms, transition connectors, US/UK spelling pairs, and jargon
+            terms — all listed in <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">database.sql</code>.
+            "Shorten" deletes known filler words; "Extend" prepends real transition phrases to
+            alternating sentences — it doesn't invent new content. "AUS spelling" reuses the UK
+            table, since Australian English follows British spelling conventions here. It's not
+            a language model and it doesn't understand meaning — it just recognizes specific
+            stock phrasing and swaps it. Good for catching the obvious tells, not a substitute
+            for actually rewriting in your own voice.
           </div>
         </div>
       </section>
