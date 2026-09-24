@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Code — Build Log</title>
+    <meta name="description" content="An honest log of what Claude Code (Anthropic) actually contributed to this portfolio site — every feature, tool, and fix, and what it didn't do." />
+    <style>
+      :root {
+        --bg: #171310;
+        --bg-2: #1f1a16;
+        --panel: #221c17;
+        --primary: #d97757;
+        --secondary: #f0a875;
+        --text: #f5ece4;
+        --muted: #baa99a;
+        --line: rgba(217,119,87,0.18);
+        --good: #7fd99a;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+        background: linear-gradient(160deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+      .container { width: min(920px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 46px 0; }
+
+      .topbar { padding: 18px 0; border-bottom: 1px solid var(--line); background: rgba(23,19,16,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30; }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-weight: 700; letter-spacing: 0.05em; }
+      .logo span { color: var(--primary); }
+      .nav-links { display: flex; gap: 20px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; }
+      .nav-links a:hover { color: var(--primary); }
+
+      .hero { padding: 46px 0 6px; }
+      .badge { display: inline-block; color: var(--primary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
+      h1 { margin: 0 0 14px; font-size: clamp(1.9rem, 4.6vw, 2.8rem); line-height: 1.1; }
+      .lead { color: var(--muted); font-size: 0.98rem; line-height: 1.75; max-width: 700px; }
+      .lead code, p code, li code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 5px; font-size: 0.85em; color: var(--text); }
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+      .back-link:hover { color: var(--primary); }
+      .back-link::before { content: '\2190 '; }
+
+      .section-title h2 { margin: 0 0 10px; font-size: 1.3rem; }
+      .section-title p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; max-width: 680px; margin: 0 0 20px; }
+
+      .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      @media (max-width: 700px) { .how-grid { grid-template-columns: 1fr; } }
+      .how-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+      .how-card .step { color: var(--primary); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 6px; }
+      .how-card p { margin: 0; color: var(--muted); font-size: 0.83rem; line-height: 1.6; }
+
+      .log-group { margin-bottom: 28px; }
+      .log-group h3 { margin: 0 0 4px; font-size: 1rem; color: var(--secondary); }
+      .log-group .log-sub { margin: 0 0 12px; color: var(--muted); font-size: 0.8rem; }
+      .log-list { list-style: none; margin: 0; padding: 0; }
+      .log-list li {
+        position: relative; padding: 8px 0 8px 22px; font-size: 0.87rem; line-height: 1.65; color: var(--text);
+        border-bottom: 1px solid var(--line);
+      }
+      .log-list li:last-child { border-bottom: none; }
+      .log-list li::before { content: '\2192'; position: absolute; left: 0; color: var(--primary); }
+      .log-list li .dim { color: var(--muted); }
+
+      .honesty-note {
+        margin-top: 8px; background: var(--panel); border: 1px solid var(--line);
+        border-radius: 14px; padding: 20px 22px; font-size: 0.87rem; color: var(--muted); line-height: 1.75;
+      }
+      .honesty-note strong { color: var(--text); }
+      .honesty-note ul { margin: 10px 0 0; padding-left: 20px; }
+      .honesty-note li { margin-bottom: 6px; }
+
+      .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 24px; }
+      .btn { display: inline-block; padding: 10px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.82rem; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #241209; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--primary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button { border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .cookie-banner button#cookieAccept { background: var(--primary); color: #241209; border-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo"><span>Claude</span> Code — Build Log</div>
+        <nav class="nav-links">
+          <a href="../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">AI Collaboration · Dev Log</div>
+          <h1>What Claude Code actually contributed here</h1>
+          <p class="lead">
+            This whole site is Imaad's — the engineering background, the real files, the decisions
+            about what to build and why. Claude Code (Anthropic's CLI coding agent) was the pair-programmer:
+            directed turn by turn, reading and writing the actual files in this repository, running the
+            same validators listed under <code>Validation &amp; Testing/</code>, and committing to the same
+            git history anyone can read on GitHub. This page is an honest log of that work — not a sales pitch,
+            not a claim of authorship over Imaad's engineering background.
+          </p>
+          <a class="back-link" href="../../index.html#portfolios">Back to Portfolio</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:10px;">
+        <div class="container">
+          <div class="section-title">
+            <h2>How this actually worked</h2>
+          </div>
+          <div class="how-grid">
+            <div class="how-card">
+              <div class="step">1 · Direction</div>
+              <p>Imaad described what he wanted — a feature, a fix, a rewrite — in plain language, one request at a time.</p>
+            </div>
+            <div class="how-card">
+              <div class="step">2 · Execution</div>
+              <p>Claude Code read the real files, wrote real code (JS, Python, HTML/CSS, PowerShell), and ran the site's own validators before anything shipped.</p>
+            </div>
+            <div class="how-card">
+              <div class="step">3 · Review</div>
+              <p>Every change was committed and pushed individually, with a real diff Imaad can read — nothing merged silently.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <h2>What got built</h2>
+            <p>Grouped by area — not a complete history, but everything substantial.</p>
+          </div>
+
+          <div class="log-group">
+            <h3>Resume, CV &amp; Cover Letter Builder</h3>
+            <p class="log-sub">Portfoilos/AI &amp; ML/Assets/Resume,CV &amp; Cover Letter</p>
+            <ul class="log-list">
+              <li>Six live document formats from one form — Resume, CV, Cover Letter, ATS Resume, Europass, and a Japanese rirekisho (履歴書) — with a format picker and per-format printing. <span class="dim">Builder.js, Index.html</span></li>
+              <li>Draft autosave to <code>localStorage</code>, JSON import/export, and a Python CLI mirror (<code>Printer.py</code>) that formats the identical data outside the browser.</li>
+              <li><code>template.txt</code> + <code>Extractor.py</code> — fill in a plain text file by hand, parse it into the same draft format, no browser required.</li>
+              <li>Seven example drafts (Industrial Engineering, Mechanical CAD, Programming, AI/ML, Embedded Systems, 3D &amp; Graphics, GIS) — Imaad's real background, reframed per field.</li>
+            </ul>
+          </div>
+
+          <div class="log-group">
+            <h3>AI/ML Labs</h3>
+            <p class="log-sub">Portfoilos/AI &amp; ML</p>
+            <ul class="log-list">
+              <li>Forecast Models pipeline — <code>extractor.py</code> → <code>worker.py</code> → <code>printer.py</code>, a genuine three-stage Python port of the browser's regression engine, backed by a real SQLite database.</li>
+              <li>Humanizer — a rule-based (not ML) AI-phrasing rewriter, later extended with five tunable options: intensity, length (shorten/extend), US/UK/AUS spelling, jargon removal, and fluency cleanup — mirrored identically in JS and Python.</li>
+              <li>Forecasting, Image, and NLP labs each moved to their own standalone page, with compact preview cards left on the main AI/ML page linking to them.</li>
+            </ul>
+          </div>
+
+          <div class="log-group">
+            <h3>Slicer Lab</h3>
+            <p class="log-sub">Portfoilos/CADCAMCAE/Assets/CAM/Slicer</p>
+            <ul class="log-list">
+              <li>A G-code analyzer that reads a picked <code>.gcode</code> file's real PrusaSlicer summary stats client-side via the File API — tested against the five actual print files already in this portfolio's <code>CAM/Freelance</code> folder.</li>
+              <li>A material settings advisor (real FDM temperature/fan/speed ranges) and a filament cost calculator, plus <code>analyzer.py</code> as a tested CLI companion.</li>
+            </ul>
+          </div>
+
+          <div class="log-group">
+            <h3>Gamer Portfolio</h3>
+            <p class="log-sub">Portfoilos/Gamer</p>
+            <ul class="log-list">
+              <li>Rewrote the copy to be upfront that Imaad is a fan of these games, not their developer — the portfolio exists to connect with fellow players.</li>
+              <li>Hover/tap-to-enlarge game cards revealing extra screenshots, UID, and the official site link.</li>
+              <li>Found and fixed two UIDs that were sitting correctly in their source <code>.txt</code> files but never made it into the page.</li>
+            </ul>
+          </div>
+
+          <div class="log-group">
+            <h3>Root Page &amp; Site-Wide</h3>
+            <p class="log-sub">index.html, Assets/</p>
+            <ul class="log-list">
+              <li>Responsive pass (heading scale, footer wrapping, overflow fixes) and a real Credentials Archive section — 17 certifications pulled from the CV, wired to the carousel controls that were previously non-functional.</li>
+              <li>Self-hosted Tailwind CSS, Font Awesome, and Google Fonts for the root page, the CV, the FYDP video page, and the Creative &amp; 3D portfolio — all four previously depended on external CDNs, which broke the site's own 100%-offline requirement.</li>
+              <li>Reactivated a fully-built but disabled "Core Performance" section (CGPA, Six Sigma, ISO 9001), fixed a hotlinked CV photo, and closed a real unclosed-<code>&lt;div&gt;</code> bug found along the way.</li>
+            </ul>
+          </div>
+
+          <div class="log-group">
+            <h3>Validation &amp; Testing</h3>
+            <p class="log-sub">Validation &amp; Testing/</p>
+            <ul class="log-list">
+              <li><code>index_test.ps1</code> — checks every page for title, meta description, viewport tag, heading structure, alt text, and duplicate IDs.</li>
+              <li><code>qc_report.ps1</code> — runs the validators together and reports findings with a Critical/Major/Minor severity split and an accept/reject disposition, run before nearly every commit referenced above.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:0;">
+        <div class="container">
+          <div class="honesty-note">
+            <strong>What this page isn't claiming:</strong> Claude Code didn't design any CAD part, didn't
+            invent any certification or job history, didn't decide what this site should say about Imaad —
+            all of that is his, sourced from his real CV and real files. What it did do is turn direction into
+            working code, quickly, across Python, JavaScript, HTML/CSS, and PowerShell, while holding to the
+            constraints Imaad set along the way (100% offline, no mockups, real data or none at all).
+            <ul>
+              <li>Every commit referenced above is in the public git history — nothing here is unverifiable.</li>
+              <li>No content on this page is auto-generated at runtime; it's a static, hand-written summary, same as every other page on this site.</li>
+            </ul>
+          </div>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/Danger-Khan/Portfolio-IUKY/commits/main" target="_blank" rel="noopener">View the real commit history →</a>
+            <a class="btn btn-secondary" href="https://claude.com/claude-code" target="_blank" rel="noopener">What is Claude Code?</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../index.html">Home</a>
+          <a href="../../index.html#portfolios">Back to Portfolio</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/claude-code$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+  </body>
+</html>
