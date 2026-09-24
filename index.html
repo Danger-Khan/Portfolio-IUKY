@@ -51,7 +51,9 @@
         :root { --grid-opacity: 0.05; }
         .dark { --grid-opacity: 0.2; }
 
+        html { overflow-x: hidden; }
         body {
+            overflow-x: hidden;
             font-family: "JetBrains Mono", monospace;
             background-color: #f1f5f9;
             background-image: 
@@ -186,7 +188,7 @@
                 <p class="text-industrial-orange font-black text-xs mb-4 tracking-[0.3em] uppercase">
                     // Engineering_Profile: 2026_V2
                 </p>
-                <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-8 uppercase leading-none underline">
+                <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-8 uppercase leading-none underline">
                     Industrial <br />
                     <span style="-webkit-text-stroke: 0.3px currentColor;">Engineer</span>
                 </h1>
@@ -447,6 +449,158 @@
         </div>
     </section>
 
+    <section class="py-12 px-6 max-w-7xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h2 class="technical-header">Credentials_Archive.db</h2>
+            <div class="flex gap-2">
+                <button id="prevBtn" type="button" class="nav-btn" aria-label="Scroll certifications left"><i class="fas fa-chevron-left"></i></button>
+                <button id="nextBtn" type="button" class="nav-btn" aria-label="Scroll certifications right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <p class="text-[10px] opacity-40 uppercase tracking-widest mb-2">17 Verified Certifications // Scroll or use arrows</p>
+
+        <div class="cert-archive">
+            <div class="cert-track" id="certTrack">
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-orange"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Quality Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Lean Six Sigma Yellow Belt</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Kennesaw State University</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-blue"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Quality Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">ISO 9001:2015 QMS</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Alison</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-blue"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Quality Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">ISO 9001 QMS for SMEs</h4>
+                    <p class="text-[10px] opacity-60 uppercase">NPO.gov.pk</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-orange"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Quality Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Lean Six Sigma White Belt</h4>
+                    <p class="text-[10px] opacity-60 uppercase">BGMC</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-green"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">CAD Designing</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">SolidWorks</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Dassault Systèmes</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-green"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">FDM Printing</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">3D Printing</h4>
+                    <p class="text-[10px] opacity-60 uppercase">HP Life</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-green"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">SLA Printing</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">SLA 3D Printing</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Sinterit</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-purple"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">UAV Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Drones for Environmental Science</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Duke University</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-purple"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Deep Learning</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Fundamentals of Deep Learning</h4>
+                    <p class="text-[10px] opacity-60 uppercase">NVIDIA</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-purple"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Artificial Intelligence</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">AI For Beginners</h4>
+                    <p class="text-[10px] opacity-60 uppercase">HP Life</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-skyblue"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Project Management</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Agile Project Management</h4>
+                    <p class="text-[10px] opacity-60 uppercase">HP Life</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-red"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Safety Standards</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Occupational Health &amp; Safety</h4>
+                    <p class="text-[10px] opacity-60 uppercase">TSDC</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-red"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Structural Design</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Master Structural Design of Buildings</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Yeforum.org</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-yellow"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">2D Designing</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Canva</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Coursera</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-yellow"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Documentation</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">MS Office</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Coursera, BGMC</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-indigo"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Programming</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">HTML</h4>
+                    <p class="text-[10px] opacity-60 uppercase">Sololearn</p>
+                </div>
+                <div class="industrial-card cert-item p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <i class="fas fa-certificate text-industrial-pink"></i>
+                        <span class="text-[8px] opacity-40 uppercase font-bold">Communication</span>
+                    </div>
+                    <h4 class="font-black uppercase text-xs mb-1">Soft Skills Training</h4>
+                    <p class="text-[10px] opacity-60 uppercase">ICMPD</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer class="mt-20 py-12 px-6 border-t-4 border-industrial-steel bg-slate-900 text-slate-400">
         <div class="max-w-7xl mx-auto">
             <div class="grid md:grid-cols-2 gap-8 mb-8">
@@ -456,12 +610,12 @@
                         Industrial Engineering Graduate // Mechanical Designer // Automation Specialist.
                     </p>
                 </div>
-                <div class="flex md:justify-end gap-6 text-sm">
+                <div class="flex flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm">
                     <a href="https://www.linkedin.com/in/imaad-ullah-khan-yameen/" class="hover:text-white transition-colors uppercase font-bold text-[10px]">LinkedIn</a>
                     <a href="https://github.com/yameenimaad/Porfolio_IUKY" class="hover:text-white transition-colors uppercase font-bold text-[10px]">GitHub</a>
                     <a href="mailto:yameenimaad@gmail.com" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Email_Terminal</a>
                 </div>
-                <div class="flex md:justify-end gap-6 text-sm">
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm">
                     <a href="./Portfoilos/Programming/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Programming_Portfolio</a>
                     <a href="./Portfoilos/Gamer/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Gamer_Portfolio</a>
                     <a href="./Portfoilos/3D & Graphics Desginer/index.html" class="hover:text-white transition-colors uppercase font-bold text-[10px]">Creative_3D_Portfolio</a>
