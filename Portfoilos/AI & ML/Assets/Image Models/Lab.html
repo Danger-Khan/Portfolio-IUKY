@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Processing Lab — AI/ML</title>
+    <meta name="description" content="Brightness, contrast, blur, an RGB histogram, and from-scratch k-means color extraction — on your own image, entirely in the browser." />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #111827;
+        --panel: #121d2d;
+        --primary: #8b5cf6;
+        --secondary: #22d3ee;
+        --highlight: #f59e0b;
+        --text: #edf2ff;
+        --muted: #c4cfe3;
+        --line: rgba(255,255,255,0.09);
+        --good: #34d399;
+        --bad: #f87171;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(135deg, var(--bg), var(--bg-2)); color: var(--text); }
+      .container { width: min(1100px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 50px 0; }
+
+      .topbar { padding: 18px 0; border-bottom: 1px solid var(--line); background: rgba(11,16,32,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30; }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.95rem; }
+      .logo span { color: var(--secondary); }
+      .nav-links { display: flex; gap: 20px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .nav-links a:hover { color: var(--secondary); }
+
+      .hero { padding: 40px 0 6px; }
+      .badge { display: inline-block; color: var(--secondary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
+      h1 { margin: 0 0 14px; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; }
+      .lead { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 720px; }
+      .lead code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+      .back-link:hover { color: var(--secondary); }
+      .back-link::before { content: '\2190 '; }
+
+      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
+      .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
+
+      .lab-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; margin-bottom: 20px; }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .lab-panel h3 { margin: 0 0 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .lab-row .btn { padding: 9px 16px; font-size: 0.78rem; }
+
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 0.82rem; color: var(--muted); }
+      .field input[type="number"] { background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 0.9rem; font-family: inherit; }
+      .field input:focus { outline: none; border-color: var(--secondary); }
+      .field .hint { font-size: 0.72rem; opacity: 0.7; }
+      .field input[type="range"] { width: 100%; accent-color: var(--secondary); background: transparent; }
+      .field .range-row { display: flex; justify-content: space-between; align-items: baseline; }
+      .field .range-row span.hint { font-size: 0.78rem; opacity: 1; color: var(--secondary); font-family: 'Consolas', monospace; }
+
+      .error-box { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: #fecaca; border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; margin-top: 8px; }
+
+      .lab-output { padding: 26px; }
+      #imgCanvasWrap {
+        width: 100%; min-height: 220px; display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--line);
+        overflow: auto; padding: 12px;
+      }
+      #imgCanvas { max-width: 100%; border-radius: 8px; display: block; }
+
+      .legend-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75rem; color: var(--muted); }
+      .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+      .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+      .palette-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; }
+      .swatch { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--muted); width: 84px; }
+      .swatch-color { width: 64px; height: 64px; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+      .swatch strong { color: var(--text); font-family: 'Consolas', monospace; font-size: 0.72rem; }
+
+      .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
+      .offline-note::before { content: '●'; }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--secondary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button { border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .cookie-banner button#cookieAccept { background: var(--secondary); color: #06140f; border-color: transparent; }
+
+      @media (max-width: 900px) { .lab-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">AI / <span>ML</span> — Image Lab</div>
+        <nav class="nav-links">
+          <a href="../../index.html">AI / ML</a>
+          <a href="../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">Local Image Processing Lab</div>
+          <h1>Brightness, contrast, blur, and color extraction — on your own image.</h1>
+          <p class="lead">
+            Upload any image — it never leaves this tab, there's no upload and no
+            server. Adjust brightness, contrast and blur live with the sliders below,
+            then pull out its dominant colors with a from-scratch k-means clustering
+            pass over the pixel data, in <code>image-engine.js</code> right in this folder.
+            Pick how many colors to extract yourself.
+          </p>
+          <a class="back-link" href="../../index.html#imagelab">Back to AI / ML</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:14px;">
+        <div class="container">
+          <div class="lab-grid">
+            <div class="lab-panel">
+              <h3>1 · Image &amp; adjustments</h3>
+              <div class="field">
+                <label for="imgUpload">Upload image</label>
+                <input type="file" id="imgUpload" accept="image/*" />
+                <span class="hint">Processed entirely locally — nothing is sent anywhere.</span>
+              </div>
+
+              <div class="field">
+                <div class="range-row">
+                  <label for="brightness">Brightness</label>
+                  <span class="hint" id="brightnessVal">0</span>
+                </div>
+                <input type="range" id="brightness" min="-100" max="100" value="0" step="1" />
+              </div>
+
+              <div class="field">
+                <div class="range-row">
+                  <label for="contrast">Contrast</label>
+                  <span class="hint" id="contrastVal">0</span>
+                </div>
+                <input type="range" id="contrast" min="-100" max="100" value="0" step="1" />
+              </div>
+
+              <div class="field">
+                <div class="range-row">
+                  <label for="blurAmount">Blur</label>
+                  <span class="hint" id="blurVal">0px</span>
+                </div>
+                <input type="range" id="blurAmount" min="0" max="20" value="0" step="1" />
+              </div>
+
+              <div class="field">
+                <label for="paletteSize">Colors to extract</label>
+                <input type="number" id="paletteSize" min="2" max="12" value="5" step="1" />
+                <span class="hint">Your call — anywhere from 2 to 12 dominant colors.</span>
+              </div>
+
+              <div class="lab-row">
+                <button type="button" id="resetAdjust" class="btn btn-ghost">Reset Adjustments</button>
+                <button type="button" id="extractColors" class="btn btn-secondary">Extract Dominant Colors</button>
+                <button type="button" id="downloadImg" class="btn btn-ghost">Download Result</button>
+              </div>
+              <div class="offline-note">Runs 100% locally — no network request is made</div>
+              <div id="imgErrorBox" class="error-box" style="display:none;"></div>
+            </div>
+
+            <div class="lab-panel lab-output">
+              <h3>2 · Preview</h3>
+              <div id="imgCanvasWrap">
+                <canvas id="imgCanvas"></canvas>
+                <p class="hint" id="imgEmptyHint">Upload an image to begin.</p>
+              </div>
+
+              <div id="histogramBox" style="display:none; margin-top:16px;">
+                <div class="hint" style="margin-bottom:6px;">RGB color histogram — pixel intensity distribution (0–255), updates live with your adjustments:</div>
+                <canvas id="colorHistogram" style="width:100%; height:120px; display:block; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--line);"></canvas>
+                <div class="legend-row">
+                  <span><span class="legend-dot" style="background:#f87171;"></span>Red</span>
+                  <span><span class="legend-dot" style="background:#34d399;"></span>Green</span>
+                  <span><span class="legend-dot" style="background:#60a5fa;"></span>Blue</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lab-panel" id="paletteBox" style="display:none; margin-top:20px;">
+            <h3>3 · Extracted palette (k-means, from scratch)</h3>
+            <div id="paletteSwatches" class="palette-row"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../index.html">Home</a>
+          <a href="../../index.html#imagelab">Back to AI / ML</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/ai-ml/image-lab$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { kMeansColors, rgbToHex, computeHistogram } from './image-engine.js';
+
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      function hasConsent() { return getCookie('cookie_consent') === 'accepted'; }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+
+      const imgUpload = document.getElementById('imgUpload');
+      const brightnessSlider = document.getElementById('brightness');
+      const contrastSlider = document.getElementById('contrast');
+      const blurSlider = document.getElementById('blurAmount');
+      const brightnessVal = document.getElementById('brightnessVal');
+      const contrastVal = document.getElementById('contrastVal');
+      const blurVal = document.getElementById('blurVal');
+      const paletteSizeInput = document.getElementById('paletteSize');
+      const resetAdjustBtn = document.getElementById('resetAdjust');
+      const extractColorsBtn = document.getElementById('extractColors');
+      const downloadImgBtn = document.getElementById('downloadImg');
+      const imgErrorBox = document.getElementById('imgErrorBox');
+      const imgCanvas = document.getElementById('imgCanvas');
+      const imgCtx = imgCanvas.getContext('2d');
+      const imgEmptyHint = document.getElementById('imgEmptyHint');
+      const paletteBox = document.getElementById('paletteBox');
+      const paletteSwatches = document.getElementById('paletteSwatches');
+      const histogramBox = document.getElementById('histogramBox');
+      const histCanvas = document.getElementById('colorHistogram');
+      const histCtx = histCanvas.getContext('2d');
+
+      let sourceImage = null;
+
+      const savedBrightness = getCookie('aiml_brightness');
+      const savedContrast = getCookie('aiml_contrast');
+      const savedBlur = getCookie('aiml_blur');
+      const savedPalette = getCookie('aiml_palette_size');
+      if (savedBrightness !== null) { brightnessSlider.value = savedBrightness; brightnessVal.textContent = savedBrightness; }
+      if (savedContrast !== null) { contrastSlider.value = savedContrast; contrastVal.textContent = savedContrast; }
+      if (savedBlur !== null) { blurSlider.value = savedBlur; blurVal.textContent = `${savedBlur}px`; }
+      if (savedPalette !== null) paletteSizeInput.value = savedPalette;
+
+      function showImgError(message) {
+        imgErrorBox.textContent = message;
+        imgErrorBox.style.display = 'block';
+      }
+
+      function clearImgError() {
+        imgErrorBox.style.display = 'none';
+        imgErrorBox.textContent = '';
+      }
+
+      function renderAdjustedImage() {
+        if (!sourceImage) return;
+
+        const brightness = parseInt(brightnessSlider.value, 10);
+        const contrast = parseInt(contrastSlider.value, 10);
+        const blur = parseInt(blurSlider.value, 10);
+
+        imgCanvas.width = sourceImage.naturalWidth;
+        imgCanvas.height = sourceImage.naturalHeight;
+        imgCtx.filter = `brightness(${100 + brightness}%) contrast(${100 + contrast}%) blur(${blur}px)`;
+        imgCtx.clearRect(0, 0, imgCanvas.width, imgCanvas.height);
+        imgCtx.drawImage(sourceImage, 0, 0);
+
+        drawHistogram();
+      }
+
+      function drawHistogram() {
+        let data;
+        try {
+          data = imgCtx.getImageData(0, 0, imgCanvas.width, imgCanvas.height).data;
+        } catch (err) {
+          histogramBox.style.display = 'none';
+          return;
+        }
+
+        const { red, green, blue } = computeHistogram(data);
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const cssWidth = histCanvas.clientWidth || 600;
+        const cssHeight = 120;
+        histCanvas.width = cssWidth * dpr;
+        histCanvas.height = cssHeight * dpr;
+        histCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        histCtx.clearRect(0, 0, cssWidth, cssHeight);
+
+        const maxCount = Math.max(1, ...red, ...green, ...blue);
+        const scale = (v) => Math.sqrt(v) / Math.sqrt(maxCount);
+
+        const plotChannel = (channel, color) => {
+          histCtx.beginPath();
+          histCtx.moveTo(0, cssHeight);
+          for (let bin = 0; bin < 256; bin += 1) {
+            const x = (bin / 255) * cssWidth;
+            const y = cssHeight - scale(channel[bin]) * cssHeight;
+            histCtx.lineTo(x, y);
+          }
+          histCtx.lineTo(cssWidth, cssHeight);
+          histCtx.closePath();
+          histCtx.fillStyle = color;
+          histCtx.fill();
+        };
+
+        histCtx.globalCompositeOperation = 'lighter';
+        plotChannel(red, 'rgba(248, 113, 113, 0.55)');
+        plotChannel(green, 'rgba(52, 211, 153, 0.55)');
+        plotChannel(blue, 'rgba(96, 165, 250, 0.55)');
+        histCtx.globalCompositeOperation = 'source-over';
+
+        histogramBox.style.display = 'block';
+      }
+
+      imgUpload.addEventListener('change', () => {
+        const file = imgUpload.files && imgUpload.files[0];
+        if (!file) return;
+
+        clearImgError();
+        paletteBox.style.display = 'none';
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            sourceImage = img;
+            imgEmptyHint.style.display = 'none';
+            renderAdjustedImage();
+          };
+          img.onerror = () => showImgError('Could not load that file as an image.');
+          img.src = reader.result;
+        };
+        reader.onerror = () => showImgError('Could not read that file.');
+        reader.readAsDataURL(file);
+      });
+
+      [brightnessSlider, contrastSlider, blurSlider].forEach((slider) => {
+        slider.addEventListener('input', () => {
+          brightnessVal.textContent = brightnessSlider.value;
+          contrastVal.textContent = contrastSlider.value;
+          blurVal.textContent = `${blurSlider.value}px`;
+          renderAdjustedImage();
+          if (hasConsent()) {
+            setCookie('aiml_brightness', brightnessSlider.value, 365);
+            setCookie('aiml_contrast', contrastSlider.value, 365);
+            setCookie('aiml_blur', blurSlider.value, 365);
+          }
+        });
+      });
+
+      paletteSizeInput.addEventListener('change', () => {
+        if (hasConsent()) setCookie('aiml_palette_size', paletteSizeInput.value, 365);
+      });
+
+      resetAdjustBtn.addEventListener('click', () => {
+        brightnessSlider.value = 0;
+        contrastSlider.value = 0;
+        blurSlider.value = 0;
+        brightnessVal.textContent = '0';
+        contrastVal.textContent = '0';
+        blurVal.textContent = '0px';
+        renderAdjustedImage();
+        if (hasConsent()) {
+          setCookie('aiml_brightness', 0, 365);
+          setCookie('aiml_contrast', 0, 365);
+          setCookie('aiml_blur', 0, 365);
+        }
+      });
+
+      downloadImgBtn.addEventListener('click', () => {
+        if (!sourceImage) {
+          showImgError('Upload an image first.');
+          return;
+        }
+        const link = document.createElement('a');
+        link.download = 'processed-image.png';
+        link.href = imgCanvas.toDataURL('image/png');
+        link.click();
+      });
+
+      extractColorsBtn.addEventListener('click', () => {
+        clearImgError();
+        if (!sourceImage) {
+          showImgError('Upload an image first.');
+          return;
+        }
+
+        const k = Math.max(2, Math.min(12, parseInt(paletteSizeInput.value, 10) || 5));
+
+        let imageData;
+        try {
+          imageData = imgCtx.getImageData(0, 0, imgCanvas.width, imgCanvas.height).data;
+        } catch (err) {
+          showImgError('Could not read pixel data from this image.');
+          return;
+        }
+
+        const totalPixels = imageData.length / 4;
+        const targetSamples = 6000;
+        const stride = Math.max(1, Math.floor(totalPixels / targetSamples));
+
+        const pixels = [];
+        for (let i = 0; i < totalPixels; i += stride) {
+          const offset = i * 4;
+          const alpha = imageData[offset + 3];
+          if (alpha < 16) continue;
+          pixels.push([imageData[offset], imageData[offset + 1], imageData[offset + 2]]);
+        }
+
+        if (pixels.length < 2) {
+          showImgError('Not enough opaque pixels in this image to extract a palette.');
+          return;
+        }
+
+        const clusters = kMeansColors(pixels, k);
+
+        paletteSwatches.innerHTML = '';
+        clusters.forEach((cluster) => {
+          const hex = rgbToHex(cluster.color);
+          const swatch = document.createElement('div');
+          swatch.className = 'swatch';
+          swatch.innerHTML = `
+            <div class="swatch-color" style="background:${hex};"></div>
+            <strong>${hex}</strong>
+            <span>${(cluster.pct * 100).toFixed(1)}%</span>
+          `;
+          paletteSwatches.appendChild(swatch);
+        });
+        paletteBox.style.display = 'block';
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NLP Lab — AI/ML</title>
+    <meta name="description" content="Lexicon-based sentiment scoring, term-frequency keyword extraction, and text statistics — built from scratch, running entirely in your browser." />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #111827;
+        --panel: #121d2d;
+        --primary: #8b5cf6;
+        --secondary: #22d3ee;
+        --text: #edf2ff;
+        --muted: #c4cfe3;
+        --line: rgba(255,255,255,0.09);
+        --good: #34d399;
+        --bad: #f87171;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(135deg, var(--bg), var(--bg-2)); color: var(--text); }
+      .container { width: min(1100px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 50px 0; }
+
+      .topbar { padding: 18px 0; border-bottom: 1px solid var(--line); background: rgba(11,16,32,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30; }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.95rem; }
+      .logo span { color: var(--secondary); }
+      .nav-links { display: flex; gap: 20px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .nav-links a:hover { color: var(--secondary); }
+
+      .hero { padding: 40px 0 6px; }
+      .badge { display: inline-block; color: var(--secondary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
+      h1 { margin: 0 0 14px; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; }
+      .lead { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 720px; }
+      .lead code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+      .back-link:hover { color: var(--secondary); }
+      .back-link::before { content: '\2190 '; }
+
+      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; }
+      .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
+
+      .lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .lab-panel h3 { margin: 0 0 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .lab-row .btn { padding: 9px 16px; font-size: 0.78rem; }
+      .field .hint { font-size: 0.72rem; opacity: 0.7; }
+
+      .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
+      .offline-note::before { content: '●'; }
+
+      #nlpText {
+        width: 100%; min-height: 220px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+        border-radius: 10px; color: var(--text); padding: 14px; font-family: inherit; font-size: 0.9rem;
+        resize: vertical; line-height: 1.6;
+      }
+      #nlpText:focus { outline: none; border-color: var(--secondary); }
+
+      .sentiment-badge {
+        display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
+        font-weight: 700; font-size: 0.85rem; margin-bottom: 14px;
+      }
+      .sentiment-badge.positive { background: rgba(52,211,153,0.15); color: var(--good); border: 1px solid rgba(52,211,153,0.4); }
+      .sentiment-badge.negative { background: rgba(248,113,113,0.15); color: var(--bad); border: 1px solid rgba(248,113,113,0.4); }
+      .sentiment-badge.neutral { background: rgba(196,207,227,0.1); color: var(--muted); border: 1px solid var(--line); }
+
+      .sentiment-bar-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 18px; }
+      .sentiment-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 0.82rem; color: var(--muted); }
+      .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+      .pill { font-size: 0.75rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); }
+      .pill.pos { border-color: rgba(52,211,153,0.4); color: var(--good); }
+      .pill.neg { border-color: rgba(248,113,113,0.4); color: var(--bad); }
+      .pill.kw { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.35); color: var(--primary); }
+      .pill .count { opacity: 0.6; margin-left: 4px; }
+
+      .nlp-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+      .stat-chip { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; }
+      .stat-chip strong { display: block; font-size: 1.3rem; color: var(--good); font-family: 'Consolas', monospace; }
+      .stat-chip span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--secondary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button { border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .cookie-banner button#cookieAccept { background: var(--secondary); color: #06140f; border-color: transparent; }
+
+      @media (max-width: 900px) { .lab-grid, .nlp-stats-row { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">AI / <span>ML</span> — NLP Lab</div>
+        <nav class="nav-links">
+          <a href="../../index.html">AI / ML</a>
+          <a href="../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">Local NLP Lab</div>
+          <h1>Sentiment, keywords, and text stats — on whatever you type.</h1>
+          <p class="lead">
+            Lexicon-based sentiment scoring, term-frequency keyword extraction, and
+            basic text statistics — all built from scratch in <code>nlp-engine.js</code>
+            right in this folder, no external library, no pretrained model download.
+            Type or paste text below and analyze it locally.
+          </p>
+          <a class="back-link" href="../../index.html#nlplab">Back to AI / ML</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:14px;">
+        <div class="container">
+          <div class="lab-grid">
+            <div class="lab-panel">
+              <h3>1 · Your text</h3>
+              <textarea id="nlpText" placeholder="Type or paste a sentence or paragraph here…">I absolutely love how this forecasting lab works — the neural network training is genuinely impressive!</textarea>
+              <div class="lab-row" style="margin-top:12px;">
+                <button type="button" id="analyzeBtn" class="btn btn-primary">Analyze Text</button>
+                <button type="button" id="clearNlpBtn" class="btn btn-ghost">Clear</button>
+              </div>
+              <div class="offline-note">Runs 100% locally — no network request is made</div>
+            </div>
+
+            <div class="lab-panel lab-output">
+              <h3>2 · Results</h3>
+              <div id="sentimentResult">
+                <span class="sentiment-badge neutral" id="sentimentBadge">Analyze some text to begin</span>
+                <div class="sentiment-bar-track">
+                  <div class="sentiment-bar-fill" id="sentimentBarFill" style="width:50%; background:var(--muted);"></div>
+                </div>
+              </div>
+
+              <div class="field" style="margin-bottom:6px;">
+                <label>Positive / negative words matched</label>
+                <div class="pill-row" id="sentimentWords"></div>
+              </div>
+
+              <div class="field" style="margin-bottom:6px;">
+                <label>Top keywords (term frequency, stopwords removed)</label>
+                <div class="pill-row" id="keywordPills"></div>
+              </div>
+
+              <div class="nlp-stats-row" id="nlpStatsRow">
+                <div class="stat-chip"><strong id="statWords">—</strong><span>Words</span></div>
+                <div class="stat-chip"><strong id="statSentences">—</strong><span>Sentences</span></div>
+                <div class="stat-chip"><strong id="statAvgLen">—</strong><span>Avg Word Len</span></div>
+                <div class="stat-chip"><strong id="statReadTime">—</strong><span>Read Time</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../index.html">Home</a>
+          <a href="../../index.html#nlplab">Back to AI / ML</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/ai-ml/nlp-lab$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { analyzeSentiment, extractKeywords, textStats } from './nlp-engine.js';
+
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+
+      const nlpText = document.getElementById('nlpText');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const clearNlpBtn = document.getElementById('clearNlpBtn');
+      const sentimentBadge = document.getElementById('sentimentBadge');
+      const sentimentBarFill = document.getElementById('sentimentBarFill');
+      const sentimentWords = document.getElementById('sentimentWords');
+      const keywordPills = document.getElementById('keywordPills');
+      const statWords = document.getElementById('statWords');
+      const statSentences = document.getElementById('statSentences');
+      const statAvgLen = document.getElementById('statAvgLen');
+      const statReadTime = document.getElementById('statReadTime');
+
+      function runNlpAnalysis() {
+        const text = nlpText.value.trim();
+        if (!text) {
+          sentimentBadge.className = 'sentiment-badge neutral';
+          sentimentBadge.textContent = 'Type some text and click Analyze';
+          sentimentBarFill.style.width = '50%';
+          sentimentBarFill.style.background = 'var(--muted)';
+          sentimentWords.innerHTML = '';
+          keywordPills.innerHTML = '';
+          statWords.textContent = '—';
+          statSentences.textContent = '—';
+          statAvgLen.textContent = '—';
+          statReadTime.textContent = '—';
+          return;
+        }
+
+        const sentiment = analyzeSentiment(text);
+        const keywords = extractKeywords(text, 8);
+        const stats = textStats(text);
+
+        const badgeClass = sentiment.label.toLowerCase();
+        sentimentBadge.className = `sentiment-badge ${badgeClass}`;
+        sentimentBadge.textContent = `${sentiment.label} (score ${sentiment.score.toFixed(3)})`;
+
+        const pct = Math.max(0, Math.min(100, 50 + sentiment.score * 300));
+        sentimentBarFill.style.width = `${pct}%`;
+        sentimentBarFill.style.background =
+          sentiment.label === 'Positive' ? 'var(--good)' : sentiment.label === 'Negative' ? 'var(--bad)' : 'var(--muted)';
+
+        sentimentWords.innerHTML = '';
+        if (sentiment.positiveWords.length === 0 && sentiment.negativeWords.length === 0) {
+          sentimentWords.innerHTML = '<span class="hint">No sentiment-lexicon words matched.</span>';
+        } else {
+          sentiment.positiveWords.forEach((w) => {
+            const span = document.createElement('span');
+            span.className = 'pill pos';
+            span.textContent = `+ ${w}`;
+            sentimentWords.appendChild(span);
+          });
+          sentiment.negativeWords.forEach((w) => {
+            const span = document.createElement('span');
+            span.className = 'pill neg';
+            span.textContent = `- ${w}`;
+            sentimentWords.appendChild(span);
+          });
+        }
+
+        keywordPills.innerHTML = '';
+        if (keywords.length === 0) {
+          keywordPills.innerHTML = '<span class="hint">Not enough non-stopword text to extract keywords.</span>';
+        } else {
+          keywords.forEach(({ word, count }) => {
+            const span = document.createElement('span');
+            span.className = 'pill kw';
+            span.innerHTML = `${word}<span class="count">×${count}</span>`;
+            keywordPills.appendChild(span);
+          });
+        }
+
+        statWords.textContent = String(stats.words);
+        statSentences.textContent = String(stats.sentences);
+        statAvgLen.textContent = stats.avgWordLength.toFixed(1);
+        statReadTime.textContent = stats.readingTimeSeconds < 60
+          ? `${stats.readingTimeSeconds}s`
+          : `${Math.round(stats.readingTimeSeconds / 60)}m`;
+      }
+
+      analyzeBtn.addEventListener('click', runNlpAnalysis);
+      clearNlpBtn.addEventListener('click', () => {
+        nlpText.value = '';
+        runNlpAnalysis();
+      });
+    </script>
+  </body>
+</html>
