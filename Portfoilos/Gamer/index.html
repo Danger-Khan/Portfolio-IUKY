@@ -462,18 +462,28 @@
         gap: 1.25rem;
       }
 
+      .game-grid {
+        /* the hover-enlarged tile needs room to grow past its own grid cell
+           without a parent clipping it */
+        padding: 0.5rem;
+      }
+
       .game-tile {
+        position: relative;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 22px;
         box-shadow: 0 12px 30px rgba(185, 166, 255, 0.16);
         overflow: hidden;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, z-index 0s;
+        z-index: 1;
       }
 
-      .game-tile:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 40px rgba(255, 143, 177, 0.25);
+      .game-tile:hover,
+      .game-tile:focus-within {
+        transform: translateY(-6px) scale(1.28);
+        box-shadow: 0 26px 50px rgba(74, 59, 92, 0.32);
+        z-index: 15;
       }
 
       .game-tile img {
@@ -500,6 +510,60 @@
 
       .game-tile {
         cursor: pointer;
+      }
+
+      /* Revealed only while the tile is enlarged — extra screenshots (when
+         this game has any), the UID again at readable size, and the
+         official site link (only shown when we actually have one). */
+      .tile-expand {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, opacity 0.25s ease;
+        padding: 0 1.1rem;
+      }
+
+      .game-tile:hover .tile-expand,
+      .game-tile:focus-within .tile-expand {
+        max-height: 420px;
+        opacity: 1;
+        padding: 0 1.1rem 1.1rem;
+      }
+
+      .tile-expand-shots {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.7rem;
+      }
+
+      .tile-expand-shots img {
+        aspect-ratio: 16 / 10;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+
+      .tile-site-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary-deep);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+      }
+
+      .tile-site-link:hover {
+        background: rgba(255, 143, 177, 0.12);
+      }
+
+      .tile-no-site {
+        display: inline-block;
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-style: italic;
       }
 
       .game-tile.last-viewed {
@@ -667,7 +731,7 @@
           <a href="#projects">Projects</a>
           <a href="#contact">Contact</a>
         </nav>
-        <a href="#projects" class="btn btn-primary">Play Now</a>
+        <a href="#projects" class="btn btn-primary">My Games</a>
       </div>
     </header>
 
@@ -675,18 +739,19 @@
       <section id="home" class="hero">
         <div class="container hero-grid">
           <div class="hero-content">
-            <p class="eyebrow">LEVEL UP YOUR EXPERIENCE</p>
-            <h1>Build worlds. Create stories. Win battles.</h1>
+            <p class="eyebrow">JUST A GAMER, NOT A DEV</p>
+            <h1>Come see what I've been playing.</h1>
             <p class="hero-text">
-              I design immersive gaming experiences, digital worlds, and creative
-              interfaces that feel alive.
+              I didn't make any of these games and I'm not part of their dev teams —
+              I'm just a fan who plays them a lot. This page exists so fellow players
+              can find my IDs, add me, and connect.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="#projects">View Projects</a>
-              <a class="btn btn-secondary" href="#contact">Hire Me</a>
+              <a class="btn btn-primary" href="#projects">See My Games</a>
+              <a class="btn btn-secondary" href="#contact">Say Hi</a>
             </div>
             <ul class="hero-stats">
-              <li><strong>15</strong><span>Games</span></li>
+              <li><strong>16</strong><span>Games</span></li>
               <li><strong>Mobile</strong><span>&amp; Live-Service</span></li>
               <li><strong>gg</strong><span>Always</span></li>
             </ul>
@@ -718,26 +783,28 @@
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">ABOUT ME</p>
-            <h2>Creative designer for the next generation of gaming.</h2>
+            <h2>A gamer who enjoys the games, nothing more claimed.</h2>
           </div>
           <div class="about-grid">
             <div class="about-card">
-              <h3>What I do</h3>
+              <h3>What this page is</h3>
               <p>
-                I create game UI, branding, interactive experiences, and digital
-                art direction for players and communities.
+                I didn't make any of the games listed here and I'm not affiliated
+                with their developers or publishers in any way — I just play them
+                and enjoy them.
               </p>
             </div>
             <div class="about-card">
-              <h3>My style</h3>
+              <h3>Why it exists</h3>
               <p>
-                Fast, bold, and emotionally engaging visuals designed to immerse
-                players from the first click.
+                So other players can find me — my in-game IDs are all here, hover
+                a game card for screenshots and the official site, and add me if
+                you play the same ones.
               </p>
             </div>
             <div class="about-card">
-              <h3>Tools</h3>
-              <p>Figma, Photoshop, Blender, Unity, HTML, CSS, JavaScript.</p>
+              <h3>What I play</h3>
+              <p>Mostly live-service and mobile titles — open-world RPGs, gacha games, and the occasional shooter.</p>
             </div>
           </div>
         </div>
@@ -750,124 +817,196 @@
             <h2>What I'm playing</h2>
           </div>
 
+          <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem; margin-top:-1rem;">Hover (or tap) any card for screenshots, my UID, and the game's official site.</p>
+
           <div class="game-grid" id="game-grid">
-            <article class="game-tile" data-id-file="Assets/Data/Ananta/Ananta.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Ananta/Ananta.txt">
               <img src="Assets/Data/Ananta/Ananta.jpg" alt="Ananta icon" loading="lazy">
               <div class="tile-info">
                 <h3>Ananta</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <span class="tile-no-site">Official site — coming soon</span>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Call of Duty Mobile/Call of Duty Mobile.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Call of Duty Mobile/Call of Duty Mobile.txt">
               <img src="Assets/Data/Call of Duty Mobile/CODM.png" alt="Call of Duty Mobile icon" loading="lazy">
               <div class="tile-info">
                 <h3>Call of Duty Mobile</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://www.callofduty.com/mobile" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Clash Royale/Clash Royale.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Clash Royale/Clash Royale.txt">
               <img src="Assets/Data/Clash Royale/Clash Royale.png" alt="Clash Royale icon" loading="lazy">
               <div class="tile-info">
                 <h3>Clash Royale</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://clashroyale.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Clash of Clans/Clash of Clans.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Clash of Clans/Clash of Clans.txt">
               <img src="Assets/Data/Clash of Clans/Clash of Clans.jpg" alt="Clash of Clans icon" loading="lazy">
               <div class="tile-info">
                 <h3>Clash of Clans</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://clashofclans.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Duet Night Abyss/Duet Night Abyss.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Delta Force/Delta Force.txt">
+              <img src="Assets/Data/Delta Force/BattleFiledTeam_WithWatermark1747509418.png" alt="Delta Force squad screenshot" loading="lazy">
+              <div class="tile-info">
+                <h3>Delta Force</h3>
+                <p class="tile-uid">ID coming soon</p>
+              </div>
+              <div class="tile-expand">
+                <div class="tile-expand-shots">
+                  <img src="Assets/Data/Delta Force/Delta Force Battle Result.png" alt="Delta Force battle result screen" loading="lazy">
+                </div>
+                <span class="tile-no-site">Official site — coming soon</span>
+              </div>
+            </article>
+
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Duet Night Abyss/Duet Night Abyss.txt">
               <img src="Assets/Data/Duet Night Abyss/Duet Night Abyss.jpg" alt="Duet Night Abyss icon" loading="lazy">
               <div class="tile-info">
                 <h3>Duet Night Abyss</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <span class="tile-no-site">Official site — coming soon</span>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Free Fire/Free Fire.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Free Fire/Free Fire.txt">
               <img src="Assets/Data/Free Fire/Free Fire.jpg" alt="Free Fire icon" loading="lazy">
               <div class="tile-info">
                 <h3>Free Fire</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://ff.garena.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Genshin Impact/Genshin Impact.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Genshin Impact/Genshin Impact.txt">
               <img src="Assets/Data/Genshin Impact/Genshin Impact.webp" alt="Genshin Impact icon" loading="lazy">
               <div class="tile-info">
                 <h3>Genshin Impact</h3>
                 <p class="tile-uid">UID 853538615</p>
               </div>
+              <div class="tile-expand">
+                <div class="tile-expand-shots">
+                  <img src="Assets/Data/Genshin Impact/In game Picture.png" alt="Genshin Impact in-game screenshot" loading="lazy">
+                  <img src="Assets/Data/Genshin Impact/UID Genshin Impact.JPG" alt="Genshin Impact UID screenshot" loading="lazy">
+                </div>
+                <a class="tile-site-link" href="https://genshin.hoyoverse.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Honkai Impact 3rd/Honkai Impact 3rd.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Honkai Impact 3rd/Honkai Impact 3rd.txt">
               <img src="Assets/Data/Honkai Impact 3rd/Honkai Impact 3rd.png" alt="Honkai Impact 3rd icon" loading="lazy">
               <div class="tile-info">
                 <h3>Honkai Impact 3rd</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://honkaiimpact3.hoyoverse.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Honkai Star Rail/Honkai Star Rail.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Honkai Star Rail/Honkai Star Rail.txt">
               <img src="Assets/Data/Honkai Star Rail/Honkai Star Rail.jpg" alt="Honkai Star Rail icon" loading="lazy">
               <div class="tile-info">
                 <h3>Honkai Star Rail</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://hsr.hoyoverse.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Honor of Kings/Honor of Kings.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Honor of Kings/Honor of Kings.txt">
               <img src="Assets/Data/Honor of Kings/Honor of Kings.jpg" alt="Honor of Kings icon" loading="lazy">
               <div class="tile-info">
                 <h3>Honor of Kings</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://www.honorofkings.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Neverness to Everness/Neverness to Everness.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Neverness to Everness/Neverness to Everness.txt">
               <img src="Assets/Data/Neverness to Everness/Neverness to Everness.png" alt="Neverness to Everness icon" loading="lazy">
               <div class="tile-info">
                 <h3>Neverness to Everness</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <div class="tile-expand-shots">
+                  <img src="Assets/Data/Neverness to Everness/In Game SS.png" alt="Neverness to Everness in-game screenshot" loading="lazy">
+                  <img src="Assets/Data/Neverness to Everness/Login Screen.png" alt="Neverness to Everness login screen" loading="lazy">
+                </div>
+                <span class="tile-no-site">Official site — coming soon</span>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/PUBG Mobile/PUBG Mobile.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/PUBG Mobile/PUBG Mobile.txt">
               <img src="Assets/Data/PUBG Mobile/PUBGM.jpg" alt="PUBG Mobile icon" loading="lazy">
               <div class="tile-info">
                 <h3>PUBG Mobile</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <div class="tile-expand-shots">
+                  <img src="Assets/Data/PUBG Mobile/Erangel Map.jpg" alt="PUBG Mobile Erangel map screenshot" loading="lazy">
+                </div>
+                <a class="tile-site-link" href="https://www.pubgmobile.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Where Winds Meet/Where Winds Meet.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Where Winds Meet/Where Winds Meet.txt">
               <img src="Assets/Data/Where Winds Meet/Where Winds Meet.jpg" alt="Where Winds Meet icon" loading="lazy">
               <div class="tile-info">
                 <h3>Where Winds Meet</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <span class="tile-no-site">Official site — coming soon</span>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Wuthering Waves/Wuthering Waves.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Wuthering Waves/Wuthering Waves.txt">
               <img src="Assets/Data/Wuthering Waves/Wuthering Waves.jpg" alt="Wuthering Waves icon" loading="lazy">
               <div class="tile-info">
                 <h3>Wuthering Waves</h3>
                 <p class="tile-uid">ID coming soon</p>
               </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://wutheringwaves.kurogames.com" target="_blank" rel="noopener">Official Site ↗</a>
+              </div>
             </article>
 
-            <article class="game-tile" data-id-file="Assets/Data/Zenless Zone Zero/Zenless Zone Zero.txt">
+            <article class="game-tile" tabindex="0" data-id-file="Assets/Data/Zenless Zone Zero/Zenless Zone Zero.txt">
               <img src="Assets/Data/Zenless Zone Zero/Zenless Zone Zero.png" alt="Zenless Zone Zero icon" loading="lazy">
               <div class="tile-info">
                 <h3>Zenless Zone Zero</h3>
                 <p class="tile-uid">ID coming soon</p>
+              </div>
+              <div class="tile-expand">
+                <a class="tile-site-link" href="https://zenless.hoyoverse.com" target="_blank" rel="noopener">Official Site ↗</a>
               </div>
             </article>
           </div>
@@ -877,8 +1016,8 @@
       <section id="contact" class="contact section">
         <div class="container contact-box">
           <div>
-            <p class="eyebrow">LET'S WORK TOGETHER</p>
-            <h2>Ready to build your next gaming experience?</h2>
+            <p class="eyebrow">LET'S PLAY TOGETHER</p>
+            <h2>Play any of these too? Add me.</h2>
           </div>
           <a class="btn btn-primary" href="mailto:yameenimaad@gmail.com">yameenimaad@gmail.com</a>
         </div>

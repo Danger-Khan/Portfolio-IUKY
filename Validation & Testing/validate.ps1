@@ -31,7 +31,10 @@ $reportLines = New-Object System.Collections.Generic.List[string]
 
 foreach ($file in $htmlFiles) {
     $filesChecked++
+    # Get-Content -Raw returns $null (not "") for a 0-byte file — treat that
+    # as an empty, still-being-written scaffold rather than crashing on it.
     $text = Get-Content -LiteralPath $file.FullName -Raw
+    if ($null -eq $text) { $text = '' }
     $dir = $file.DirectoryName
     $fileIssues = New-Object System.Collections.Generic.List[string]
 
