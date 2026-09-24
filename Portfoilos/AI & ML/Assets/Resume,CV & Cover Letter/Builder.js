@@ -402,6 +402,18 @@
     } catch (e) { /* corrupt or missing draft — start fresh */ }
   }
 
+  function loadExample(key) {
+    var data = window.RESUME_EXAMPLES && window.RESUME_EXAMPLES[key];
+    if (!data) return;
+    var hasContent = state.name || state.summary || state.experience.some(function (e) { return e.role || e.company; });
+    var label = (window.RESUME_EXAMPLE_LABELS && window.RESUME_EXAMPLE_LABELS[key]) || key;
+    if (hasContent && !confirm('Load the "' + label + '" example draft? This replaces everything currently in the form.')) return;
+    applyLoadedData(data);
+    applyStateToInputs();
+    render();
+    scheduleSave();
+  }
+
   function applyLoadedData(saved) {
     if (!saved || typeof saved !== 'object') return;
     Object.keys(state).forEach(function (k) {
@@ -447,6 +459,8 @@
       renderEntryLists(); render(); scheduleSave();
     } else if (t.classList && t.classList.contains('format-opt')) {
       selectFormat(t.getAttribute('data-format'));
+    } else if (t.classList && t.classList.contains('example-btn')) {
+      loadExample(t.getAttribute('data-example'));
     } else if (t.id === 'btnPrint') {
       document.body.removeAttribute('data-print-only');
       window.print();

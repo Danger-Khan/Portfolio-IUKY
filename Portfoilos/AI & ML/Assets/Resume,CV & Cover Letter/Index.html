@@ -106,6 +106,16 @@
 
       .preview-panel.is-selected { border-color: var(--lang-color); box-shadow: 0 0 0 2px rgba(227,179,65,0.25); }
 
+      .example-picker { margin-bottom: 22px; padding-top: 16px; border-top: 1px dashed var(--line); }
+      .example-note { color: var(--muted); font-size: 0.78rem; line-height: 1.6; margin: 6px 0 12px; max-width: 720px; }
+      .example-picker-options { display: flex; gap: 8px; flex-wrap: wrap; }
+      .example-btn {
+        font-family: inherit; font-size: 0.76rem; font-weight: 700; color: var(--muted);
+        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 999px;
+        padding: 7px 14px; cursor: pointer;
+      }
+      .example-btn:hover { border-color: var(--accent-2); color: var(--text); }
+
       .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
       @media (max-width: 980px) { .builder-grid { grid-template-columns: 1fr; } }
 
@@ -282,6 +292,23 @@
                 <span class="win-title">form.input</span>
               </div>
               <div class="win-body">
+                <div class="example-picker">
+                  <span class="format-picker-label">Or load a real example</span>
+                  <p class="example-note">
+                    Seven drafts of my own background — same facts, reframed for a different field each time.
+                    Pick the one closest to what you're building, then edit freely; it just replaces the form below.
+                  </p>
+                  <div class="example-picker-options" id="examplePicker">
+                    <button type="button" class="example-btn" data-example="industrial">Industrial Engineering</button>
+                    <button type="button" class="example-btn" data-example="mechanical">Mechanical CAD / CADCAMCAE</button>
+                    <button type="button" class="example-btn" data-example="software">Programming / Software</button>
+                    <button type="button" class="example-btn" data-example="ai">AI &amp; ML</button>
+                    <button type="button" class="example-btn" data-example="embedded">Embedded Systems</button>
+                    <button type="button" class="example-btn" data-example="graphics">3D &amp; Graphics</button>
+                    <button type="button" class="example-btn" data-example="gis">GIS &amp; Remote Sensing</button>
+                  </div>
+                </div>
+
                 <div class="form-section-title">Contact</div>
                 <div class="field-row">
                   <div class="field"><label for="fName">Full name</label><input id="fName" placeholder="Imaad Ullah Khan Yameen"></div>
@@ -457,6 +484,7 @@
         });
       })();
     </script>
+    <script src="Examples.js"></script>
     <script src="Builder.js"></script>
   </body>
 </html>
