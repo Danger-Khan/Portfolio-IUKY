@@ -91,6 +91,30 @@
       .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
       .offline-note::before { content: '●'; }
 
+      /* Command-line pipeline section */
+      .pipe-section { border-top: 1px solid var(--line); padding-top: 46px; }
+      .section-title h2 { margin: 0 0 10px; font-size: 1.4rem; }
+      .section-title p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; max-width: 700px; }
+      .section-title p code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 5px; }
+      .pipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+      @media (max-width: 760px) { .pipe-grid { grid-template-columns: 1fr; } }
+      .pipe-card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+      .pipe-card .step { color: var(--secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 6px; }
+      .pipe-card h3 { margin: 0 0 8px; font-size: 1rem; text-transform: none; letter-spacing: normal; }
+      .pipe-card p { color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin: 0 0 10px; }
+      .pipe-card a { color: var(--secondary); text-decoration: none; font-size: 0.78rem; font-weight: 700; }
+      .pipe-card a:hover { text-decoration: underline; }
+      .cmd-block { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-size: 0.82rem; line-height: 1.9; font-family: 'Consolas', monospace; }
+      .cmd-block .prompt { color: var(--secondary); }
+      .pipe-win { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 20px; }
+      .pipe-win-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--line); }
+      .pipe-win-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+      .pipe-win-bar .dot.red { background: #ff5f56; } .pipe-win-bar .dot.yellow { background: #ffbd2e; } .pipe-win-bar .dot.green { background: #27c93f; }
+      .pipe-win-title { margin-left: 8px; color: var(--muted); font-size: 0.72rem; }
+      .pipe-win-body { padding: 18px 20px; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; overflow-x: auto; font-family: 'Consolas', monospace; }
+      .pipe-win-body .r2 { color: var(--good); }
+      .pipe-cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+
       footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
       .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
       .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -242,6 +266,79 @@
               <thead><tr><th>Model</th><th>R²</th><th>RMSE</th><th>MAE</th></tr></thead>
               <tbody id="compareBody"></tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section pipe-section" id="pipeline">
+        <div class="container">
+          <div class="section-title">
+            <h2>The same math, as a real Python pipeline</h2>
+            <p>
+              Everything above runs in your browser via <code>regression-engine.js</code>. This
+              same folder also holds a second, independent implementation of the same three
+              models — ordinary least squares, weighted least squares, and polynomial regression
+              — as a genuine three-stage Python pipeline backed by a real SQLite database,
+              runnable from a terminal with no browser at all: extract → fit → report.
+            </p>
+          </div>
+
+          <div class="pipe-grid">
+            <div class="pipe-card">
+              <div class="step">1 · extractor.py</div>
+              <h3>Extract</h3>
+              <p>Loads <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">database.sql</code> into SQLite on first run (auto-seeded with this lab's own 10-point sample dataset), then pulls a dataset out as clean (x, y, weight) tuples.</p>
+              <a href="extractor.py">View extractor.py →</a>
+            </div>
+            <div class="pipe-card">
+              <div class="step">2 · worker.py</div>
+              <h3>Fit</h3>
+              <p>The actual regression math — Gaussian elimination for polynomial fits, weighted least squares, R²/RMSE/MAE — a line-for-line Python port of <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">regression-engine.js</code>. Stores the fit, forecast, and metrics back to the database.</p>
+              <a href="worker.py">View worker.py →</a>
+            </div>
+            <div class="pipe-card">
+              <div class="step">3 · printer.py</div>
+              <h3>Report</h3>
+              <p>Reads a stored run back out and formats it as a readable report — equation, fit quality, and the forecasted points — to the terminal or a text file.</p>
+              <a href="printer.py">View printer.py →</a>
+            </div>
+          </div>
+
+          <div class="cmd-block">
+            <div><span class="prompt">$</span> python worker.py --dataset 1 --model weighted --horizon 5</div>
+            <div><span class="prompt">$</span> python printer.py</div>
+          </div>
+
+          <div class="pipe-win">
+            <div class="pipe-win-bar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="pipe-win-title">actual output — python printer.py</span>
+            </div>
+            <div class="pipe-win-body">Forecast Run #1 — 2026-09-24 13:52:24
+========================================
+Dataset:  Sample Growth Series
+Model:    Weighted Linear Regression (WLS)
+Equation: y = 9.5050 + 2.2063x
+
+R^2:  <span class="r2">0.9784</span>
+RMSE: 0.9283
+MAE:  0.7658
+
+Forecast — next 5 point(s):
+  x=   11.00   predicted y=    33.775
+  x=   12.00   predicted y=    35.981
+  x=   13.00   predicted y=    38.187
+  x=   14.00   predicted y=    40.394
+  x=   15.00   predicted y=    42.600</div>
+          </div>
+
+          <p style="color:var(--muted); font-size:0.8rem; margin-top:12px;">
+            That's a real run, copied verbatim — not a mockup. Run it yourself and the numbers
+            will match, since it's the same sample dataset and the same math as the live lab above.
+          </p>
+
+          <div class="pipe-cta-row">
+            <a class="btn btn-secondary" href="database.sql">View database.sql</a>
           </div>
         </div>
       </section>
