@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Humanizer — AI/ML</title>
+    <meta name="description" content="A rule-based text humanizer that swaps stock AI-sounding phrases for plainer alternatives — entirely in the browser, plus a Python CLI companion." />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #111827;
+        --panel: #121d2d;
+        --primary: #8b5cf6;
+        --secondary: #22d3ee;
+        --text: #edf2ff;
+        --muted: #c4cfe3;
+        --line: rgba(255,255,255,0.09);
+        --good: #34d399;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+      .container { width: min(1000px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 50px 0; }
+
+      .topbar {
+        padding: 18px 0; border-bottom: 1px solid var(--line);
+        background: rgba(11,16,32,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30;
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.95rem; }
+      .logo span { color: var(--secondary); }
+      .nav-links { display: flex; gap: 20px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .nav-links a:hover { color: var(--secondary); }
+
+      .hero { padding: 48px 0 6px; }
+      .badge {
+        display: inline-block; color: var(--secondary); font-size: 0.72rem; letter-spacing: 0.16em;
+        text-transform: uppercase; margin-bottom: 14px; font-weight: 700;
+      }
+      h1 { margin: 0 0 14px; font-size: clamp(2rem, 4.6vw, 3rem); line-height: 1.05; letter-spacing: -0.02em; }
+      .lead { color: var(--muted); font-size: 1rem; line-height: 1.7; max-width: 720px; }
+      .lead code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 5px; font-size: 0.85em; }
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+      .back-link:hover { color: var(--secondary); }
+      .back-link::before { content: '\2190 '; }
+
+      .lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-top: 26px; }
+      @media (max-width: 860px) { .lab-grid { grid-template-columns: 1fr; } }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .lab-panel h3 { margin: 0 0 14px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+
+      #humanizerInput {
+        width: 100%; min-height: 220px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+        border-radius: 10px; color: var(--text); padding: 14px; font-size: 0.92rem; line-height: 1.6;
+        font-family: inherit; resize: vertical;
+      }
+      #humanizerInput:focus { outline: none; border-color: var(--secondary); }
+
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+      .btn { display: inline-block; padding: 11px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
+      .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
+
+      .offline-note { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
+      .offline-note::before { content: '\25cf '; color: var(--good); }
+
+      #humanizerOutput {
+        min-height: 220px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+        border-radius: 10px; padding: 14px; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;
+        overflow-y: auto; max-height: 320px;
+      }
+      #humanizerOutput.is-empty { color: var(--muted); font-style: italic; }
+
+      .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+      .stat-chip { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: center; }
+      .stat-chip strong { display: block; font-size: 1.3rem; color: var(--secondary); }
+      .stat-chip span { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+      #changesList { list-style: none; margin: 0; padding: 0; max-height: 180px; overflow-y: auto; }
+      #changesList li { font-size: 0.82rem; padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+      #changesList li:last-child { border-bottom: none; }
+      #changesList .was { color: #f87171; text-decoration: line-through; }
+      #changesList .now { color: var(--good); font-weight: 600; }
+      #changesList .empty-hint { color: var(--muted); font-style: italic; }
+
+      .cli-note {
+        margin-top: 16px; font-size: 0.82rem; color: var(--muted); line-height: 1.7;
+        border-left: 3px solid var(--secondary); padding: 4px 0 4px 14px;
+      }
+      .cli-note code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+      .honesty-note {
+        margin-top: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+        border-radius: 14px; padding: 18px 20px; font-size: 0.85rem; color: var(--muted); line-height: 1.7;
+      }
+      .honesty-note strong { color: var(--text); }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--secondary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px;
+        border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--secondary); color: #06140f; border-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">AI / <span>ML</span> — Humanizer</div>
+        <nav class="nav-links">
+          <a href="../../../index.html">AI / ML</a>
+          <a href="../../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">NLP Lab · Bonus Tool</div>
+          <h1>Humanizer</h1>
+          <p class="lead">
+            Rewrites stock AI-sounding phrasing — "in today's fast-paced world," "it is
+            important to note that," "utilize," "seamless" — into plainer, contracted
+            language. Rule-based, not a trained model: every swap it makes comes from
+            <code>database.sql</code>, right in this folder, so there's nothing hidden.
+            Runs entirely in your browser.
+          </p>
+          <a class="back-link" href="../../../index.html#nlplab">Back to the NLP Lab</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:0;">
+        <div class="container">
+          <div class="lab-grid">
+            <div class="lab-panel">
+              <h3>1 · Your text</h3>
+              <textarea id="humanizerInput" placeholder="Paste text here…">In today's fast-paced world, it is important to note that we need to utilize robust, seamless solutions in order to demonstrate real value. Furthermore, this approach does not require additional resources.</textarea>
+              <div class="lab-row">
+                <button type="button" id="humanizeBtn" class="btn btn-primary">Humanize</button>
+                <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
+              </div>
+              <div class="offline-note">Runs 100% locally — no network request is made</div>
+            </div>
+
+            <div class="lab-panel">
+              <h3>2 · Result</h3>
+              <div id="humanizerOutput" class="is-empty">Humanized text will appear here.</div>
+              <div class="lab-row">
+                <button type="button" id="copyBtn" class="btn btn-secondary">Copy</button>
+                <button type="button" id="downloadBtn" class="btn btn-secondary">Download .txt</button>
+              </div>
+
+              <div class="stats-row" id="humanizerStats">
+                <div class="stat-chip"><strong>—</strong><span>Words in</span></div>
+                <div class="stat-chip"><strong>—</strong><span>Words out</span></div>
+                <div class="stat-chip"><strong>—</strong><span>Patterns fixed</span></div>
+              </div>
+
+              <h3 style="margin-top:18px;">Changes made</h3>
+              <ul id="changesList"><li class="empty-hint">Click Humanize to see what changed.</li></ul>
+            </div>
+          </div>
+
+          <div class="cli-note">
+            Prefer the terminal? <code>echo "your text" | python backend.py</code> from this
+            folder runs the identical rule set through <code>backend_pipeline.py</code> and
+            SQLite instead of the browser — useful for batch-processing files.
+          </div>
+
+          <div class="honesty-note">
+            <strong>What this actually is:</strong> a fixed set of phrase, word, and
+            contraction substitutions — the same ones listed in <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">database.sql</code>.
+            It's not a language model and it doesn't understand meaning — it just recognizes
+            specific stock phrasing and swaps it. Good for catching the obvious tells, not a
+            substitute for actually rewriting in your own voice.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../../index.html">Home</a>
+          <a href="../../../index.html#nlplab">Back to AI / ML</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/ai-ml/humanizer$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+    <script src="Engine.js"></script>
+  </body>
+</html>

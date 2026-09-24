@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forecast Models Pipeline</title>
+    <meta name="description" content="A real Python data pipeline — extractor, worker, printer — that fits the same regression math as the browser Forecasting Lab, against a real SQLite database." />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-2: #111827;
+        --panel: #121d2d;
+        --primary: #8b5cf6;
+        --secondary: #22d3ee;
+        --text: #edf2ff;
+        --muted: #c4cfe3;
+        --line: rgba(255,255,255,0.09);
+        --good: #34d399;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+        background: linear-gradient(135deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+      .container { width: min(920px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 50px 0; }
+
+      .topbar {
+        padding: 16px 0; border-bottom: 1px solid var(--line);
+        background: rgba(11,16,32,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30;
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-weight: 700; letter-spacing: 0.05em; }
+      .logo span { color: var(--secondary); }
+      .nav-links { display: flex; gap: 18px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; }
+      .nav-links a:hover { color: var(--secondary); }
+
+      .hero { padding: 46px 0 10px; }
+      .badge {
+        display: inline-block; color: var(--secondary); font-size: 0.72rem; letter-spacing: 0.14em;
+        text-transform: uppercase; margin-bottom: 14px; font-weight: 700;
+      }
+      h1 { margin: 0 0 14px; font-size: clamp(1.9rem, 4.6vw, 2.8rem); line-height: 1.1; }
+      .lead { color: var(--muted); font-size: 0.98rem; line-height: 1.7; max-width: 680px; }
+      .lead code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 5px; }
+
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+      .back-link:hover { color: var(--secondary); }
+      .back-link::before { content: '\2190 '; }
+
+      .section-title h2 { margin: 0 0 10px; font-size: 1.4rem; }
+      .section-title p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; max-width: 680px; }
+
+      .pipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+      @media (max-width: 760px) { .pipe-grid { grid-template-columns: 1fr; } }
+      .pipe-card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+      }
+      .pipe-card .step { color: var(--secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 6px; }
+      .pipe-card h3 { margin: 0 0 8px; font-size: 1rem; }
+      .pipe-card p { color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin: 0 0 10px; }
+      .pipe-card a { color: var(--secondary); text-decoration: none; font-size: 0.78rem; font-weight: 700; }
+      .pipe-card a:hover { text-decoration: underline; }
+
+      .arrow-row { text-align: center; color: var(--muted); font-size: 1.2rem; margin: 4px 0; }
+
+      .win {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 20px;
+      }
+      .win-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--line); }
+      .dot { width: 10px; height: 10px; border-radius: 50%; }
+      .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+      .win-title { margin-left: 8px; color: var(--muted); font-size: 0.72rem; }
+      .win-body { padding: 18px 20px; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; overflow-x: auto; }
+      .win-body .r2 { color: var(--good); }
+
+      .cmd-block { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-size: 0.82rem; line-height: 1.9; }
+      .cmd-block .prompt { color: var(--secondary); }
+
+      .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 24px; }
+      .btn { display: inline-block; padding: 10px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 0.82rem; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .footer-nav a:hover { color: var(--secondary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button {
+        border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px;
+        border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+      .cookie-banner button#cookieAccept { background: var(--secondary); color: #06140f; border-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">AI / <span>ML</span> — forecast pipeline</div>
+        <nav class="nav-links">
+          <a href="../../index.html">AI / ML</a>
+          <a href="../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">Companion pipeline</div>
+          <h1>The same regression math, as a real Python pipeline.</h1>
+          <p class="lead">
+            The Forecasting Lab on the main AI/ML page runs entirely in your browser via
+            <code>regression-engine.js</code>. This folder holds a second, independent
+            implementation of the same three models — ordinary least squares, weighted
+            least squares, and polynomial regression — as a genuine three-stage Python
+            pipeline backed by a real SQLite database, runnable from a terminal with no
+            browser at all.
+          </p>
+          <a class="back-link" href="../../index.html#lab">Back to the Forecasting Lab</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:10px;">
+        <div class="container">
+          <div class="section-title">
+            <h2>Extract → Fit → Report</h2>
+            <p>Three small scripts, each doing one job, chained by a shared SQLite database.</p>
+          </div>
+
+          <div class="pipe-grid">
+            <div class="pipe-card">
+              <div class="step">1 · extractor.py</div>
+              <h3>Extract</h3>
+              <p>Loads <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">database.sql</code> into SQLite on first run (auto-seeded with the lab's own 10-point sample dataset), then pulls a dataset out as clean (x, y, weight) tuples.</p>
+              <a href="extractor.py">View extractor.py →</a>
+            </div>
+            <div class="pipe-card">
+              <div class="step">2 · worker.py</div>
+              <h3>Fit</h3>
+              <p>The actual regression math — Gaussian elimination for polynomial fits, weighted least squares, R²/RMSE/MAE — a line-for-line Python port of <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">regression-engine.js</code>. Stores the fit, forecast, and metrics back to the database.</p>
+              <a href="worker.py">View worker.py →</a>
+            </div>
+            <div class="pipe-card">
+              <div class="step">3 · printer.py</div>
+              <h3>Report</h3>
+              <p>Reads a stored run back out and formats it as a readable report — equation, fit quality, and the forecasted points — to the terminal or a text file.</p>
+              <a href="printer.py">View printer.py →</a>
+            </div>
+          </div>
+
+          <div class="cmd-block">
+            <div><span class="prompt">$</span> python worker.py --dataset 1 --model weighted --horizon 5</div>
+            <div><span class="prompt">$</span> python printer.py</div>
+          </div>
+
+          <div class="win">
+            <div class="win-bar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="win-title">actual output — python printer.py</span>
+            </div>
+            <div class="win-body">Forecast Run #1 — 2026-09-24 13:52:24
+========================================
+Dataset:  Sample Growth Series
+Model:    Weighted Linear Regression (WLS)
+Equation: y = 9.5050 + 2.2063x
+
+R^2:  <span class="r2">0.9784</span>
+RMSE: 0.9283
+MAE:  0.7658
+
+Forecast — next 5 point(s):
+  x=   11.00   predicted y=    33.775
+  x=   12.00   predicted y=    35.981
+  x=   13.00   predicted y=    38.187
+  x=   14.00   predicted y=    40.394
+  x=   15.00   predicted y=    42.600</div>
+          </div>
+
+          <p style="color:var(--muted); font-size:0.8rem; margin-top:12px;">
+            That's a real run, copied verbatim — not a mockup. Run it yourself and the
+            numbers will match, since it's the same sample dataset and the same math as
+            the live lab.
+          </p>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="../../index.html#lab">Try the live Forecasting Lab →</a>
+            <a class="btn btn-secondary" href="database.sql">View database.sql</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../index.html">Home</a>
+          <a href="../../index.html#lab">Back to AI / ML</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/ai-ml/forecast-pipeline$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+  </body>
+</html>

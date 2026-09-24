@@ -679,9 +679,13 @@
 
       <section id="tools" class="section" style="padding-top:0;">
         <div class="container">
-          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+          <div class="section-title" style="margin-bottom:20px;">
+            <div class="badge">Also in this lab</div>
+            <h2 style="font-size:clamp(1.5rem, 3vw, 2.1rem);">A few more real tools, not just the four labs above.</h2>
+          </div>
+
+          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
             <div>
-              <div class="badge" style="margin-bottom:8px;">Also in this lab</div>
               <h3 style="margin:0 0 8px;">Résumé, CV &amp; Cover Letter Builder</h3>
               <p style="margin:0; max-width:560px;">
                 One form drives a live resume, CV, and cover letter preview, with print-to-PDF and
@@ -690,6 +694,32 @@
               </p>
             </div>
             <a href="Assets/Resume,CV &amp; Cover Letter/Index.html" class="btn btn-secondary">Open the builder →</a>
+          </div>
+
+          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
+            <div>
+              <h3 style="margin:0 0 8px;">Humanizer</h3>
+              <p style="margin:0; max-width:560px;">
+                A rule-based rewriter for stock AI-sounding phrasing ("in today's fast-paced
+                world," "utilize," "seamless") — every swap it makes is listed in a plain
+                <code>database.sql</code>, plus a Python CLI (<code>backend.py</code>) that runs the
+                same rules outside the browser.
+              </p>
+            </div>
+            <a href="Assets/NLP Models/Humanizer/Index.html" class="btn btn-secondary">Open the Humanizer →</a>
+          </div>
+
+          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+            <div>
+              <h3 style="margin:0 0 8px;">Forecast Models Pipeline</h3>
+              <p style="margin:0; max-width:560px;">
+                The Forecasting Lab's exact regression math, ported to a real three-stage
+                Python pipeline — <code>extractor.py</code> → <code>worker.py</code> →
+                <code>printer.py</code> — backed by a genuine SQLite database instead of a
+                browser tab.
+              </p>
+            </div>
+            <a href="Assets/Forecast Models/Index.html" class="btn btn-secondary">Open the pipeline →</a>
           </div>
         </div>
       </section>
