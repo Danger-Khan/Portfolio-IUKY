@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slicer Lab — CAD/CAM/CAE</title>
+    <meta name="description" content="A real G-code analyzer, material settings advisor, and filament cost calculator — reads actual PrusaSlicer output from this portfolio's own CAM files, entirely offline." />
+    <style>
+      :root {
+        --bg: #0a0d12;
+        --bg-2: #10151d;
+        --panel: #131a24;
+        --primary: #38bdf8;
+        --secondary: #94a3b8;
+        --highlight: #f59e0b;
+        --text: #eaf1f8;
+        --muted: #9fb0c2;
+        --line: rgba(148,163,184,0.18);
+        --good: #34d399;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+        background:
+          linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px),
+          linear-gradient(160deg, var(--bg), var(--bg-2));
+        background-size: 32px 32px, 32px 32px, auto;
+        color: var(--text);
+      }
+      .container { width: min(1080px, calc(100% - 2rem)); margin: 0 auto; }
+      .section { padding: 50px 0; }
+      .mono { font-family: 'Consolas', monospace; }
+
+      .topbar { padding: 18px 0; border-bottom: 1px solid var(--line); background: rgba(10,13,18,0.85); position: sticky; top: 0; backdrop-filter: blur(10px); z-index: 30; }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      .logo { font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'Consolas', monospace; }
+      .logo span { color: var(--primary); }
+      .nav-links { display: flex; gap: 20px; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Consolas', monospace; }
+      .nav-links a:hover { color: var(--primary); }
+
+      .hero { padding: 48px 0 6px; }
+      .badge { display: inline-flex; align-items: center; gap: 8px; color: var(--primary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; font-family: 'Consolas', monospace; }
+      .badge::before { content: ''; width: 8px; height: 8px; background: var(--highlight); border-radius: 2px; }
+      h1 { margin: 0 0 14px; font-size: clamp(2rem, 4.6vw, 3rem); line-height: 1.05; letter-spacing: -0.02em; }
+      .lead { color: var(--muted); font-size: 1rem; line-height: 1.7; max-width: 720px; }
+      .lead code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 5px; font-size: 0.85em; }
+      .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+      .back-link:hover { color: var(--primary); }
+      .back-link::before { content: '\2190 '; }
+
+      .lab-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-top: 20px; }
+      .lab-panel h3 { margin: 0 0 6px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary); font-family: 'Consolas', monospace; }
+      .lab-panel .panel-sub { margin: 0 0 16px; color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+
+      .btn { display: inline-block; padding: 11px 18px; border-radius: 6px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+      .btn-primary { background: var(--primary); color: #06140f; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
+
+      .file-picker { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+      .file-picker input[type="file"] {
+        font-family: inherit; font-size: 0.82rem; color: var(--text);
+        background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px;
+      }
+      #analyzerFileName { font-size: 0.78rem; color: var(--muted); }
+
+      .stat-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.85rem; }
+      .stat-table th, .stat-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+      .stat-table th { color: var(--muted); font-weight: 600; width: 42%; }
+      .stat-table td { color: var(--text); }
+      .empty-hint { color: var(--muted); font-style: italic; font-size: 0.85rem; }
+      .advisor-notes { margin-top: 12px; color: var(--muted); font-size: 0.85rem; line-height: 1.7; }
+
+      .jobs-table-wrap { overflow-x: auto; margin-top: 4px; }
+      table#realJobsTable { width: 100%; border-collapse: collapse; font-size: 0.83rem; min-width: 640px; }
+      table#realJobsTable th, table#realJobsTable td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+      table#realJobsTable th { color: var(--muted); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.05em; }
+      table#realJobsTable td a { color: var(--primary); text-decoration: none; font-weight: 700; }
+      table#realJobsTable td a:hover { text-decoration: underline; }
+      .job-note { margin-top: 6px; color: var(--highlight); font-size: 0.76rem; line-height: 1.5; max-width: 340px; }
+
+      .field { display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--muted); margin-bottom: 12px; }
+      .field select, .field input[type="number"] {
+        background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--text); padding: 9px 12px; font-size: 0.9rem; font-family: inherit;
+      }
+      .field select:focus, .field input:focus { outline: none; border-color: var(--primary); }
+      .cost-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      @media (max-width: 640px) { .cost-grid { grid-template-columns: 1fr; } }
+      #costResult { margin-top: 8px; font-size: 0.95rem; }
+      #costResult strong { color: var(--good); font-family: 'Consolas', monospace; }
+      #costResult .hint { color: var(--muted); font-size: 0.75rem; }
+
+      .offline-note { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
+      .offline-note::before { content: '\25cf '; color: var(--good); }
+
+      .cli-note { margin-top: 20px; font-size: 0.82rem; color: var(--muted); line-height: 1.7; border-left: 3px solid var(--primary); padding: 4px 0 4px 14px; }
+      .cli-note code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+      .honesty-note { margin-top: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+      .honesty-note strong { color: var(--text); }
+
+      footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
+      .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
+      .footer-nav a { color: var(--muted); text-decoration: none; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-family: 'Consolas', monospace; }
+      .footer-nav a:hover { color: var(--primary); }
+      .footer-inner { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.72rem; }
+
+      .cookie-banner {
+        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+        flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px; background: var(--panel); border-top: 1px solid var(--line);
+        color: var(--text); font-family: inherit; font-size: 0.85rem; box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      }
+      .cookie-banner p { margin: 0; max-width: 640px; line-height: 1.6; }
+      .cookie-banner .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+      .cookie-banner button { border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .cookie-banner button#cookieAccept { background: var(--primary); color: #06140f; border-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">CAM<span> / </span>Slicer Lab</div>
+        <nav class="nav-links">
+          <a href="../../../index.html">CAD/CAM/CAE</a>
+          <a href="../../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">CAM · Offline Tool</div>
+          <h1>Slicer Lab</h1>
+          <p class="lead">
+            A real G-code analyzer, a material settings advisor, and a filament cost calculator.
+            Pick any <code>.gcode</code> file (including the five real ones sitting in this
+            portfolio's own <code>../Freelance</code> folder) and this page reads the slicer's
+            own summary comments straight out of it — print time, filament used, cost, material,
+            temperatures — entirely in your browser via the File API. Nothing is uploaded anywhere.
+          </p>
+          <a class="back-link" href="../../../index.html#manufacturing">Back to Manufacturing &amp; CAM</a>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:14px;">
+        <div class="container">
+
+          <div class="lab-panel">
+            <h3>1 · G-code Analyzer</h3>
+            <p class="panel-sub">Pick a .gcode file from your computer — try one of the real files in the table below, or one of your own.</p>
+            <div class="file-picker">
+              <input type="file" id="gcodeFile" accept=".gcode,.gco,.g,text/plain" />
+              <span id="analyzerFileName"></span>
+            </div>
+            <div id="analyzerResult"><p class="empty-hint">Pick a file above to see its real slicer stats.</p></div>
+            <div class="offline-note">Read entirely in your browser via FileReader — no upload, no network request</div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>2 · Real jobs from this portfolio</h3>
+            <p class="panel-sub">The five actual .gcode files in <code>../Freelance</code> — stats read straight out of each file, not estimated.</p>
+            <div class="jobs-table-wrap">
+              <table id="realJobsTable">
+                <thead><tr><th>Part</th><th>Material</th><th>Print time</th><th>Filament</th><th>Temps (nozzle/bed)</th><th></th></tr></thead>
+                <tbody id="realJobsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>3 · Material Settings Advisor</h3>
+            <p class="panel-sub">Standard FDM print-setting ranges per material — the same reference data as <code>database.sql</code>.</p>
+            <div class="field">
+              <label for="materialSelect">Material</label>
+              <select id="materialSelect"></select>
+            </div>
+            <div id="materialResult"></div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>4 · Filament Cost Calculator</h3>
+            <p class="panel-sub">Weight and a price per kg gives you the cost — same arithmetic a slicer does internally.</p>
+            <div class="cost-grid">
+              <div class="field">
+                <label for="costWeight">Filament weight (g)</label>
+                <input type="number" id="costWeight" min="0" step="any" placeholder="e.g. 56.5" value="56.5">
+              </div>
+              <div class="field">
+                <label for="costPrice">Price per kg</label>
+                <input type="number" id="costPrice" min="0" step="any" placeholder="e.g. 4500" value="4500">
+              </div>
+              <div class="field">
+                <label for="costQty">Quantity</label>
+                <input type="number" id="costQty" min="1" step="1" value="1">
+              </div>
+            </div>
+            <div id="costResult"></div>
+          </div>
+
+          <div class="cli-note">
+            Prefer the terminal? <code>python analyzer.py "../Freelance/33m,PETG,cabletiebelttensioner.gcode"</code>
+            from this folder parses the same real file and prints an identical report — useful for
+            batch-checking a folder full of G-code before a print run. Run
+            <code>python analyzer.py --materials</code> to print the Material Settings Advisor table,
+            or <code>python analyzer.py --cost 56.5 4500</code> for the cost calculator.
+          </div>
+
+          <div class="honesty-note">
+            <strong>What this actually is:</strong> the G-code Analyzer only reads comment lines
+            PrusaSlicer itself writes into the file — it doesn't slice, simulate, or estimate
+            anything on its own, so a file from a different slicer (Cura, OrcaSlicer, Bambu
+            Studio) may show fewer fields if its comment format differs. The Material Settings
+            Advisor and Filament Cost Calculator are fixed reference data and arithmetic, not a
+            trained model. Job #4's mismatched filename is shown as-is, not corrected — see the
+            note on that row.
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../../index.html">Home</a>
+          <a href="../../../index.html#manufacturing">Back to CAD/CAM/CAE</a>
+        </div>
+        <div class="footer-inner">
+          <span class="mono">imaad@portfolio:~/cadcamcae/cam/slicer-lab$</span>
+          <span class="mono">github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+    <script>
+      function setCookie(name, value, days) {
+        var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+      }
+      function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+      (function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        var acceptBtn = document.getElementById('cookieAccept');
+        var declineBtn = document.getElementById('cookieDecline');
+        if (!banner) return;
+        if (!getCookie('cookie_consent')) banner.style.display = 'flex';
+        acceptBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'accepted', 365);
+          banner.style.display = 'none';
+        });
+        declineBtn.addEventListener('click', function () {
+          setCookie('cookie_consent', 'declined', 365);
+          banner.style.display = 'none';
+        });
+      })();
+    </script>
+    <script src="engine.js"></script>
+  </body>
+</html>
