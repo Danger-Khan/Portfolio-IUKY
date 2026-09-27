@@ -1,0 +1,16 @@
+# Dependencies for the two portfolio apps in this folder.
+#
+# Only needed to run streamlit_app.py / gradio_app.py. The website itself and
+# every tool in Portfoilos/ need none of this -- they run on the Python standard
+# library alone, which is why there is no Pillow or numpy here. portfolio_data.py
+# writes PNGs with zlib by hand rather than adding an image dependency.
+#
+#   pip install -r Assets/requirements.txt
+#   streamlit run "Assets/streamlit_app.py"
+#   python "Assets/gradio_app.py"
+#
+# Either app runs on its own if you only install one of the two.
+
+streamlit>=1.30
+# 6.0 moved `theme` from Blocks() to launch(); gradio_app.py uses the 6.x form.
+gradio>=6.0
