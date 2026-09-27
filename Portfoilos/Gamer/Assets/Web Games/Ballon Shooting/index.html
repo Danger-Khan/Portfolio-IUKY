@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balloon Shooting — Web Games</title>
+    <meta name="description" content="An aim-and-shoot balloon game with a real movable crosshair, drifting small targets, and a wave timer. Runs offline in the browser." />
+    <link rel="stylesheet" href="../styling.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">Balloon <span>Shooting</span></div>
+        <nav class="nav-links">
+          <a href="../index.html">Arcade</a>
+          <a href="../../../index.html">Gamer</a>
+          <a href="../../../../../index.html">Portfolio</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">Aim · Arcade</div>
+          <h1>Balloon Shooting</h1>
+          <p class="lead">Balloons rise from the bottom of the screen and you have three lives to lose before they reach the top. The aim is a real crosshair you move, not a click-anywhere hit test, so mouse, touch and keyboard all play the same game. Small balloons drift sideways and are worth three times as much.</p>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:22px;">
+        <div class="container">
+          <div class="play-wrap">
+            <div class="stage">
+              <canvas id="game" width="520" height="620" aria-label="Balloon Shooting game canvas"></canvas>
+              <button type="button" class="stage-exit-fs" id="btnExitFullStage" aria-label="Exit full screen" title="Exit full screen">✕</button>
+            </div>
+
+            <div>
+              <div class="side-panel">
+                <h3>Status</h3>
+                <div class="hud-row"><span>Score</span><span id="hudScore">0</span></div>
+                <div class="hud-row"><span>Best</span><span id="hudBest">0</span></div>
+                <div class="hud-row"><span>State</span><span id="hudState">Ready</span></div>
+                <div class="btn-row">
+                  <button class="btn btn-primary" id="btnRestart">Restart</button>
+                  <button class="btn" id="btnPause">Pause</button>
+                </div>
+                <div class="btn-row">
+                  <button class="btn" id="btnHelp">Controls</button>
+                  <button class="btn" id="btnSound">Sound</button>
+                  <button class="btn" id="btnFull">Fullscreen</button>
+                </div>
+              </div>
+
+              <div class="side-panel">
+                <h3>Quick keys</h3>
+                <div class="hud-row"><span><kbd>P</kbd> / <kbd>Esc</kbd></span><span>Pause</span></div>
+                <div class="hud-row"><span><kbd>R</kbd></span><span>Restart</span></div>
+                <div class="hud-row"><span><kbd>H</kbd></span><span>Controls</span></div>
+                <div class="hud-row"><span><kbd>M</kbd></span><span>Mute</span></div>
+                <div class="hud-row"><span><kbd>F</kbd></span><span>Full screen</span></div>
+              </div>
+            </div>
+          </div>
+
+          <section class="manual">
+            <div class="section-head">
+              <h2>Instruction manual</h2>
+              <p>Everything you need to know, on one screen.</p>
+            </div>
+            <div class="manual-grid">
+              <div class="manual-card">
+                <h4>Objective</h4>
+                <p>Pop balloons before they cross the red line at the top. Three escapes and the round ends. Waves get faster every 18 seconds.</p>
+              </div>
+              <div class="manual-card">
+                <h4>Controls</h4>
+                <ul>
+                  <li>Move the mouse or drag — aim the crosshair</li>
+                  <li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> or <kbd>WASD</kbd> — aim by keyboard</li>
+                  <li>Click or <kbd>Space</kbd> — shoot</li>
+                  <li><kbd>P</kbd> — pause, <kbd>R</kbd> — restart</li>
+                </ul>
+              </div>
+              <div class="manual-card">
+                <h4>Scoring</h4>
+                <ul>
+                  <li><strong>+10</strong> for a large balloon</li>
+                  <li><strong>+30</strong> for a small one — they are faster and they weave</li>
+                  <li>Accuracy is tracked in the corner but does not affect the score</li>
+                  <li>There is a short reload between shots, so spamming does not help</li>
+                </ul>
+              </div>
+              <div class="manual-card">
+                <h4>Tips</h4>
+                <ul>
+                  <li>Lead the small ones: they drift sideways, so aim where the balloon will be</li>
+                  <li>Take the high balloons first — the ones near the line are the ones about to cost you</li>
+                  <li>Keyboard aiming is slower but steadier for the weaving targets</li>
+                  <li>The wave counter rises on a timer, not on your score, so clearing fast buys you an easier screen</li>
+                </ul>
+              </div>
+            </div>
+            <p class="note">No sprites and no sound files: every balloon is an ellipse with a drawn string, and each pop is a synthesised tone.</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../../index.html">Home</a>
+          <a href="../index.html">All games</a>
+          <a href="../../../index.html">Back to Gamer</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/gamer/web-games/balloon$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { mount } from '../engine.js';
+      import { initCookieBanner } from '../javascript.js';
+      import def from './game.js';
+
+      initCookieBanner();
+
+      const canvas = document.getElementById('game');
+      const controller = mount(canvas, def);
+
+      const hudScore = document.getElementById('hudScore');
+      const hudBest = document.getElementById('hudBest');
+      const hudState = document.getElementById('hudState');
+      const btnSound = document.getElementById('btnSound');
+
+      const STATE_LABELS = {
+        title: 'Ready',
+        playing: 'Playing',
+        paused: 'Paused',
+        over: 'Game over',
+        won: 'Cleared'
+      };
+
+      canvas.addEventListener('arcade:hud', (ev) => {
+        const d = ev.detail;
+        hudScore.textContent = d.score;
+        hudBest.textContent = d.best;
+        hudState.textContent = STATE_LABELS[d.state] || d.state;
+        hudState.className = d.isRecord ? 'record' : '';
+        btnSound.textContent = d.muted ? 'Unmute' : 'Sound';
+      });
+
+      document.getElementById('btnRestart').addEventListener('click', () => {
+        controller.restart();
+        canvas.focus();
+      });
+      document.getElementById('btnPause').addEventListener('click', () => controller.togglePause());
+      document.getElementById('btnHelp').addEventListener('click', () => controller.toggleHelp());
+      btnSound.addEventListener('click', () => controller.toggleMute());
+
+      /* ---- full screen ----
+       * Only the stage is sent fullscreen, so the page chrome disappears and
+       * the canvas is alone on the screen. The aspect ratio is handed to CSS so
+       * the canvas can grow to fill the screen without being stretched.
+       *
+       * Vendor prefixes cover Safari (webkit), and older Firefox/Edge/IE
+       * (moz/ms) in addition to the unprefixed standard — iOS Safari has no
+       * element fullscreen at all under any prefix, which is the "Not
+       * supported here" branch below. On a phone, orientation is locked to
+       * match this game's own aspect ratio so a landscape game doesn't end up
+       * tiny and letterboxed just because the phone was held upright; this is
+       * best-effort and silently no-ops on platforms without it (notably iOS). */
+      const stage = document.querySelector('.stage');
+      const btnFull = document.getElementById('btnFull');
+      stage.style.setProperty('--game-ar', def.width / def.height);
+
+      const fullscreenElement = () =>
+        document.fullscreenElement || document.webkitFullscreenElement ||
+        document.mozFullScreenElement || document.msFullscreenElement || null;
+
+      function lockOrientation() {
+        try {
+          var type = def.width >= def.height ? 'landscape' : 'portrait';
+          var p = screen.orientation && screen.orientation.lock && screen.orientation.lock(type);
+          if (p && p.catch) p.catch(() => {});
+        } catch (err) { /* orientation lock not supported here (notably iOS) */ }
+      }
+      function unlockOrientation() {
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }
+        catch (err) { /* nothing to unlock */ }
+      }
+
+      function toggleFullscreen() {
+        if (fullscreenElement()) {
+          const exit = document.exitFullscreen || document.webkitExitFullscreen ||
+            document.mozCancelFullScreen || document.msExitFullscreen;
+          if (exit) exit.call(document);
+          return;
+        }
+        const request = stage.requestFullscreen || stage.webkitRequestFullscreen ||
+          stage.mozRequestFullScreen || stage.msRequestFullscreen;
+        if (!request) {
+          // iPhone Safari has no element fullscreen at all. Say so rather than
+          // leaving a button that silently does nothing.
+          btnFull.textContent = 'Not supported here';
+          btnFull.disabled = true;
+          return;
+        }
+        // Returns a promise that rejects if the browser refuses (for example
+        // when the click is not treated as a user gesture).
+        Promise.resolve(request.call(stage)).then(lockOrientation).catch(() => {
+          btnFull.textContent = 'Blocked by browser';
+        });
+      }
+
+      function syncFullscreenButton() {
+        const on = !!fullscreenElement();
+        btnFull.textContent = on ? 'Exit full screen' : 'Fullscreen';
+        btnFull.classList.toggle('on', on);
+        if (!on) unlockOrientation();
+      }
+
+      btnFull.addEventListener('click', toggleFullscreen);
+      // .stage covers everything outside it once fullscreened, including the
+      // side panel this button sits in -- this second control lives inside
+      // .stage itself (see styling.css .stage-exit-fs) so there's still a
+      // visible, tappable way out, which matters most on touch devices that
+      // have no Esc key at all.
+      const btnExitFullStage = document.getElementById('btnExitFullStage');
+      if (btnExitFullStage) btnExitFullStage.addEventListener('click', toggleFullscreen);
+      document.addEventListener('fullscreenchange', syncFullscreenButton);
+      document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+      document.addEventListener('mozfullscreenchange', syncFullscreenButton);
+      document.addEventListener('MSFullscreenChange', syncFullscreenButton);
+
+      // F is handled here rather than in the engine: entering fullscreen has to
+      // happen inside a user gesture, and this keydown is one.
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'f' && ev.key !== 'F') return;
+        if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+        ev.preventDefault();
+        toggleFullscreen();
+      });
+    </script>
+  </body>
+</html>

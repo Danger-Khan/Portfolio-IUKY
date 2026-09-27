@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Games — Arcade</title>
+    <meta name="description" content="Six small browser games built on one shared engine — no libraries, no downloads, no server. Balloon shooting, a lane racer, Flappy Bird, an asteroid arena, tower defence, and a conveyor sorting puzzle." />
+    <link rel="stylesheet" href="styling.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="logo">Web <span>Games</span></div>
+        <nav class="nav-links">
+          <a href="../../index.html">Gamer</a>
+          <a href="../../../../index.html">Portfolio</a>
+          <a href="#how">How it works</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="badge">Playable · Offline · No dependencies</div>
+          <h1>Six small games, one engine, zero downloads.</h1>
+          <p class="lead">
+            Every game here runs on the same <code>engine.js</code> — a fixed-timestep
+            loop, input handling, a hi-dpi canvas, and the start/pause/game-over shell.
+            There is no game framework, no sprite sheet and no audio file anywhere in
+            this folder: the artwork is drawn with canvas paths at runtime and the sound
+            is synthesised with WebAudio oscillators. Open any of these from a USB stick
+            on a machine with no internet and they still work.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>Pick a game</h2>
+            <p>
+              Each one has a full instruction manual on its own page. Keyboard and touch
+              both work. Best scores are kept in this browser only.
+            </p>
+          </div>
+          <div class="game-grid" id="gameGrid"></div>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <div class="container">
+          <div class="section-head">
+            <h2>What's in this folder</h2>
+            <p>The arcade is six games plus the shared plumbing they all sit on.</p>
+          </div>
+
+          <div class="manual-grid">
+            <div class="manual-card">
+              <h4>engine.js</h4>
+              <p>
+                The shared runtime. Fixed 120&nbsp;Hz physics stepping with an accumulator,
+                so a game runs identically on a 60&nbsp;Hz and a 144&nbsp;Hz screen instead
+                of speeding up. Also input, procedural audio, particles, collision helpers
+                and the overlay shell.
+              </p>
+            </div>
+            <div class="manual-card">
+              <h4>javascript.js</h4>
+              <p>
+                The hub: the game catalogue, the cover art (each one a canvas drawing
+                function, not an image file), best-score lookup, and the shared page
+                chrome.
+              </p>
+            </div>
+            <div class="manual-card">
+              <h4>styling.css</h4>
+              <p>
+                One stylesheet for the hub and all six game pages, matching the Gamer
+                portfolio's palette.
+              </p>
+            </div>
+            <div class="manual-card">
+              <h4>database_use.sql</h4>
+              <p>
+                The score-table schema. Scores live in <code>localStorage</code> by
+                default; this is the shape they take if you ever run the optional
+                backend.
+              </p>
+            </div>
+            <div class="manual-card">
+              <h4>backupengine.php</h4>
+              <p>
+                An optional score-sync endpoint for anyone self-hosting this on a PHP
+                server. It is off unless you switch it on below, and the games work
+                exactly the same when it is missing — which it is on static hosting.
+              </p>
+            </div>
+            <div class="manual-card">
+              <h4>One folder per game</h4>
+              <p>
+                Each holds its <code>index.html</code> (the shell and the manual) and its
+                <code>game.js</code> (just that game's rules). Nothing else is needed.
+              </p>
+            </div>
+          </div>
+
+          <p class="note">
+            <strong>On assets:</strong> nothing here needs downloading. Every visual is
+            generated in code and every sound is synthesised, so there are no missing
+            textures to hunt down and no licences to chase. That was a deliberate
+            constraint, not a shortcut — it is what makes the folder genuinely portable.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top:0;">
+        <div class="container">
+          <div class="section-head">
+            <h2>Settings</h2>
+            <p>All of this is stored in your browser and nowhere else.</p>
+          </div>
+          <div class="manual-card" style="max-width:640px;">
+            <div class="hud-row">
+              <span>Sound</span>
+              <span><button class="btn" id="muteBtn">—</button></span>
+            </div>
+            <div class="hud-row">
+              <span>Optional server backup of best scores</span>
+              <span><button class="btn" id="cloudBtn">—</button></span>
+            </div>
+            <div class="hud-row">
+              <span>Best scores saved on this device</span>
+              <span id="scoreCount">0</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn" id="resetBtn">Reset all best scores</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-nav">
+          <a href="../../../../index.html">Home</a>
+          <a href="../../index.html">Back to Gamer</a>
+        </div>
+        <div class="footer-inner">
+          <span>imaad@portfolio:~/gamer/web-games$</span>
+          <span>github.com/yameenimaad</span>
+        </div>
+      </div>
+    </footer>
+
+    <div class="cookie-banner" id="cookieBanner">
+      <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
+      <div class="cookie-actions">
+        <button type="button" id="cookieDecline">Decline</button>
+        <button type="button" id="cookieAccept">Accept</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { renderCatalogue, initCookieBanner, resetAllScores, GAMES } from './javascript.js';
+
+      renderCatalogue(document.getElementById('gameGrid'));
+      initCookieBanner();
+
+      const muteBtn = document.getElementById('muteBtn');
+      const cloudBtn = document.getElementById('cloudBtn');
+      const scoreCount = document.getElementById('scoreCount');
+      const resetBtn = document.getElementById('resetBtn');
+
+      function refresh() {
+        muteBtn.textContent = localStorage.getItem('arcade_muted') === '1' ? 'Muted' : 'On';
+        cloudBtn.textContent = localStorage.getItem('arcade_cloud_backup') === '1' ? 'Enabled' : 'Off';
+        scoreCount.textContent = GAMES.filter(
+          (g) => Number(localStorage.getItem(`arcade_best_${g.id}`) || 0) > 0
+        ).length + ' / ' + GAMES.length;
+      }
+
+      muteBtn.addEventListener('click', () => {
+        const muted = localStorage.getItem('arcade_muted') === '1';
+        localStorage.setItem('arcade_muted', muted ? '0' : '1');
+        refresh();
+      });
+
+      cloudBtn.addEventListener('click', () => {
+        const on = localStorage.getItem('arcade_cloud_backup') === '1';
+        localStorage.setItem('arcade_cloud_backup', on ? '0' : '1');
+        refresh();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        if (!confirm('Clear every saved best score on this device?')) return;
+        resetAllScores();
+        renderCatalogue(document.getElementById('gameGrid'));
+        refresh();
+      });
+
+      refresh();
+    </script>
+  </body>
+</html>
