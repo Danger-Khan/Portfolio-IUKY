@@ -12,7 +12,8 @@
 
   var FORMAT_LABELS = {
     resume: 'Resume', cv: 'CV', cover: 'Cover Letter',
-    ats: 'ATS Resume', europass: 'Europass', japanese: 'Japanese Resume'
+    ats: 'ATS Resume', europass: 'Europass', japanese: 'Japanese Resume',
+    spanish: 'Spanish Resume', french: 'French Resume', russian: 'Russian Resume', german: 'German Resume'
   };
 
   function selectFormat(format) {
@@ -50,6 +51,60 @@
   }
 
   function el(id) { return document.getElementById(id); }
+
+  // Small EN-><lang> word glossary lookup shared by the Japanese, Spanish,
+  // French, Russian and German formats (see translation/<code>-dictionary.js).
+  // Annotates recognized whole words with their equivalent in parentheses
+  // rather than replacing them — this is a plain dictionary lookup, not
+  // machine translation, so proper nouns (names, companies, schools) are
+  // correctly left untouched.
+  var dictKeysCache = {};
+  function translateWords(text, dictWindowKey) {
+    var dict = window[dictWindowKey];
+    if (!dict || !text) return text;
+    if (!dictKeysCache[dictWindowKey]) {
+      dictKeysCache[dictWindowKey] = Object.keys(dict).sort(function (a, b) { return b.length - a.length; });
+    }
+    var keys = dictKeysCache[dictWindowKey];
+    var result = String(text);
+    keys.forEach(function (word) {
+      var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var re = new RegExp('\\b(' + escaped + ')\\b', 'gi');
+      result = result.replace(re, function (match) { return match + ' (' + dict[word] + ')'; });
+    });
+    return result;
+  }
+
+  // One label set per translated-resume format — section headers in the
+  // target language, plus the footer note explaining the glossary. The
+  // layout itself (renderTranslated below) is shared: only these labels and
+  // the dictionary differ between Spanish/French/Russian/German.
+  var TRANSLATION_LABELS = {
+    spanish: {
+      dict: 'ES_DICTIONARY', code: 'ES',
+      summary: 'Resumen', experience: 'Experiencia', education: 'Educación',
+      skills: 'Habilidades', extra: 'Certificaciones, Publicaciones y Proyectos',
+      note: 'Las palabras entre paréntesis provienen de un glosario EN&rarr;ES de {n} términos (<code style="background:#f0f0f0; padding:0 4px;">translation/es-dictionary.json</code>) — una búsqueda de palabras simple, no traducción automática.'
+    },
+    french: {
+      dict: 'FR_DICTIONARY', code: 'FR',
+      summary: 'Profil', experience: 'Expérience professionnelle', education: 'Formation',
+      skills: 'Compétences', extra: 'Certifications, publications et projets',
+      note: 'Les mots entre parenthèses proviennent d\'un glossaire EN&rarr;FR de {n} termes (<code style="background:#f0f0f0; padding:0 4px;">translation/fr-dictionary.json</code>) — une simple recherche de mots, pas une traduction automatique.'
+    },
+    russian: {
+      dict: 'RU_DICTIONARY', code: 'RU',
+      summary: 'О себе', experience: 'Опыт работы', education: 'Образование',
+      skills: 'Навыки', extra: 'Сертификаты, публикации и проекты',
+      note: 'Слова в скобках взяты из EN&rarr;RU словаря ({n} терминов) (<code style="background:#f0f0f0; padding:0 4px;">translation/ru-dictionary.json</code>) — это простой поиск по словарю, а не машинный перевод.'
+    },
+    german: {
+      dict: 'DE_DICTIONARY', code: 'DE',
+      summary: 'Profil', experience: 'Berufserfahrung', education: 'Ausbildung',
+      skills: 'Fähigkeiten', extra: 'Zertifikate, Veröffentlichungen und Projekte',
+      note: 'Wörter in Klammern stammen aus einem EN&rarr;DE-Glossar ({n} Begriffe) (<code style="background:#f0f0f0; padding:0 4px;">translation/de-dictionary.json</code>) — eine einfache Wortsuche, keine maschinelle Übersetzung.'
+    }
+  };
 
   var simpleFieldIds = ['fName', 'fTitle', 'fEmail', 'fPhone', 'fLocation', 'fLinks', 'fSummary', 'fSkills', 'fExtra', 'fCoCompany', 'fCoRole', 'fCoHiring', 'fCoOpen', 'fCoBody', 'fCoClose', 'fNationality', 'fDob', 'fFurigana', 'fLanguages', 'fDrivingLicence', 'fJpRequest'];
   var simpleFieldMap = {
@@ -218,8 +273,12 @@
   function renderAts(targetId) {
     var html = '';
     html += '<h2 class="doc-name">' + (escapeHtml(state.name) || 'Your Name') + '</h2>';
-    var contactBits = [state.email, state.phone, state.location, state.links].filter(Boolean).map(escapeHtml).join(' | ');
-    html += '<div class="doc-contact">' + (contactBits || '<span class="empty-hint">Add contact details on the left</span>') + '</div>';
+    var contactLines = [];
+    if (state.email) contactLines.push('<p><strong>Email Address:</strong> ' + escapeHtml(state.email) + '</p>');
+    if (state.phone) contactLines.push('<p><strong>Phone Number:</strong> ' + escapeHtml(state.phone) + '</p>');
+    if (state.location) contactLines.push('<p><strong>Address:</strong> ' + escapeHtml(state.location) + '</p>');
+    if (state.links) contactLines.push('<p><strong>LinkedIn / Portfolio / GitHub:</strong> ' + escapeHtml(state.links) + '</p>');
+    html += '<div class="doc-contact">' + (contactLines.length ? contactLines.join('') : '<span class="empty-hint">Add contact details on the left</span>') + '</div>';
 
     if (state.summary) html += '<div class="doc-h">Summary</div><p>' + escapeHtml(state.summary) + '</p>';
     if (state.skills) html += '<div class="doc-h">Skills</div><p>' + escapeHtml(state.skills) + '</p>';
@@ -326,14 +385,14 @@
     var history = [];
     state.education.filter(function (e) { return e.degree || e.school; }).forEach(function (e) {
       var r = splitDateRange(e.dates);
-      var label = escapeHtml(e.school || e.degree);
+      var label = escapeHtml(translateWords(e.school || e.degree, 'JA_DICTIONARY'));
       if (r.start) history.push({ date: r.start, text: label + ' 入学 (Enrolled)' });
       if (r.end) history.push({ date: r.end, text: label + ' 卒業 (Graduated)' });
       else if (r.ongoing) history.push({ date: '—', text: label + ' 在学中 (Currently enrolled)' });
     });
     state.experience.filter(function (e) { return e.role || e.company; }).forEach(function (e) {
       var r = splitDateRange(e.dates);
-      var label = escapeHtml(e.company || e.role);
+      var label = escapeHtml(translateWords(e.company || e.role, 'JA_DICTIONARY'));
       if (r.start) history.push({ date: r.start, text: label + ' 入社 (Joined)' });
       if (r.end) history.push({ date: r.end, text: label + ' 退社 (Left)' });
       else if (r.ongoing) history.push({ date: '—', text: label + ' 現在に至る (To present)' });
@@ -346,15 +405,78 @@
       });
     }
 
-    if (state.extra) html += '<div class="doc-h">免許・資格 (Licenses &amp; Qualifications)</div>' + bulletListPlain(state.extra);
+    if (state.extra) html += '<div class="doc-h">免許・資格 (Licenses &amp; Qualifications)</div>' + bulletListPlain(translateWords(state.extra, 'JA_DICTIONARY'));
 
     var request = state.jpRequest || state.summary;
     html += '<div class="doc-h">本人希望記入欄 (Personal Requests)</div>';
-    html += request ? '<p>' + escapeHtml(request) + '</p>' : '<p class="empty-hint">None specified.</p>';
+    html += request ? '<p>' + escapeHtml(translateWords(request, 'JA_DICTIONARY')) + '</p>' : '<p class="empty-hint">None specified.</p>';
 
     if (!state.name && !history.length) {
       html += '<p class="empty-hint">Start typing on the left — this updates live.</p>';
     }
+
+    var dictSize = window.JA_DICTIONARY ? Object.keys(window.JA_DICTIONARY).length : 0;
+    html += '<p style="font-size:0.68rem; color:#888; font-style:italic; margin-top:18px; padding-top:10px; border-top:1px dashed #ccc;">' +
+      'Words in parentheses are from a ' + dictSize + '-term EN&rarr;JA glossary ' +
+      '(<code style="background:#f0f0f0; padding:0 4px;">translation/ja-dictionary.json</code>) — a plain word lookup, not machine translation. Names and other free text are shown exactly as typed.</p>';
+
+    el(targetId).innerHTML = html;
+  }
+
+  // Spanish / French / Russian / German — same resume shape as
+  // renderResumeOrCv, but with section headers in the target language and
+  // recognized vocabulary annotated via the matching glossary. Applied to
+  // this layout rather than the Japanese format's own history-table
+  // structure, since these four don't have an equivalent regional form.
+  function renderTranslated(targetId, langKey) {
+    var cfg = TRANSLATION_LABELS[langKey];
+    var dict = window[cfg.dict];
+    var html = '';
+    html += '<h2 class="doc-name">' + (escapeHtml(state.name) || 'Your Name') + '</h2>';
+    if (state.title) html += '<div class="doc-contact"><strong>' + escapeHtml(state.title) + '</strong></div>';
+    var contactBits = [state.email, state.phone, state.location, state.links].filter(Boolean).map(escapeHtml).join('  •  ');
+    html += '<div class="doc-contact">' + (contactBits || '<span class="empty-hint">Add contact details on the left</span>') + '</div>';
+
+    if (state.summary) {
+      html += '<div class="doc-h">' + cfg.summary + '</div><p>' + escapeHtml(translateWords(state.summary, cfg.dict)) + '</p>';
+    }
+
+    var expEntries = state.experience.filter(function (e) { return e.role || e.company; });
+    if (expEntries.length) {
+      html += '<div class="doc-h">' + cfg.experience + '</div>';
+      expEntries.forEach(function (e) {
+        html += '<div class="doc-entry"><div class="doc-entry-title">' + escapeHtml(translateWords(e.role || 'Role', cfg.dict)) + (e.company ? ' — ' + escapeHtml(translateWords(e.company, cfg.dict)) : '') + '</div>';
+        if (e.dates) html += '<div class="doc-entry-meta">' + escapeHtml(e.dates) + '</div>';
+        html += bulletList(translateWords(e.bullets, cfg.dict)) + '</div>';
+      });
+    }
+
+    var eduEntries = state.education.filter(function (e) { return e.degree || e.school; });
+    if (eduEntries.length) {
+      html += '<div class="doc-h">' + cfg.education + '</div>';
+      eduEntries.forEach(function (e) {
+        html += '<div class="doc-entry"><div class="doc-entry-title">' + escapeHtml(translateWords(e.degree || 'Degree', cfg.dict)) + (e.school ? ' — ' + escapeHtml(translateWords(e.school, cfg.dict)) : '') + '</div>';
+        html += e.dates ? '<div class="doc-entry-meta">' + escapeHtml(e.dates) + '</div>' : '';
+        html += '</div>';
+      });
+    }
+
+    if (state.skills) {
+      html += '<div class="doc-h">' + cfg.skills + '</div><p>' + escapeHtml(translateWords(state.skills, cfg.dict)) + '</p>';
+    }
+
+    if (state.extra) {
+      html += '<div class="doc-h">' + cfg.extra + '</div>' + bulletList(translateWords(state.extra, cfg.dict));
+    }
+
+    if (!state.name && !state.summary && !expEntries.length && !eduEntries.length) {
+      html += '<p class="empty-hint">Start typing on the left — this updates live.</p>';
+    }
+
+    var dictSize = dict ? Object.keys(dict).length : 0;
+    html += '<p style="font-size:0.68rem; color:#888; font-style:italic; margin-top:18px; padding-top:10px; border-top:1px dashed #ccc;">' +
+      cfg.note.replace('{n}', dictSize) + '</p>';
+
     el(targetId).innerHTML = html;
   }
 
@@ -365,6 +487,10 @@
     renderAts('previewAts');
     renderEuropass('previewEuropass');
     renderJapanese('previewJapanese');
+    renderTranslated('previewSpanish', 'spanish');
+    renderTranslated('previewFrench', 'french');
+    renderTranslated('previewRussian', 'russian');
+    renderTranslated('previewGerman', 'german');
   }
 
   function collectSimpleFields() {
@@ -512,7 +638,8 @@
 
   var previewIdByDoc = {
     resume: 'previewResume', cv: 'previewCv', cover: 'previewCover',
-    ats: 'previewAts', europass: 'previewEuropass', japanese: 'previewJapanese'
+    ats: 'previewAts', europass: 'previewEuropass', japanese: 'previewJapanese',
+    spanish: 'previewSpanish', french: 'previewFrench', russian: 'previewRussian', german: 'previewGerman'
   };
   function downloadTxt(docType) {
     var text = el(previewIdByDoc[docType] || 'previewResume').innerText;

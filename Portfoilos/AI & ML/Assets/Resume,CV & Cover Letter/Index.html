@@ -104,6 +104,11 @@
       .format-opt:hover { border-color: var(--lang-color); color: var(--text); }
       .format-opt.is-active { background: var(--lang-color); color: #041220; border-color: transparent; }
 
+      /* Only the format picked in the format-picker shows on screen; print rules below are unaffected. */
+      @media screen {
+        .preview-panel { display: none; }
+        .preview-panel.is-selected { display: block; }
+      }
       .preview-panel.is-selected { border-color: var(--lang-color); box-shadow: 0 0 0 2px rgba(227,179,65,0.25); }
 
       .example-picker { margin-bottom: 22px; padding-top: 16px; border-top: 1px dashed var(--line); }
@@ -118,6 +123,70 @@
 
       .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
       @media (max-width: 980px) { .builder-grid { grid-template-columns: 1fr; } }
+
+      .fullscreen-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+      #btnFullscreen {
+        font-family: inherit; font-size: 0.76rem; font-weight: 700; color: var(--lang-color);
+        background: transparent; border: 1px solid var(--lang-color); border-radius: 999px;
+        padding: 8px 16px; cursor: pointer; flex-shrink: 0;
+      }
+      #btnFullscreen:hover { background: rgba(227,179,65,0.08); }
+      #btnFullscreen.on { background: var(--lang-color); color: #041220; }
+
+      /* ---------- full-screen editor ----------
+         Only .builder-stage (the form plus every preview panel) goes
+         fullscreen, so the page chrome disappears and there's nothing else
+         to look at while editing. Inside it, the preview loses its height
+         cap since there's now a full screen of room, and #previewWrap's
+         sticky offset is recalculated for a page with no topbar above it.
+
+         Each vendor-prefixed selector is its own rule on purpose: a browser
+         that doesn't understand one of them would throw away the whole rule
+         if they were combined into one selector list. */
+      /* The Fullscreen button lives in .fullscreen-row, a sibling of
+         .builder-stage -- once .builder-stage is actually fullscreened, that
+         row (and everything else outside .builder-stage) is covered and
+         unreachable, the same way any page content behind a fullscreen
+         element is. Without its own way out, a touch user with no Esc key
+         would be stuck. This overlay is the way out: hidden normally, shown
+         only inside :fullscreen, positioned inside .builder-stage itself so
+         it stays on top and clickable. */
+      .builder-stage { position: relative; }
+      .builder-exit-fs {
+        display: none; position: fixed; top: 16px; right: 16px; z-index: 20;
+        width: 38px; height: 38px; align-items: center; justify-content: center;
+        border-radius: 50%; background: rgba(13, 17, 23, 0.85); border: 1px solid var(--line);
+        color: var(--text); font-size: 1.1rem; line-height: 1; cursor: pointer;
+      }
+      .builder-exit-fs:hover { background: rgba(13, 17, 23, 0.97); border-color: var(--lang-color); color: var(--lang-color); }
+      /* Separate rules again, same reason as everywhere else in this file: a
+         combined selector list is thrown out whole the moment one browser
+         doesn't recognize a selector in it, silently killing the
+         :fullscreen case too. */
+      .builder-stage:fullscreen .builder-exit-fs { display: flex; }
+      .builder-stage:-webkit-full-screen .builder-exit-fs { display: flex; }
+      .builder-stage:-moz-full-screen .builder-exit-fs { display: flex; }
+      .builder-stage:-ms-fullscreen .builder-exit-fs { display: flex; }
+
+      .builder-stage:fullscreen { background: var(--bg); padding: 24px; overflow-y: auto; display: block; width: 100vw; height: 100vh; }
+      .builder-stage:fullscreen .builder-grid { max-width: 1400px; margin: 0 auto; }
+      .builder-stage:fullscreen .preview-doc { max-height: none; }
+      .builder-stage:fullscreen #previewWrap { top: 12px; }
+
+      .builder-stage:-webkit-full-screen { background: var(--bg); padding: 24px; overflow-y: auto; display: block; width: 100vw; height: 100vh; }
+      .builder-stage:-webkit-full-screen .builder-grid { max-width: 1400px; margin: 0 auto; }
+      .builder-stage:-webkit-full-screen .preview-doc { max-height: none; }
+      .builder-stage:-webkit-full-screen #previewWrap { top: 12px; }
+
+      .builder-stage:-moz-full-screen { background: var(--bg); padding: 24px; overflow-y: auto; display: block; width: 100vw; height: 100vh; }
+      .builder-stage:-moz-full-screen .builder-grid { max-width: 1400px; margin: 0 auto; }
+      .builder-stage:-moz-full-screen .preview-doc { max-height: none; }
+      .builder-stage:-moz-full-screen #previewWrap { top: 12px; }
+
+      .builder-stage:-ms-fullscreen { background: var(--bg); padding: 24px; overflow-y: auto; display: block; width: 100vw; height: 100vh; }
+      .builder-stage:-ms-fullscreen .builder-grid { max-width: 1400px; margin: 0 auto; }
+      .builder-stage:-ms-fullscreen .preview-doc { max-height: none; }
+      .builder-stage:-ms-fullscreen #previewWrap { top: 12px; }
 
       .field { margin-bottom: 12px; }
       .field label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 5px; }
@@ -188,6 +257,7 @@
       }
       .preview-doc h2.doc-name { font-family: 'Georgia', serif; font-size: 1.4rem; margin: 0 0 2px; color: #111; }
       .preview-doc .doc-contact { font-size: 0.75rem; color: #444; margin-bottom: 16px; }
+      .preview-doc .doc-contact p { margin: 0 0 3px; }
       .preview-doc .doc-h { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #111; border-bottom: 1.5px solid #111; padding-bottom: 3px; margin: 18px 0 8px; }
       .preview-doc .doc-h:first-of-type { margin-top: 0; }
       .preview-doc .doc-entry { margin-bottom: 10px; }
@@ -238,7 +308,11 @@
         body[data-print-only="cover"] .preview-panel[data-format="cover"],
         body[data-print-only="ats"] .preview-panel[data-format="ats"],
         body[data-print-only="europass"] .preview-panel[data-format="europass"],
-        body[data-print-only="japanese"] .preview-panel[data-format="japanese"] {
+        body[data-print-only="japanese"] .preview-panel[data-format="japanese"],
+        body[data-print-only="spanish"] .preview-panel[data-format="spanish"],
+        body[data-print-only="french"] .preview-panel[data-format="french"],
+        body[data-print-only="russian"] .preview-panel[data-format="russian"],
+        body[data-print-only="german"] .preview-panel[data-format="german"] {
           display: block;
         }
       }
@@ -267,7 +341,7 @@
             of it straight to PDF, or export the draft as JSON and hand it to <code>Printer.py</code>,
             a command-line companion in this same folder that formats the identical data outside the browser.
           </p>
-          <a class="back-link" href="../../index.html#tools">Back to AI / ML</a>
+          <a class="back-link" href="../../index.html#resumelab">Back to AI / ML</a>
         </div>
       </section>
 
@@ -282,9 +356,20 @@
               <button type="button" class="format-opt" data-format="ats">ATS Resume</button>
               <button type="button" class="format-opt" data-format="europass">Europass</button>
               <button type="button" class="format-opt" data-format="japanese">Japanese (履歴書)</button>
+              <button type="button" class="format-opt" data-format="spanish">Spanish</button>
+              <button type="button" class="format-opt" data-format="french">French</button>
+              <button type="button" class="format-opt" data-format="russian">Russian</button>
+              <button type="button" class="format-opt" data-format="german">German</button>
             </div>
           </div>
 
+          <div class="fullscreen-row">
+            <span class="example-note" style="margin:0;">Full-screen mode gives the editor and the selected preview the whole screen while you type.</span>
+            <button type="button" class="mini-btn" id="btnFullscreen" style="padding:8px 16px; font-size:0.76rem;">⛶ Full-screen editor</button>
+          </div>
+
+          <div class="builder-stage" id="builderStage">
+          <button type="button" class="builder-exit-fs" id="btnExitFullStage" aria-label="Exit full screen" title="Exit full screen">✕</button>
           <div class="builder-grid">
             <div class="win">
               <div class="win-bar">
@@ -378,14 +463,23 @@
                 <p class="cli-note">
                   Prefer the terminal? Export the draft above, then run
                   <code>python Printer.py your_draft.json --type all</code>
-                  from this folder to get all six formats as plain text — add
-                  <code>--type ats</code>, <code>europass</code>, or <code>japanese</code> for just one.
+                  from this folder to get all ten formats as plain text — add
+                  <code>--type ats</code>, <code>europass</code>, <code>japanese</code>,
+                  <code>spanish</code>, <code>french</code>, <code>russian</code>, or
+                  <code>german</code> for just one.
                 </p>
                 <p class="cli-note">
                   Or skip the form entirely: fill in <code>template.txt</code> by hand (any text
                   editor), then run <code>python Extractor.py template.txt --print</code> — it
                   produces the same <code>draft.json</code> this page exports, which you can also
                   load back in with "Import Draft" above.
+                </p>
+                <p class="cli-note">
+                  The Japanese format annotates recognized words with a real EN→JA glossary —
+                  see <code>translation/ja-dictionary.json</code> (73 terms, also read directly
+                  by <code>Printer.py</code>). It's a plain word lookup, not machine translation.
+                  The Spanish, French, Russian and German formats work the same way, each from
+                  its own 73-term glossary in <code>translation/</code>.
                 </p>
               </div>
             </div>
@@ -433,7 +527,36 @@
                 </div>
                 <div id="previewJapanese" class="preview-doc"></div>
               </div>
+              <div class="preview-panel" data-format="spanish">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Spanish Resume</span>
+                  <button type="button" class="mini-btn" data-download="spanish">Download .txt</button>
+                </div>
+                <div id="previewSpanish" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel" data-format="french">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">French Resume</span>
+                  <button type="button" class="mini-btn" data-download="french">Download .txt</button>
+                </div>
+                <div id="previewFrench" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel" data-format="russian">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">Russian Resume</span>
+                  <button type="button" class="mini-btn" data-download="russian">Download .txt</button>
+                </div>
+                <div id="previewRussian" class="preview-doc"></div>
+              </div>
+              <div class="preview-panel" data-format="german">
+                <div class="preview-panel-bar">
+                  <span class="preview-panel-title">German Resume</span>
+                  <button type="button" class="mini-btn" data-download="german">Download .txt</button>
+                </div>
+                <div id="previewGerman" class="preview-doc"></div>
+              </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -443,7 +566,7 @@
       <div class="container">
         <div class="footer-nav">
           <a href="../../../../index.html">Home</a>
-          <a href="../../index.html#tools">Back to AI / ML</a>
+          <a href="../../index.html#resumelab">Back to AI / ML</a>
         </div>
         <div class="footer-inner">
           <span>imaad@portfolio:~/ai-ml/resume-builder$ <span class="cursor"></span></span>
@@ -483,8 +606,71 @@
           banner.style.display = 'none';
         });
       })();
+
+      /* ---- full-screen editor ----
+       * Only #builderStage (the form and every preview panel) goes
+       * fullscreen — the topbar, hero and footer disappear so there's
+       * nothing else on screen while editing. No F-key shortcut here: unlike
+       * the arcade games, this page is full of text inputs, and a global "f"
+       * handler would fire every time someone typed the letter into a field.
+       * Vendor prefixes cover Safari (webkit) and older Firefox/Edge/IE
+       * (moz/ms) in addition to the unprefixed standard. */
+      (function initFullscreenEditor() {
+        var stage = document.getElementById('builderStage');
+        var btn = document.getElementById('btnFullscreen');
+        if (!stage || !btn) return;
+
+        var fullscreenElement = function () {
+          return document.fullscreenElement || document.webkitFullscreenElement ||
+            document.mozFullScreenElement || document.msFullscreenElement || null;
+        };
+
+        function toggleFullscreen() {
+          if (fullscreenElement()) {
+            var exit = document.exitFullscreen || document.webkitExitFullscreen ||
+              document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) exit.call(document);
+            return;
+          }
+          var request = stage.requestFullscreen || stage.webkitRequestFullscreen ||
+            stage.mozRequestFullScreen || stage.msRequestFullscreen;
+          if (!request) {
+            btn.textContent = 'Not supported here';
+            btn.disabled = true;
+            return;
+          }
+          Promise.resolve(request.call(stage)).catch(function () {
+            btn.textContent = 'Blocked by browser';
+          });
+        }
+
+        function syncButton() {
+          var on = !!fullscreenElement();
+          btn.textContent = on ? '⛶ Exit full-screen' : '⛶ Full-screen editor';
+          btn.classList.toggle('on', on);
+        }
+
+        btn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', syncButton);
+        document.addEventListener('webkitfullscreenchange', syncButton);
+        document.addEventListener('mozfullscreenchange', syncButton);
+        document.addEventListener('MSFullscreenChange', syncButton);
+
+        // #builderStage covers everything outside it once fullscreened,
+        // including the row this button sits in -- this second control lives
+        // inside #builderStage itself (see .builder-exit-fs above) so there's
+        // still a visible, tappable way out, which matters most on touch
+        // devices that have no Esc key at all.
+        var exitBtn = document.getElementById('btnExitFullStage');
+        if (exitBtn) exitBtn.addEventListener('click', toggleFullscreen);
+      })();
     </script>
     <script src="Examples.js"></script>
+    <script src="translation/ja-dictionary.js"></script>
+    <script src="translation/es-dictionary.js"></script>
+    <script src="translation/fr-dictionary.js"></script>
+    <script src="translation/ru-dictionary.js"></script>
+    <script src="translation/de-dictionary.js"></script>
     <script src="Builder.js"></script>
   </body>
 </html>

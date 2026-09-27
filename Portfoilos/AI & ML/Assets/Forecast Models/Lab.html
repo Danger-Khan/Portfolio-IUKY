@@ -90,6 +90,27 @@
 
       .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
       .offline-note::before { content: '●'; }
+      .hint { font-size: 0.78rem; color: var(--muted); }
+      .table-scroll { overflow-x: auto; }
+      table.test-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 460px; }
+      table.test-table th, table.test-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+      table.test-table th { color: var(--muted); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.06em; }
+      table.test-table td.best { color: var(--good); font-weight: 700; }
+
+      .subtools { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+      .subtool {
+        display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .subtool:hover { border-color: var(--secondary); transform: translateY(-2px); }
+      .subtool h3 { margin: 0; font-size: 0.95rem; color: var(--secondary); }
+      .subtool p { margin: 0; font-size: 0.82rem; line-height: 1.65; color: var(--muted); }
+      .subtool .path { font-size: 0.7rem; color: var(--muted); opacity: 0.75; font-family: 'Consolas', monospace; }
+      .subtool .go { font-size: 0.78rem; font-weight: 700; color: var(--text); margin-top: auto; }
+      .section-sub { color: var(--muted); font-size: 0.88rem; line-height: 1.7; max-width: 760px; margin: 0 0 22px; }
+      .section-sub code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+      h2.sec { margin: 0 0 10px; font-size: 1.3rem; }
 
       /* Command-line pipeline section */
       .pipe-section { border-top: 1px solid var(--line); padding-top: 46px; }
@@ -339,6 +360,77 @@ Forecast — next 5 point(s):
 
           <div class="pipe-cta-row">
             <a class="btn btn-secondary" href="database.sql">View database.sql</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="selftest" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <h2>Do these models actually work? Let's check.</h2>
+            <p>
+              Not a demo — this generates synthetic data from a relationship that's known
+              exactly (y = 3 + 2x + noise), splits it 80/20 into train and test, fits every
+              model above on the training split, and scores each one on points it has never
+              seen. A model that memorises the training data but scores badly on the
+              held-out half is caught here rather than flattered.
+            </p>
+          </div>
+          <div class="lab-panel" style="margin-bottom:0;">
+            <div class="lab-row" style="align-items:center; margin-bottom:14px;">
+              <button type="button" id="runRegressionTestBtn" class="btn btn-secondary">Run Self-Test</button>
+              <span class="hint" id="regressionTestHint">Not run yet.</span>
+            </div>
+            <div id="regressionTestResults" style="display:none;">
+              <p class="hint" id="regressionTestSub" style="margin-bottom:10px;"></p>
+              <div class="table-scroll">
+                <table class="test-table">
+                  <thead><tr><th>Model</th><th>Train R²</th><th>Test R²</th><th>Test RMSE</th><th>Test MAE</th></tr></thead>
+                  <tbody id="regressionResultsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="related" style="padding-top:0;">
+        <div class="container">
+          <h2 class="sec">Related models</h2>
+          <p class="section-sub">
+            The other model folders on this site. Same rule everywhere: written from
+            scratch, runs offline, and shows its working.
+          </p>
+          <div class="subtools">
+            <a class="subtool" href="../NLP Models/Lab.html">
+              <h3>NLP Model →</h3>
+              <p>
+                Sentiment scoring, keyword extraction, a rule-based rewriter, and a
+                word-class slicer — plus an OCR model built on a hand-made bitmap font.
+              </p>
+              <span class="path">Assets/NLP Models/</span>
+              <span class="go">Open the NLP Model →</span>
+            </a>
+
+            <a class="subtool" href="../Image Models/Lab.html">
+              <h3>Image Model →</h3>
+              <p>
+                Filters and convolution kernels, k-means colour extraction, and a
+                coordinate MLP trained in-browser with hand-written backprop.
+              </p>
+              <span class="path">Assets/Image Models/</span>
+              <span class="go">Open the Image Model →</span>
+            </a>
+
+            <a class="subtool" href="../Resume,CV &amp; Cover Letter/Index.html">
+              <h3>Résumé Builder →</h3>
+              <p>
+                Where this site's practical side shows up: a resume/CV/cover-letter builder
+                with ten live document previews, sharing the same offline approach.
+              </p>
+              <span class="path">Assets/Resume,CV &amp; Cover Letter/</span>
+              <span class="go">Open the builder →</span>
+            </a>
           </div>
         </div>
       </section>
@@ -796,6 +888,104 @@ Forecast — next 5 point(s):
       // Boot with the sample dataset already loaded and fitted once.
       loadSample();
       run();
+
+      /* ============================= Self-test: regression ============================= */
+
+      // Tiny seeded PRNG (mulberry32) so the synthetic test data is identical
+      // on every run — a test whose inputs change each run isn't really
+      // testing anything reproducibly.
+      function mulberry32(seed) {
+        return function next() {
+          seed |= 0;
+          seed = (seed + 0x6d2b79f5) | 0;
+          let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function testRegressionModels() {
+        const rng = mulberry32(42);
+        const trueSlope = 2;
+        const trueIntercept = 3;
+
+        const allPoints = [];
+        for (let x = 1; x <= 30; x += 1) {
+          const noise = (rng() - 0.5) * 4;
+          allPoints.push({ x, y: trueIntercept + trueSlope * x + noise, w: 1 });
+        }
+
+        const testPoints = allPoints.filter((_, i) => i % 5 === 4);
+        const trainPoints = allPoints.filter((_, i) => i % 5 !== 4);
+
+        const models = {
+          'Linear (OLS)': () => linearRegression(trainPoints),
+          'Weighted Linear (WLS)': () => weightedLinearRegression(trainPoints),
+          'Polynomial (degree 2)': () => polynomialRegression(trainPoints, 2),
+          'Polynomial (degree 3)': () => polynomialRegression(trainPoints, 3),
+          'Neural Network (MLP)': () => neuralNetworkRegression(trainPoints, { hiddenSize: 8, epochs: 400, learningRate: 0.15 })
+        };
+
+        const results = Object.entries(models).map(([name, fit]) => {
+          try {
+            const model = fit();
+            const trainMetrics = computeMetrics(trainPoints, model.predict);
+            const testMetrics = computeMetrics(testPoints, model.predict);
+            return {
+              name, trained: true,
+              trainR2: trainMetrics.r2, testR2: testMetrics.r2,
+              testRmse: testMetrics.rmse, testMae: testMetrics.mae
+            };
+          } catch (err) {
+            return { name, trained: false, error: err.message || 'Failed to fit.' };
+          }
+        });
+
+        return {
+          trueRelationship: `y = ${trueIntercept} + ${trueSlope}x + noise`,
+          trainSize: trainPoints.length,
+          testSize: testPoints.length,
+          results
+        };
+      }
+
+      const runRegressionTestBtn = document.getElementById('runRegressionTestBtn');
+      const regressionTestHint = document.getElementById('regressionTestHint');
+      const regressionTestResults = document.getElementById('regressionTestResults');
+      const regressionTestSub = document.getElementById('regressionTestSub');
+      const regressionResultsBody = document.getElementById('regressionResultsBody');
+
+      runRegressionTestBtn.addEventListener('click', () => {
+        regressionTestHint.textContent = 'Running…';
+        setTimeout(() => {
+          const report = testRegressionModels();
+          regressionTestSub.textContent =
+            `True relationship: ${report.trueRelationship} — trained on ${report.trainSize} points, tested on ${report.testSize} held-out points.`;
+
+          const bestR2 = Math.max(...report.results.filter((r) => r.trained).map((r) => r.testR2));
+
+          regressionResultsBody.innerHTML = '';
+          report.results.forEach((r) => {
+            const tr = document.createElement('tr');
+            if (!r.trained) {
+              tr.innerHTML = `<td>${r.name}</td><td colspan="4" style="color:var(--bad);">${r.error}</td>`;
+            } else {
+              const isBest = r.testR2 === bestR2;
+              tr.innerHTML = `
+                <td>${r.name}${isBest ? ' ★' : ''}</td>
+                <td>${r.trainR2.toFixed(4)}</td>
+                <td class="${isBest ? 'best' : ''}">${r.testR2.toFixed(4)}</td>
+                <td>${r.testRmse.toFixed(3)}</td>
+                <td>${r.testMae.toFixed(3)}</td>
+              `;
+            }
+            regressionResultsBody.appendChild(tr);
+          });
+
+          regressionTestResults.style.display = 'block';
+          regressionTestHint.textContent = 'Last run: just now.';
+        }, 10);
+      });
     </script>
   </body>
 </html>

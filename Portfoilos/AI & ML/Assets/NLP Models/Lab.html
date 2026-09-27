@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NLP Lab — AI/ML</title>
-    <meta name="description" content="Lexicon-based sentiment scoring, term-frequency keyword extraction, and text statistics — built from scratch, running entirely in your browser." />
+    <meta name="description" content="Lexicon-based sentiment scoring, keyword extraction, a rule-based humanizer, a word-class slicer, and a bitmap OCR extractor — five engines, one page, running entirely in your browser." />
     <style>
       :root {
         --bg: #0b1020;
@@ -16,6 +16,7 @@
         --muted: #c4cfe3;
         --line: rgba(255,255,255,0.09);
         --good: #34d399;
+        --warn: #f59e0b;
         --bad: #f87171;
       }
       * { box-sizing: border-box; }
@@ -28,7 +29,7 @@
       .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
       .logo { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.95rem; }
       .logo span { color: var(--secondary); }
-      .nav-links { display: flex; gap: 20px; }
+      .nav-links { display: flex; gap: 20px; flex-wrap: wrap; }
       .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
       .nav-links a:hover { color: var(--secondary); }
 
@@ -41,27 +42,67 @@
       .back-link:hover { color: var(--secondary); }
       .back-link::before { content: '\2190 '; }
 
-      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
-      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; }
+      .page-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+      .page-nav a {
+        font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--muted); text-decoration: none; padding: 7px 14px; border-radius: 999px;
+        border: 1px solid var(--line);
+      }
+      .page-nav a:hover { color: var(--secondary); border-color: var(--secondary); }
+
+      .btn { display: inline-block; padding: 11px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; border: 1px solid var(--line); cursor: pointer; font-size: 0.85rem; font-family: inherit; background: rgba(255,255,255,0.04); color: var(--text); }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; border: none; }
+      .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
       .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
 
-      .lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; }
-      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
-      .lab-panel h3 { margin: 0 0 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+      .section-title { margin-bottom: 20px; }
+      .section-title h2 { margin: 0 0 8px; font-size: 1.3rem; }
+      .section-title p.lead { margin: 0; font-size: 0.88rem; }
+      .section-title .badge { margin-bottom: 10px; }
 
-      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 20px; }
+      .lab-panel h3 { margin: 0 0 14px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
       .lab-row .btn { padding: 9px 16px; font-size: 0.78rem; }
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 0.82rem; color: var(--muted); }
+      .field input[type="text"] { background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 10px 12px; font-family: inherit; font-size: 0.9rem; }
+      .field input[type="range"] { width: 100%; }
       .field .hint { font-size: 0.72rem; opacity: 0.7; }
+      .field select {
+        background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--text); padding: 9px 10px; font-size: 0.85rem; font-family: inherit;
+      }
+      .field select:focus { outline: none; border-color: var(--secondary); }
+      .field.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
+      .field.checkbox-field label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+      .field.checkbox-field input { accent-color: var(--secondary); width: 16px; height: 16px; }
 
       .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
       .offline-note::before { content: '●'; }
 
-      #nlpText {
-        width: 100%; min-height: 220px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+      .subtools { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+      .subtool {
+        display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .subtool:hover { border-color: var(--secondary); transform: translateY(-2px); }
+      .subtool h3 { margin: 0; font-size: 0.95rem; color: var(--secondary); }
+      .subtool p { margin: 0; font-size: 0.82rem; line-height: 1.65; color: var(--muted); }
+      .subtool .path { font-size: 0.7rem; color: var(--muted); opacity: 0.75; font-family: 'Consolas', monospace; }
+      .subtool .go { font-size: 0.78rem; font-weight: 700; color: var(--text); margin-top: auto; }
+      .section-sub { color: var(--muted); font-size: 0.88rem; line-height: 1.7; max-width: 760px; margin: 0 0 22px; }
+      .section-sub code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+      h2.sec { margin: 0 0 10px; font-size: 1.3rem; }
+
+      #nlpText, #humanizerInput {
+        width: 100%; min-height: 200px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
         border-radius: 10px; color: var(--text); padding: 14px; font-family: inherit; font-size: 0.9rem;
         resize: vertical; line-height: 1.6;
       }
-      #nlpText:focus { outline: none; border-color: var(--secondary); }
+      #nlpText:focus, #humanizerInput:focus { outline: none; border-color: var(--secondary); }
 
       .sentiment-badge {
         display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
@@ -74,18 +115,64 @@
       .sentiment-bar-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 18px; }
       .sentiment-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
 
-      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 0.82rem; color: var(--muted); }
       .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-      .pill { font-size: 0.75rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); }
+      .pill { font-size: 0.75rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); font-family: 'Consolas', monospace; }
       .pill.pos { border-color: rgba(52,211,153,0.4); color: var(--good); }
       .pill.neg { border-color: rgba(248,113,113,0.4); color: var(--bad); }
       .pill.kw { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.35); color: var(--primary); }
       .pill .count { opacity: 0.6; margin-left: 4px; }
+      .pill.dist-0 { border-color: var(--good); color: var(--good); }
+      .pill.dist-low { border-color: var(--warn); color: var(--warn); }
+      .pill.dist-high { border-color: var(--bad); color: var(--bad); }
 
-      .nlp-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+      .nlp-stats-row, .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); margin: 16px 0; }
       .stat-chip { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; }
       .stat-chip strong { display: block; font-size: 1.3rem; color: var(--good); font-family: 'Consolas', monospace; }
       .stat-chip span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+      #humanizerOutput {
+        min-height: 200px; background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+        border-radius: 10px; padding: 14px; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;
+        overflow-y: auto; max-height: 320px;
+      }
+      #humanizerOutput.is-empty { color: var(--muted); font-style: italic; }
+      #changesList { list-style: none; margin: 0; padding: 0; max-height: 180px; overflow-y: auto; }
+      #changesList li { font-size: 0.82rem; padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+      #changesList li:last-child { border-bottom: none; }
+      #changesList .was { color: #f87171; text-decoration: line-through; }
+      #changesList .now { color: var(--good); font-weight: 600; }
+      #changesList .empty-hint { color: var(--muted); font-style: italic; }
+
+      .cli-note {
+        margin-top: 16px; font-size: 0.82rem; color: var(--muted); line-height: 1.7;
+        border-left: 3px solid var(--secondary); padding: 4px 0 4px 14px;
+      }
+      .cli-note code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+      .honesty-note {
+        margin-top: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+        border-radius: 14px; padding: 18px 20px; font-size: 0.85rem; color: var(--muted); line-height: 1.7;
+      }
+      .honesty-note strong { color: var(--text); }
+
+      #bitmapCanvas { image-rendering: pixelated; border: 1px solid var(--line); border-radius: 8px; background: #fff; display: block; margin-top: 12px; max-width: 100%; }
+      .result-text { font-family: 'Consolas', monospace; font-size: 1.4rem; letter-spacing: 0.1em; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 10px; border: 1px solid var(--line); margin-top: 6px; }
+
+      .file-map { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 0.82rem; }
+      .file-map td, .file-map th { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; color: var(--muted); }
+      .file-map code { color: var(--text); background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 5px; }
+
+      .test-pass, .test-fail {
+        display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
+      }
+      .test-pass { background: rgba(52,211,153,0.15); color: var(--good); border: 1px solid rgba(52,211,153,0.4); }
+      .test-fail { background: rgba(248,113,113,0.15); color: var(--bad); border: 1px solid rgba(248,113,113,0.4); }
+      .table-scroll { overflow-x: auto; }
+      table.test-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 460px; }
+      table.test-table th, table.test-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+      table.test-table th { color: var(--muted); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.06em; }
 
       footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
       .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
@@ -104,7 +191,9 @@
       .cookie-banner button { border: 1px solid var(--line); background: transparent; color: inherit; padding: 9px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
       .cookie-banner button#cookieAccept { background: var(--secondary); color: #06140f; border-color: transparent; }
 
-      @media (max-width: 900px) { .lab-grid, .nlp-stats-row { grid-template-columns: 1fr; } }
+      @media (max-width: 900px) { .lab-grid, .nlp-stats-row, .stats-row, .options-grid { grid-template-columns: 1fr; } }
+      .options-title { margin: 20px 0 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
+      .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
     </style>
   </head>
   <body>
@@ -122,21 +211,31 @@
       <section class="hero">
         <div class="container">
           <div class="badge">Local NLP Lab</div>
-          <h1>Sentiment, keywords, and text stats — on whatever you type.</h1>
+          <h1>Sentiment, humanizing, and OCR — one page.</h1>
           <p class="lead">
-            Lexicon-based sentiment scoring, term-frequency keyword extraction, and
-            basic text statistics — all built from scratch in <code>nlp-engine.js</code>
-            right in this folder, no external library, no pretrained model download.
-            Type or paste text below and analyze it locally.
+            Lexicon-based sentiment scoring and keyword extraction from
+            <code>nlp-engine.js</code>, a rule-based phrasing humanizer, and a bitmap OCR
+            extractor — all built from scratch, all running right here, no external
+            library, no pretrained model download. The engine folders alongside this page
+            (<code>Humanizer/</code>, <code>Image Extractor/</code>) are what power the
+            sections below; they aren't separate destinations. The Humanizer also runs the
+            <code>Slicer/</code> engine behind the scenes for word-class and tense analysis
+            of its own output — Slicer has no page or UI of its own.
           </p>
           <a class="back-link" href="../../index.html#nlplab">Back to AI / ML</a>
+          <div class="page-nav">
+            <a href="#core">Sentiment &amp; keywords</a>
+            <a href="#humanizer">Humanizer</a>
+            <a href="#extractor">Image Extractor</a>
+            <a href="#selftest">Self-test</a>
+          </div>
         </div>
       </section>
 
-      <section class="section" style="padding-top:14px;">
+      <section class="section" id="core" style="padding-top:14px;">
         <div class="container">
           <div class="lab-grid">
-            <div class="lab-panel">
+            <div class="lab-panel" style="margin-bottom:0;">
               <h3>1 · Your text</h3>
               <textarea id="nlpText" placeholder="Type or paste a sentence or paragraph here…">I absolutely love how this forecasting lab works — the neural network training is genuinely impressive!</textarea>
               <div class="lab-row" style="margin-top:12px;">
@@ -146,7 +245,7 @@
               <div class="offline-note">Runs 100% locally — no network request is made</div>
             </div>
 
-            <div class="lab-panel lab-output">
+            <div class="lab-panel" style="margin-bottom:0;">
               <h3>2 · Results</h3>
               <div id="sentimentResult">
                 <span class="sentiment-badge neutral" id="sentimentBadge">Analyze some text to begin</span>
@@ -175,6 +274,251 @@
           </div>
         </div>
       </section>
+
+      <section class="section" id="humanizer" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Engine: Humanizer</div>
+            <h2>Rewrites stock AI-sounding phrasing.</h2>
+            <p class="lead">
+              "In today's fast-paced world," "it is important to note that," "utilize,"
+              "seamless" — swapped for plainer, contracted language. Rule-based, not a
+              trained model: every swap it makes comes straight from
+              <code>Humanizer/database.sql</code>, so there's nothing hidden. It also runs
+              the result through the Slicer engine (<code>../Slicer/</code>) for a
+              word-class breakdown and tense detection — Slicer has no page of its own; this
+              is the only place it's used.
+            </p>
+          </div>
+
+          <div class="lab-grid">
+            <div class="lab-panel" style="margin-bottom:0;">
+              <h3>1 · Your text</h3>
+              <textarea id="humanizerInput" placeholder="Paste text here…">In today's fast-paced world, it is important to note that we need to utilize robust, seamless solutions in order to demonstrate real value. Furthermore, this approach does not require additional resources.</textarea>
+              <div class="lab-row">
+                <button type="button" id="humanizeBtn" class="btn btn-primary">Humanize</button>
+                <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
+              </div>
+              <div class="offline-note">Runs 100% locally — no network request is made</div>
+
+              <div class="options-title">Options</div>
+              <div class="options-grid">
+                <div class="field">
+                  <label for="optIntensity">How much to humanize</label>
+                  <select id="optIntensity">
+                    <option value="light">Light — contractions only</option>
+                    <option value="medium">Medium — + word swaps</option>
+                    <option value="full" selected>Full — + AI-phrase cliches</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="optLength">Length</label>
+                  <select id="optLength">
+                    <option value="shorten">Shorten — strip filler words</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="extend">Extend — add transitions</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="optDialect">Spelling</label>
+                  <select id="optDialect">
+                    <option value="us" selected>US English</option>
+                    <option value="uk">UK English</option>
+                    <option value="aus">AUS English (UK spelling)</option>
+                  </select>
+                </div>
+                <div class="field checkbox-field">
+                  <label><input type="checkbox" id="optFluency" checked> Fluency cleanup</label>
+                </div>
+                <div class="field checkbox-field">
+                  <label><input type="checkbox" id="optJargon"> Remove business jargon</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="lab-panel" style="margin-bottom:0;">
+              <h3>2 · Result</h3>
+              <div id="humanizerOutput" class="is-empty">Humanized text will appear here.</div>
+              <div class="lab-row">
+                <button type="button" id="copyBtn" class="btn btn-secondary">Copy</button>
+                <button type="button" id="downloadBtn" class="btn btn-secondary">Download .txt</button>
+              </div>
+
+              <div class="stats-row" id="humanizerStats">
+                <div class="stat-chip"><strong>—</strong><span>Words in</span></div>
+                <div class="stat-chip"><strong>—</strong><span>Words out</span></div>
+                <div class="stat-chip"><strong>—</strong><span>Patterns fixed</span></div>
+              </div>
+
+              <div class="field" style="margin-top:14px; margin-bottom:0;">
+                <label>Grammar of the result (Slicer, running in the background)</label>
+                <div class="pill-row" id="humanizerGrammar"></div>
+              </div>
+
+              <h3 style="margin-top:18px;">Changes made</h3>
+              <ul id="changesList"><li class="empty-hint">Click Humanize to see what changed.</li></ul>
+            </div>
+          </div>
+
+          <div class="cli-note">
+            Prefer the terminal? <code>echo "your text" | python Humanizer/backend.py</code>
+            from the AI/ML folder runs the identical rule set through
+            <code>backend_pipeline.py</code> and SQLite instead of the browser — useful for
+            batch-processing files. All five options above have CLI flags too:
+            <code>--intensity {light,medium,full}</code>, <code>--length {shorten,normal,extend}</code>,
+            <code>--dialect {us,uk,aus}</code>, <code>--jargon</code>, and <code>--no-fluency</code>.
+            It prints the same Slicer-powered grammar breakdown too, unless you pass
+            <code>--quiet</code>.
+          </div>
+
+          <div class="honesty-note">
+            <strong>What this actually is:</strong> fixed lookup tables — phrases, words,
+            contractions, filler terms, transition connectors, US/UK spelling pairs, and jargon
+            terms — all listed in <code style="background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:4px;">Humanizer/database.sql</code>.
+            "Shorten" deletes known filler words; "Extend" prepends real transition phrases to
+            alternating sentences — it doesn't invent new content. "AUS spelling" reuses the UK
+            table, since Australian English follows British spelling conventions here. It's not
+            a language model and it doesn't understand meaning — it just recognizes specific
+            stock phrasing and swaps it. The grammar breakdown above it comes from the
+            Slicer engine in <code>../Slicer/</code> — plain-text lexicons in
+            <code>Slicer/Word Library/</code>, a one-word-of-context disambiguation table,
+            and a 12-tense pattern table, both in <code>Slicer/Grammer Context/</code>.
+            Pattern-matching heuristics, not a real parser — they will get some sentences
+            wrong, and this doesn't hide that. Slicer isn't a page of its own; it only runs
+            here, on whatever the Humanizer just produced.
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="extractor" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Engine: Image Extractor</div>
+            <h2>Render text, corrupt a few pixels, read it back.</h2>
+            <p class="lead">
+              A small, honest OCR pipeline: your text is drawn with a hand-built 5x7 bitmap
+              font from <code>Image Extractor/Glyph Library/font-5x7.txt</code>, a slider
+              lets you flip a percentage of pixels at random, and a nearest-neighbor
+              classifier (Hamming distance against every known glyph — the templates are
+              the model, no training step needed) reads the result back. The exact same
+              algorithm runs three times over: <code>extractor-engine.js</code> here in the
+              browser, <code>extractor_cli.py</code> in Python, and <code>extractor.pl</code>
+              in Perl — all three reading the one font file directly. Fixed-pitch, single
+              font, single line: this reads text the tool itself rendered, not arbitrary
+              photos.
+            </p>
+          </div>
+
+          <div class="lab-panel">
+            <h3>1 · Text to render</h3>
+            <div class="field">
+              <label for="sourceText">Letters, digits, and spaces (auto-uppercased)</label>
+              <input type="text" id="sourceText" maxlength="24" value="HELLO WORLD 2026" />
+            </div>
+            <div class="field">
+              <label for="noiseSlider">Pixel noise: <span id="noiseValue">0%</span></label>
+              <input type="range" id="noiseSlider" min="0" max="30" value="0" />
+            </div>
+            <div class="lab-row">
+              <button type="button" id="runBtn" class="btn btn-primary">Render &amp; Extract</button>
+              <button type="button" id="reRollBtn" class="btn btn-ghost">Re-roll noise</button>
+            </div>
+            <div class="offline-note">Runs 100% locally — no network request is made</div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>2 · Rendered bitmap</h3>
+            <canvas id="bitmapCanvas"></canvas>
+          </div>
+
+          <div class="lab-panel" style="margin-bottom:0;">
+            <h3>3 · Extracted text</h3>
+            <div class="result-text" id="resultText">—</div>
+            <div class="pill-row" id="distancePills"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="selftest" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Self-test</div>
+            <h2>Does the sentiment scoring actually work? Let's check.</h2>
+            <p class="lead">
+              Not a demo — this runs the lexicon-based sentiment analyzer above against a
+              small hand-labeled test set, including negation and mixed phrasing, and
+              reports raw accuracy. The misses show up alongside the hits rather than
+              being hidden.
+            </p>
+          </div>
+          <div class="lab-panel" style="margin-bottom:0;">
+            <div class="lab-row" style="align-items:center; margin-bottom:14px;">
+              <button type="button" id="runSentimentTestBtn" class="btn btn-secondary">Run Self-Test</button>
+              <span class="hint" id="sentimentTestHint">Not run yet.</span>
+            </div>
+            <div id="sentimentTestResults" style="display:none;">
+              <div id="sentimentTestStatus"></div>
+              <div class="table-scroll">
+                <table class="test-table">
+                  <thead><tr><th>Text</th><th>Expected</th><th>Predicted</th><th></th></tr></thead>
+                  <tbody id="sentimentResultsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="related" style="padding-top:0;">
+        <div class="container">
+          <h2 class="sec">Related models elsewhere</h2>
+          <p class="section-sub">
+            Text is only half of it — these pick up where this page stops.
+          </p>
+          <div class="subtools">
+            <a class="subtool" href="../Image Models/Lab.html">
+              <h3>Image Model →</h3>
+              <p>
+                The pixel-side equivalent: filters, convolution kernels, k-means colour
+                extraction, and a coordinate MLP that learns an image from scratch.
+              </p>
+              <span class="path">Assets/Image Models/</span>
+              <span class="go">Open the Image Model →</span>
+            </a>
+
+            <a class="subtool" href="../Forecast Models/Lab.html">
+              <h3>Forecast Model →</h3>
+              <p>
+                Regression fitted by hand — least squares, polynomial and multiple
+                regression, scored with R², RMSE and MAE against a held-out split.
+              </p>
+              <span class="path">Assets/Forecast Models/</span>
+              <span class="go">Open the Forecast Model →</span>
+            </a>
+
+            <a class="subtool" href="../Resume,CV &amp; Cover Letter/Index.html">
+              <h3>Résumé Builder →</h3>
+              <p>
+                Where this text work gets applied for real: a builder that assembles and
+                translates a CV, sharing the same offline, no-dependency approach.
+              </p>
+              <span class="path">Assets/Resume,CV &amp; Cover Letter/</span>
+              <span class="go">Open the builder →</span>
+            </a>
+
+            <a class="subtool" href="../../../Programming/Assets/Py Compiler/Index.html">
+              <h3>Py Compiler →</h3>
+              <p>
+                Text analysis taken to its strict end in another portfolio: a hand-written
+                lexer and parser that turn Python into JavaScript, C, Java or Go — where
+                an ambiguous word is a compile error rather than a best guess.
+              </p>
+              <span class="path">Portfoilos/Programming/Assets/Py Compiler/</span>
+              <span class="go">Open the compiler →</span>
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -199,6 +543,8 @@
 
     <script type="module">
       import { analyzeSentiment, extractKeywords, textStats } from './nlp-engine.js';
+      import { sliceText, CATEGORY_LABELS, tokenizeForSlicer, detectTense } from './Slicer/AI/slicer-engine.js';
+      import { renderText, addNoise, extractText } from './Image Extractor/extractor-engine.js';
 
       function setCookie(name, value, days) {
         var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
@@ -223,6 +569,8 @@
           banner.style.display = 'none';
         });
       })();
+
+      /* ============================= Core: sentiment + keywords ============================= */
 
       const nlpText = document.getElementById('nlpText');
       const analyzeBtn = document.getElementById('analyzeBtn');
@@ -308,6 +656,165 @@
         nlpText.value = '';
         runNlpAnalysis();
       });
+
+      /* ===================== Slicer, running behind the Humanizer ===================== *
+       * Slicer has no page or UI of its own -- this is its only caller. A MutationObserver
+       * on #humanizerOutput -- rather than hooking the Humanize/Clear/option controls
+       * directly -- means this reacts to whatever Engine.js actually put on the page, from
+       * whichever control changed it, with no dependency on listener registration order
+       * between this module script and Engine.js's own DOMContentLoaded handler. */
+
+      const humanizerGrammar = document.getElementById('humanizerGrammar');
+      const humanizerOutput = document.getElementById('humanizerOutput');
+
+      function updateHumanizerGrammar() {
+        if (!humanizerGrammar || !humanizerOutput) return;
+        const humanized = humanizerOutput.classList.contains('is-empty') ? '' : humanizerOutput.textContent;
+
+        humanizerGrammar.innerHTML = '';
+        if (!humanized.trim()) {
+          humanizerGrammar.innerHTML = '<span class="hint">Humanize some text to see its grammar.</span>';
+          return;
+        }
+
+        const tense = detectTense(tokenizeForSlicer(humanized));
+        const tenseSpan = document.createElement('span');
+        tenseSpan.className = 'pill';
+        tenseSpan.textContent = tense ? `Tense: ${tense.label}` : 'Tense: not detected';
+        humanizerGrammar.appendChild(tenseSpan);
+
+        const { counts } = sliceText(humanized);
+        Object.entries(counts)
+          .filter(([category]) => category !== 'punctuation' && category !== 'unclassified')
+          .forEach(([category, count]) => {
+            const span = document.createElement('span');
+            span.className = 'pill kw';
+            span.innerHTML = `${CATEGORY_LABELS[category]}<span class="count">×${count}</span>`;
+            humanizerGrammar.appendChild(span);
+          });
+      }
+
+      if (humanizerOutput) {
+        new MutationObserver(updateHumanizerGrammar)
+          .observe(humanizerOutput, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      }
+      updateHumanizerGrammar();
+
+      /* ============================= Engine: Image Extractor ============================= */
+
+      const sourceText = document.getElementById('sourceText');
+      const noiseSlider = document.getElementById('noiseSlider');
+      const noiseValue = document.getElementById('noiseValue');
+      const runBtn = document.getElementById('runBtn');
+      const reRollBtn = document.getElementById('reRollBtn');
+      const bitmapCanvas = document.getElementById('bitmapCanvas');
+      const bitmapCtx = bitmapCanvas.getContext('2d');
+      const resultText = document.getElementById('resultText');
+      const distancePills = document.getElementById('distancePills');
+
+      const PIXEL_SIZE = 10;
+
+      function distanceClass(distance) {
+        if (distance === 0) return 'dist-0';
+        if (distance <= 3) return 'dist-low';
+        return 'dist-high';
+      }
+
+      function runExtractor() {
+        const text = sourceText.value.trim() || ' ';
+        const noiseRate = Number(noiseSlider.value) / 100;
+        noiseValue.textContent = `${noiseSlider.value}%`;
+
+        let rendered = renderText(text);
+        if (noiseRate > 0) rendered = addNoise(rendered, noiseRate);
+
+        bitmapCanvas.width = rendered.width * PIXEL_SIZE;
+        bitmapCanvas.height = rendered.height * PIXEL_SIZE;
+        bitmapCtx.fillStyle = '#ffffff';
+        bitmapCtx.fillRect(0, 0, bitmapCanvas.width, bitmapCanvas.height);
+        bitmapCtx.fillStyle = '#0b1020';
+        for (let y = 0; y < rendered.height; y += 1) {
+          for (let x = 0; x < rendered.width; x += 1) {
+            if (rendered.grid[y][x]) bitmapCtx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+          }
+        }
+
+        const { text: recognized, cells } = extractText(rendered);
+        resultText.textContent = recognized || '—';
+
+        distancePills.innerHTML = '';
+        cells.forEach(({ match }) => {
+          const span = document.createElement('span');
+          span.className = `pill ${distanceClass(match.distance)}`;
+          span.textContent = `${match.char === ' ' ? '␣' : match.char} · ${match.distance}`;
+          distancePills.appendChild(span);
+        });
+      }
+
+      noiseSlider.addEventListener('input', () => {
+        noiseValue.textContent = `${noiseSlider.value}%`;
+      });
+      runBtn.addEventListener('click', runExtractor);
+      reRollBtn.addEventListener('click', runExtractor);
+      sourceText.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') runExtractor();
+      });
+      runExtractor();
+
+      /* ============================= Self-test: sentiment ============================= */
+
+      const SENTIMENT_TEST_SET = [
+        { text: "I absolutely love this, it's amazing and wonderful!", expected: 'Positive' },
+        { text: 'This is terrible, I hate it so much.', expected: 'Negative' },
+        { text: 'The weather today is cloudy.', expected: 'Neutral' },
+        { text: 'What a fantastic and brilliant idea, great job!', expected: 'Positive' },
+        { text: 'This is the worst experience ever, awful and disappointing.', expected: 'Negative' },
+        { text: 'The meeting is scheduled for 3pm tomorrow.', expected: 'Neutral' },
+        { text: "I'm so happy and excited about this wonderful news!", expected: 'Positive' },
+        { text: 'This product is broken and useless, very frustrating.', expected: 'Negative' },
+        { text: 'She walked to the store to buy some bread.', expected: 'Neutral' },
+        { text: "Best purchase I've ever made, absolutely perfect!", expected: 'Positive' }
+      ];
+
+      function testSentimentAnalysis() {
+        const details = SENTIMENT_TEST_SET.map(({ text, expected }) => {
+          const result = analyzeSentiment(text);
+          return { text, expected, predicted: result.label, correct: result.label === expected };
+        });
+        const correct = details.filter((d) => d.correct).length;
+        return { total: details.length, correct, accuracy: correct / details.length, details };
+      }
+
+      const runSentimentTestBtn = document.getElementById('runSentimentTestBtn');
+      const sentimentTestHint = document.getElementById('sentimentTestHint');
+      const sentimentTestResults = document.getElementById('sentimentTestResults');
+      const sentimentTestStatus = document.getElementById('sentimentTestStatus');
+      const sentimentResultsBody = document.getElementById('sentimentResultsBody');
+
+      runSentimentTestBtn.addEventListener('click', () => {
+        sentimentTestHint.textContent = 'Running…';
+        setTimeout(() => {
+          const report = testSentimentAnalysis();
+          const passed = report.correct === report.total;
+          sentimentTestStatus.innerHTML = `
+            <span class="${passed ? 'test-pass' : 'test-fail'}">${passed ? 'Pass' : 'Partial'} — ${report.correct}/${report.total} (${(report.accuracy * 100).toFixed(0)}%)</span>
+          `;
+          sentimentResultsBody.innerHTML = '';
+          report.details.forEach((d) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${d.text}</td>
+              <td>${d.expected}</td>
+              <td>${d.predicted}</td>
+              <td>${d.correct ? '✅' : '❌'}</td>
+            `;
+            sentimentResultsBody.appendChild(tr);
+          });
+          sentimentTestResults.style.display = 'block';
+          sentimentTestHint.textContent = 'Last run: just now.';
+        }, 10);
+      });
     </script>
+    <script src="Humanizer/Engine.js"></script>
   </body>
 </html>

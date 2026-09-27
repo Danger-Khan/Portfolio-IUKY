@@ -3,8 +3,10 @@
 backend.py — CLI entry point for the Humanizer.
 
 Reads text, runs it through backend_pipeline.humanize_text(), and prints the
-rewritten text plus a report of every swap made. Same rule-based logic as
-Engine.js (the in-browser version on Index.html) — this is the offline,
+rewritten text plus a report of every swap made, and (via
+backend_pipeline.analyze(), which runs the Slicer engine one folder over)
+the result's word-class breakdown and detected tense. Same rule-based logic
+as Engine.js (the in-browser version on Lab.html) — this is the offline,
 scriptable companion, useful for batch-processing files.
 
 Usage:
@@ -68,6 +70,16 @@ def main():
                 print(f"  \"{original}\" -> \"{replacement}\"", file=sys.stderr)
         else:
             print("\nNo AI-sounding patterns found — text left unchanged.", file=sys.stderr)
+
+        grammar = backend_pipeline.analyze(result)
+        print("\nGrammar of the result (Slicer, running in the background):", file=sys.stderr)
+        print(f"  Tense: {grammar['tense'] or 'not detected'}", file=sys.stderr)
+        if grammar["word_classes"]:
+            breakdown = ", ".join(
+                f"{label} x{count}"
+                for label, count in sorted(grammar["word_classes"].items(), key=lambda kv: -kv[1])
+            )
+            print(f"  Word classes: {breakdown}", file=sys.stderr)
 
 
 if __name__ == "__main__":

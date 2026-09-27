@@ -1,0 +1,23 @@
+{
+  "_comment": "Hand-written disambiguation table, not a statistical parser. A handful of words in the Word Library are deliberately listed under two categories because that's real English ambiguity (e.g. 'close' is genuinely both an adjective and a verb). The Slicer engine only opens this table when a word matches more than one Word Library list, and picks a category using nothing more than the category already assigned to the token immediately before it -- a single-word-of-context heuristic, not real syntax. slicer_cli.py reads this file directly; rules.js is a hand-synced mirror for the browser.",
+  "well": {
+    "categories": ["adverb", "interjection"],
+    "preferByPreviousCategory": { "pronoun": "adverb", "verb": "adverb" },
+    "default": "interjection"
+  },
+  "like": {
+    "categories": ["preposition", "verb"],
+    "preferByPreviousCategory": { "pronoun": "verb" },
+    "default": "preposition"
+  },
+  "close": {
+    "categories": ["adjective", "verb"],
+    "preferByPreviousCategory": { "pronoun": "verb" },
+    "default": "adjective"
+  },
+  "present": {
+    "categories": ["adjective", "verb"],
+    "preferByPreviousCategory": { "pronoun": "verb" },
+    "default": "adjective"
+  }
+}

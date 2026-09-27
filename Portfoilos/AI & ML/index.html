@@ -215,27 +215,6 @@
 
       .nlp-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
 
-      /* ============ Testing Lab ============ */
-      .test-report { margin-bottom: 24px; }
-      .test-report:last-child { margin-bottom: 0; }
-      .test-report h4 { margin: 0 0 4px; font-size: 0.95rem; color: var(--secondary); }
-      .test-report .test-sub { color: var(--muted); font-size: 0.78rem; margin-bottom: 12px; }
-
-      .test-pass, .test-fail {
-        display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
-      }
-      .test-pass { background: rgba(52,211,153,0.15); color: var(--good); border: 1px solid rgba(52,211,153,0.4); }
-      .test-fail { background: rgba(248,113,113,0.15); color: var(--bad); border: 1px solid rgba(248,113,113,0.4); }
-
-      table.test-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-      table.test-table th, table.test-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
-      table.test-table th { color: var(--muted); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.06em; }
-      table.test-table td.best { color: var(--good); font-weight: 700; }
-
-      .swatch-compare { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.8rem; color: var(--muted); }
-      .swatch-compare .swatch-color { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); flex-shrink: 0; }
-
       .contact { padding: 20px 0 90px; }
       .contact-box {
         display: flex; justify-content: space-between; align-items: center; gap: 24px;
@@ -276,7 +255,8 @@
           <a href="#lab">Forecasting Lab</a>
           <a href="#imagelab">Image Lab</a>
           <a href="#nlplab">NLP Lab</a>
-          <a href="#testinglab">Testing Lab</a>
+          <a href="#resumelab">Resume Lab</a>
+          <a href="#certifications">Certifications</a>
           <a href="#contact">Contact</a>
         </nav>
       </div>
@@ -290,34 +270,34 @@
             <h1>Turning data into intelligent systems.</h1>
             <p>
               I work on machine learning workflows, predictive modeling, data analysis,
-              and intelligent automation. Below are four real, working pieces of that: a
-              forecasting lab that fits regression models to your data and predicts
-              forward, an image processing lab that adjusts brightness, contrast and blur
-              and extracts a dominant color palette by k-means clustering, an NLP lab that
-              scores sentiment and pulls out keywords from text you type in, and a testing
-              lab that evaluates all of it against known ground truth — all entirely in
-              this browser tab, with no server or API call.
+              and intelligent automation. Below are exactly four real, working pieces of
+              that — a forecasting lab, an image processing lab, an NLP lab, and a resume,
+              CV &amp; cover letter builder — all entirely in this browser tab, with no
+              server or API call. Every other folder under <code>Assets/</code> (the
+              Humanizer, the Slicer, image filters, an OCR extractor, a self-test) is an
+              engine those four pages run inline, not a separate destination of its own —
+              open any of the four below and everything it uses is right there on the page.
             </p>
             <div class="hero-actions">
               <a href="Assets/Forecast Models/Lab.html" class="btn btn-primary">Open Forecasting Lab</a>
               <a href="Assets/Image Models/Lab.html" class="btn btn-secondary">Open Image Lab</a>
               <a href="Assets/NLP Models/Lab.html" class="btn btn-secondary">Open NLP Lab</a>
-              <a href="#testinglab" class="btn btn-secondary">Open Testing Lab</a>
+              <a href="Assets/Resume,CV &amp; Cover Letter/Index.html" class="btn btn-secondary">Open Resume Builder</a>
             </div>
           </div>
 
           <div class="hero-panel">
             <div class="panel-box">
               <strong>4</strong>
-              <span>Labs — forecasting, image, NLP, testing</span>
+              <span>Labs — forecasting, image, NLP, resume builder</span>
             </div>
             <div class="panel-box">
               <strong>0</strong>
               <span>Network requests to run any of them</span>
             </div>
             <div class="panel-box">
-              <strong>Assets/*Models</strong>
-              <span>Each lab's real model code, one folder each</span>
+              <strong>Assets/</strong>
+              <span>Each lab's real code lives in its own folder here</span>
             </div>
           </div>
         </div>
@@ -379,7 +359,7 @@
               <li>→ Linear, weighted, and polynomial (degree 2/3) regression</li>
               <li>→ A real backprop-trained neural network (1 → N tanh → 1)</li>
               <li>→ "Compare All Models" side by side on your own data or CSV</li>
-              <li>→ R², RMSE, MAE, and a forward forecast past your last point</li>
+              <li>→ R², RMSE, MAE, a forward forecast, and a train/test self-test — all on this one page</li>
             </ul>
             <a href="Assets/Forecast Models/Lab.html" class="btn btn-primary">Open Forecasting Lab →</a>
           </div>
@@ -400,10 +380,10 @@
           </div>
           <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
             <ul class="feature-list" style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; color:var(--muted); font-size:0.85rem;">
-              <li>→ Live brightness / contrast / blur via the canvas 2D filter API</li>
-              <li>→ A real-time RGB histogram of whatever's currently on canvas</li>
-              <li>→ K-means color extraction, 2–12 dominant colors, your choice</li>
-              <li>→ Download the adjusted image straight back out as PNG</li>
+              <li>→ Live brightness / contrast / blur, a real-time RGB histogram, and k-means color extraction</li>
+              <li>→ A from-scratch pixel-filter &amp; convolution editor — grayscale, Sobel edges, sharpen, crop, and more</li>
+              <li>→ A tiny coordinate MLP trained live by hand-written backprop, right on this page</li>
+              <li>→ A self-test that checks the color extraction against known ground truth</li>
             </ul>
             <a href="Assets/Image Models/Lab.html" class="btn btn-primary">Open Image Lab →</a>
           </div>
@@ -424,109 +404,78 @@
           </div>
           <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
             <ul class="feature-list" style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; color:var(--muted); font-size:0.85rem;">
-              <li>→ Lexicon-based sentiment scoring — Positive / Negative / Neutral</li>
-              <li>→ Term-frequency keyword extraction with stopword filtering</li>
-              <li>→ Word count, sentence count, avg word length, reading time</li>
-              <li>→ Also see the Humanizer — a related, rule-based text rewriter</li>
+              <li>→ Lexicon-based sentiment scoring, keyword extraction, and text stats</li>
+              <li>→ Humanizer — rewrites stock AI-sounding phrasing, right on this page</li>
+              <li>→ Slicer runs behind the Humanizer — grammatical word-class + tense tagging, no UI of its own</li>
+              <li>→ A bitmap OCR extractor and a sentiment self-test, both on this page too</li>
             </ul>
             <a href="Assets/NLP Models/Lab.html" class="btn btn-primary">Open NLP Lab →</a>
           </div>
         </div>
       </section>
 
-      <section id="testinglab" class="section">
+      <section id="resumelab" class="section">
         <div class="container">
           <div class="section-title">
-            <div class="badge">Local Testing Lab</div>
-            <h2>Does any of this actually work? Let's check.</h2>
+            <div class="badge">Resume, CV &amp; Cover Letter Builder</div>
+            <h2>One form, ten live previews, and a distraction-free full-screen editor.</h2>
             <p class="lead">
-              A real evaluation harness, not a demo — <code>Assets/Testing Models/model-tests.js</code>
-              fits every regression model against a held-out test split of synthetic data
-              with a <em>known</em> true relationship, runs the sentiment analyzer against
-              a hand-labeled test set, and checks whether k-means color extraction actually
-              recovers colors it's given. Every number below comes from a real run against
-              known ground truth.
+              Fill in a form once and watch a resume, a CV, a cover letter, an ATS-friendly
+              plain resume, a Europass CV, a Japanese rirekisho, and now Spanish, French,
+              Russian and German previews update live, side by side, in
+              <code>Assets/Resume,CV &amp; Cover Letter/Builder.js</code>. A full-screen
+              mode gives the editor and preview the whole screen while you type, print any
+              format straight to PDF, and a companion Python CLI formats the same exported
+              JSON outside the browser.
             </p>
           </div>
-
-          <div class="lab-panel" style="margin-bottom:20px;">
-            <div class="lab-row" style="align-items:center;">
-              <button type="button" id="runTestsBtn" class="btn btn-primary">Run All Tests</button>
-              <span class="hint" id="testRunHint">Not run yet.</span>
-            </div>
-          </div>
-
-          <div id="testResults" style="display:none;">
-            <div class="lab-panel test-report">
-              <h4>1 · Regression models — train/test split on known y = 3 + 2x</h4>
-              <p class="test-sub" id="regressionSub"></p>
-              <table class="test-table">
-                <thead><tr><th>Model</th><th>Train R²</th><th>Test R²</th><th>Test RMSE</th><th>Test MAE</th></tr></thead>
-                <tbody id="regressionResultsBody"></tbody>
-              </table>
-            </div>
-
-            <div class="lab-panel test-report">
-              <h4>2 · Sentiment analysis — accuracy against a labeled test set</h4>
-              <div id="sentimentTestStatus"></div>
-              <table class="test-table">
-                <thead><tr><th>Text</th><th>Expected</th><th>Predicted</th><th></th></tr></thead>
-                <tbody id="sentimentResultsBody"></tbody>
-              </table>
-            </div>
-
-            <div class="lab-panel test-report">
-              <h4>3 · Color extraction — does k-means recover 3 known colors?</h4>
-              <div id="colorTestStatus"></div>
-              <div id="colorTestSwatches"></div>
-            </div>
+          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+            <ul class="feature-list" style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; color:var(--muted); font-size:0.85rem;">
+              <li>→ 10 live document previews: Resume, CV, Cover Letter, ATS, Europass, Japanese, Spanish, French, Russian, German</li>
+              <li>→ Full-screen edit + preview mode, so you can see exactly how it will look while you type</li>
+              <li>→ Autosaved draft, print-to-PDF, and JSON export/import</li>
+              <li>→ A Python CLI (<code>Printer.py</code>) that formats the identical draft outside the browser</li>
+            </ul>
+            <a href="Assets/Resume,CV &amp; Cover Letter/Index.html" class="btn btn-primary">Open Resume Builder →</a>
           </div>
         </div>
       </section>
 
-      <section id="tools" class="section" style="padding-top:0;">
+      <section id="certifications" class="section" style="padding-top:0;">
         <div class="container">
-          <div class="section-title" style="margin-bottom:20px;">
-            <div class="badge">Also in this lab</div>
-            <h2 style="font-size:clamp(1.5rem, 3vw, 2.1rem);">A few more real tools, not just the four labs above.</h2>
+          <div class="section-title">
+            <div class="badge">Certifications</div>
+            <h2>AI &amp; ML-relevant credentials.</h2>
+            <p class="lead">
+              A curated set from 67 verified LinkedIn certifications — the ones most relevant to this lab.
+              <a href="../../Assets/resume/cv.html" target="_blank" style="color:var(--secondary); font-weight:700;">View full CV &amp; all certifications →</a>
+            </p>
           </div>
-
-          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
-            <div>
-              <h3 style="margin:0 0 8px;">Résumé, CV &amp; Cover Letter Builder</h3>
-              <p style="margin:0; max-width:560px;">
-                One form drives a live resume, CV, and cover letter preview, with print-to-PDF and
-                an autosaved draft — plus a companion Python CLI (<code>Printer.py</code>) that formats
-                the same exported JSON outside the browser.
-              </p>
+          <div class="row">
+            <div class="card">
+              <h3>Fundamentals of Deep Learning</h3>
+              <p>NVIDIA · Dec 2025</p>
             </div>
-            <a href="Assets/Resume,CV &amp; Cover Letter/Index.html" class="btn btn-secondary">Open the builder →</a>
-          </div>
-
-          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
-            <div>
-              <h3 style="margin:0 0 8px;">Humanizer</h3>
-              <p style="margin:0; max-width:560px;">
-                A rule-based rewriter for stock AI-sounding phrasing ("in today's fast-paced
-                world," "utilize," "seamless") — every swap it makes is listed in a plain
-                <code>database.sql</code>, plus a Python CLI (<code>backend.py</code>) that runs the
-                same rules outside the browser.
-              </p>
+            <div class="card">
+              <h3>AI for Beginners</h3>
+              <p>HP LIFE · Aug 2025</p>
             </div>
-            <a href="Assets/NLP Models/Humanizer/Index.html" class="btn btn-secondary">Open the Humanizer →</a>
-          </div>
-
-          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
-            <div>
-              <h3 style="margin:0 0 8px;">Forecast Models Pipeline</h3>
-              <p style="margin:0; max-width:560px;">
-                The Forecasting Lab's exact regression math, ported to a real three-stage
-                Python pipeline — <code>extractor.py</code> → <code>worker.py</code> →
-                <code>printer.py</code> — backed by a genuine SQLite database instead of a
-                browser tab.
-              </p>
+            <div class="card">
+              <h3>Critical Thinking in the AI Era</h3>
+              <p>HP LIFE · Jun 2026</p>
             </div>
-            <a href="Assets/Forecast Models/Lab.html#pipeline" class="btn btn-secondary">Open the pipeline →</a>
+            <div class="card">
+              <h3>Image Generation with AI Training Course</h3>
+              <p>Simplilearn · Nov 2025</p>
+            </div>
+            <div class="card">
+              <h3>Generative AI Content Creation</h3>
+              <p>Adobe · Jul 2025</p>
+            </div>
+            <div class="card">
+              <h3>Python Application Development</h3>
+              <p>MindLuster · Aug 2026</p>
+            </div>
           </div>
         </div>
       </section>
@@ -559,15 +508,14 @@
       </div>
     </div>
     <script type="module">
-      // Forecasting Lab, Image Lab, and NLP Lab each moved to their own page
-      // (Assets/Forecast Models/Lab.html, Assets/Image Models/Lab.html,
-      // Assets/NLP Models/Lab.html) — this page just links to them now. The
-      // Testing Lab stays here; it imports model-tests.js, which is
-      // self-contained and imports the regression/sentiment/color engines
-      // itself, so it doesn't need anything the moved labs used to import.
-      import { rgbToHex } from './Assets/Image Models/image-engine.js';
-      import { runAllTests } from './Assets/Testing Models/model-tests.js';
-
+      // Forecasting Lab, Image Lab, NLP Lab, and the Resume/CV/Cover Letter
+      // Builder are the only four nested pages under Assets/ — this hub just
+      // links to them (Assets/Forecast Models/Lab.html, Assets/Image
+      // Models/Lab.html, Assets/NLP Models/Lab.html, Assets/Resume,CV & Cover
+      // Letter/Index.html). Every other folder under Assets/ (Humanizer,
+      // Slicer, Image Extractor, Image Editor, Image Generation) is an engine
+      // one of those four pages imports and runs inline as a section of
+      // itself, not a page of its own — there is nothing else to link to here.
       function setCookie(name, value, days) {
         var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
         document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
@@ -592,97 +540,6 @@
           banner.style.display = 'none';
         });
       })();
-
-      /* ============================= Testing Lab ============================= */
-
-      const runTestsBtn = document.getElementById('runTestsBtn');
-      const testRunHint = document.getElementById('testRunHint');
-      const testResults = document.getElementById('testResults');
-      const regressionSub = document.getElementById('regressionSub');
-      const regressionResultsBody = document.getElementById('regressionResultsBody');
-      const sentimentTestStatus = document.getElementById('sentimentTestStatus');
-      const sentimentResultsBody = document.getElementById('sentimentResultsBody');
-      const colorTestStatus = document.getElementById('colorTestStatus');
-      const colorTestSwatches = document.getElementById('colorTestSwatches');
-
-      function renderRegressionTest(report) {
-        regressionSub.textContent =
-          `True relationship: ${report.trueRelationship} — trained on ${report.trainSize} points, tested on ${report.testSize} held-out points.`;
-
-        const bestR2 = Math.max(...report.results.filter((r) => r.trained).map((r) => r.testR2));
-
-        regressionResultsBody.innerHTML = '';
-        report.results.forEach((r) => {
-          const tr = document.createElement('tr');
-          if (!r.trained) {
-            tr.innerHTML = `<td>${r.name}</td><td colspan="4" style="color:var(--bad);">${r.error}</td>`;
-          } else {
-            const isBest = r.testR2 === bestR2;
-            tr.innerHTML = `
-              <td>${r.name}${isBest ? ' ★' : ''}</td>
-              <td>${r.trainR2.toFixed(4)}</td>
-              <td class="${isBest ? 'best' : ''}">${r.testR2.toFixed(4)}</td>
-              <td>${r.testRmse.toFixed(3)}</td>
-              <td>${r.testMae.toFixed(3)}</td>
-            `;
-          }
-          regressionResultsBody.appendChild(tr);
-        });
-      }
-
-      function renderSentimentTest(report) {
-        const passed = report.correct === report.total;
-        sentimentTestStatus.innerHTML = `
-          <span class="${passed ? 'test-pass' : 'test-fail'}">${passed ? 'Pass' : 'Partial'} — ${report.correct}/${report.total} (${(report.accuracy * 100).toFixed(0)}%)</span>
-        `;
-
-        sentimentResultsBody.innerHTML = '';
-        report.details.forEach((d) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${d.text}</td>
-            <td>${d.expected}</td>
-            <td>${d.predicted}</td>
-            <td>${d.correct ? '✅' : '❌'}</td>
-          `;
-          sentimentResultsBody.appendChild(tr);
-        });
-      }
-
-      function renderColorTest(report) {
-        colorTestStatus.innerHTML = `
-          <span class="${report.passed ? 'test-pass' : 'test-fail'}">${report.passed ? 'Pass' : 'Fail'} — max channel error ${report.maxError.toFixed(2)} (recovered ${report.clusterCount} of 3 clusters)</span>
-        `;
-
-        colorTestSwatches.innerHTML = '';
-        report.matched.forEach((m) => {
-          const trueHex = rgbToHex(m.trueColor);
-          const gotHex = m.recovered ? rgbToHex(m.recovered) : '#000000';
-          const row = document.createElement('div');
-          row.className = 'swatch-compare';
-          row.innerHTML = `
-            <span class="swatch-color" style="background:${trueHex};"></span>
-            <span>true ${trueHex}</span>
-            <span>→</span>
-            <span class="swatch-color" style="background:${gotHex};"></span>
-            <span>recovered ${gotHex} (error ${m.error.toFixed(2)})</span>
-          `;
-          colorTestSwatches.appendChild(row);
-        });
-      }
-
-      runTestsBtn.addEventListener('click', () => {
-        testRunHint.textContent = 'Running…';
-        // Let the button label update before the (synchronous, CPU-bound) tests run.
-        setTimeout(() => {
-          const report = runAllTests();
-          renderRegressionTest(report.regression);
-          renderSentimentTest(report.sentiment);
-          renderColorTest(report.colorExtraction);
-          testResults.style.display = 'block';
-          testRunHint.textContent = 'Last run: just now.';
-        }, 10);
-      });
     </script>
   </body>
 </html>

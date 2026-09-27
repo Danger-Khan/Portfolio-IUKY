@@ -12,6 +12,7 @@ Stages: load_rules() -> humanize_text() -> a (result, changes) pair, where
 changes lists every (original, replacement) swap actually made.
 """
 
+import importlib.util
 import re
 import sqlite3
 from pathlib import Path
@@ -19,6 +20,23 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DEFAULT_DB = HERE / "humanizer.db"
 SCHEMA_SQL = HERE / "database.sql"
+SLICER_CLI_PATH = HERE.parent / "Slicer" / "AI" / "slicer_cli.py"
+
+_slicer = None
+
+
+def _slicer_module():
+    """Lazy-loads slicer_cli.py by path -- Slicer/ is a sibling of Humanizer/,
+    not an importable package, and has no page or CLI entry point of its own.
+    analyze() below is its only caller here, mirroring Engine.js's own use of
+    slicer-engine.js in the browser."""
+    global _slicer
+    if _slicer is None:
+        spec = importlib.util.spec_from_file_location("slicer_cli", SLICER_CLI_PATH)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _slicer = module
+    return _slicer
 
 
 def ensure_database(db_path=DEFAULT_DB, schema_path=SCHEMA_SQL):
@@ -147,6 +165,25 @@ def humanize_text(text, rules, options=None):
 
 
 def analyze(text):
+    """Word/sentence counts, plus a Slicer-powered word-class breakdown and
+    detected tense of `text`. use_nltk=False here: analyze() must stay
+    stdlib-only and instant, the same promise the rest of this pipeline
+    makes -- the NLTK fallback in slicer_cli.py is for its own CLI, not this."""
     words = text.split()
     sentences = [s for s in re.split(r"[.!?]+\s*", text) if s.strip()]
-    return {"word_count": len(words), "sentence_count": len(sentences)}
+
+    slicer = _slicer_module()
+    _, counts = slicer.slice_text(text, use_nltk=False)
+    tense = slicer.detect_tense(slicer.tokenize(text))
+    word_classes = {
+        slicer.CATEGORY_LABELS[key]: count
+        for key, count in counts.items()
+        if key not in ("punctuation", "unclassified")
+    }
+
+    return {
+        "word_count": len(words),
+        "sentence_count": len(sentences),
+        "word_classes": word_classes,
+        "tense": tense["label"] if tense else None,
+    }

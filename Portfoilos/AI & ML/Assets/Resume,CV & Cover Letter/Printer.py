@@ -15,6 +15,10 @@ Usage:
     python Printer.py draft.json --type ats       # ATS-friendly plain resume
     python Printer.py draft.json --type europass   # Europass CV
     python Printer.py draft.json --type japanese   # Japanese rirekisho (履歴書)
+    python Printer.py draft.json --type spanish    # Spanish resume
+    python Printer.py draft.json --type french     # French resume
+    python Printer.py draft.json --type russian    # Russian resume
+    python Printer.py draft.json --type german     # German resume
     python Printer.py draft.json --out out_dir    # write .txt files instead of printing
 """
 
@@ -33,6 +37,38 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 WRAP_WIDTH = 78
+
+
+def load_dictionary(code):
+    """EN-><lang> word glossary shared with the browser build. Reads the same
+    translation/<code>-dictionary.json that <code>-dictionary.js mirrors for
+    the browser build, so the CLI and the live preview stay in sync."""
+    path = Path(__file__).resolve().parent / "translation" / f"{code}-dictionary.json"
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    data.pop("_comment", None)
+    return data
+
+
+DICTIONARIES = {code: load_dictionary(code) for code in ("ja", "es", "fr", "ru", "de")}
+_DICT_KEYS = {code: sorted(d, key=len, reverse=True) for code, d in DICTIONARIES.items()}
+
+
+def translate_words(text, code):
+    """Annotates recognized whole words with their translated equivalent in
+    parentheses -- a plain dictionary lookup, not machine translation, so
+    proper nouns (names, companies, schools) are correctly left untouched."""
+    dictionary = DICTIONARIES.get(code)
+    if not text or not dictionary:
+        return text
+    result = str(text)
+    for word in _DICT_KEYS[code]:
+        pattern = re.compile(r"\b(" + re.escape(word) + r")\b", re.IGNORECASE)
+        result = pattern.sub(lambda m: m.group(0) + f" ({dictionary[word]})", result)
+    return result
 
 
 def load_draft(path):
@@ -194,9 +230,15 @@ def format_ats(data):
     out.append(name)
     out.append("=" * len(name))
 
-    contact_bits = [data.get(k) for k in ("email", "phone", "location", "links") if data.get(k)]
-    if contact_bits:
-        out.append(" | ".join(contact_bits))
+    contact_labels = (
+        ("email", "Email Address"),
+        ("phone", "Phone Number"),
+        ("location", "Address"),
+        ("links", "LinkedIn / Portfolio / GitHub"),
+    )
+    for key, label in contact_labels:
+        if data.get(key):
+            out.append(f"{label}: {data[key]}")
 
     if data.get("summary"):
         out.append(section("Summary"))
@@ -320,7 +362,7 @@ def format_japanese(data):
         if not (e.get("degree") or e.get("school")):
             continue
         start, end, ongoing = split_date_range(e.get("dates"))
-        label = e.get("school") or e.get("degree")
+        label = translate_words(e.get("school") or e.get("degree"), "ja")
         if start:
             history.append((start, f"{label} 入学 (Enrolled)"))
         if end:
@@ -331,7 +373,7 @@ def format_japanese(data):
         if not (e.get("role") or e.get("company")):
             continue
         start, end, ongoing = split_date_range(e.get("dates"))
-        label = e.get("company") or e.get("role")
+        label = translate_words(e.get("company") or e.get("role"), "ja")
         if start:
             history.append((start, f"{label} 入社 (Joined)"))
         if end:
@@ -346,10 +388,140 @@ def format_japanese(data):
 
     if data.get("extra"):
         out.append(section("免許・資格 (Licenses & Qualifications)"))
-        out.append(bullets(data["extra"]))
+        out.append(bullets(translate_words(data["extra"], "ja")))
 
     out.append(section("本人希望記入欄 (Personal Requests)"))
-    out.append(data.get("jpRequest") or data.get("summary") or "None specified.")
+    request = data.get("jpRequest") or data.get("summary")
+    out.append(translate_words(request, "ja") if request else "None specified.")
+
+    if DICTIONARIES["ja"]:
+        out.append("")
+        out.append(
+            f"(Words in parentheses are from a {len(DICTIONARIES['ja'])}-term EN->JA glossary "
+            "in translation/ja-dictionary.json -- a plain word lookup, not machine "
+            "translation. Names and other free text are shown exactly as typed.)"
+        )
+
+    return "\n".join(out).strip() + "\n"
+
+
+TRANSLATION_LABELS = {
+    "es": {
+        "summary": "Resumen",
+        "experience": "Experiencia",
+        "education": "Educación",
+        "skills": "Habilidades",
+        "extra": "Certificaciones, Publicaciones y Proyectos",
+        "glossary_note": (
+            "(Las palabras entre paréntesis provienen de un glosario EN->ES de {n} "
+            "términos en translation/es-dictionary.json -- una búsqueda de palabras "
+            "simple, no traducción automática.)"
+        ),
+    },
+    "fr": {
+        "summary": "Profil",
+        "experience": "Expérience professionnelle",
+        "education": "Formation",
+        "skills": "Compétences",
+        "extra": "Certifications, publications et projets",
+        "glossary_note": (
+            "(Les mots entre parenthèses proviennent d'un glossaire EN->FR de {n} "
+            "termes dans translation/fr-dictionary.json -- une simple recherche de "
+            "mots, pas une traduction automatique.)"
+        ),
+    },
+    "ru": {
+        "summary": "О себе",
+        "experience": "Опыт работы",
+        "education": "Образование",
+        "skills": "Навыки",
+        "extra": "Сертификаты, публикации и проекты",
+        "glossary_note": (
+            "(Слова в скобках взяты из EN->RU словаря ({n} терминов) в "
+            "translation/ru-dictionary.json -- это простой поиск по словарю, а не "
+            "машинный перевод.)"
+        ),
+    },
+    "de": {
+        "summary": "Profil",
+        "experience": "Berufserfahrung",
+        "education": "Ausbildung",
+        "skills": "Fähigkeiten",
+        "extra": "Zertifikate, Veröffentlichungen und Projekte",
+        "glossary_note": (
+            "(Wörter in Klammern stammen aus einem EN->DE-Glossar ({n} Begriffe) in "
+            "translation/de-dictionary.json -- eine einfache Wortsuche, keine "
+            "maschinelle Übersetzung.)"
+        ),
+    },
+}
+
+
+def format_translated(data, code):
+    """A resume laid out like format_resume_or_cv, but with section headers in
+    the target language and recognized vocabulary annotated via the matching
+    EN-><lang> glossary -- the same honest "word lookup, not translation"
+    approach as the Japanese rirekisho format, applied to a plain resume shape
+    instead of that format's own history-table structure."""
+    labels = TRANSLATION_LABELS[code]
+    out = []
+    name = data.get("name") or "Your Name"
+    out.append(name)
+    out.append("=" * len(name))
+
+    title = data.get("title")
+    if title:
+        out.append(title)
+
+    contact_bits = [data.get(k) for k in ("email", "phone", "location", "links") if data.get(k)]
+    if contact_bits:
+        out.append("  |  ".join(contact_bits))
+
+    summary = data.get("summary")
+    if summary:
+        out.append(section(labels["summary"]))
+        out.append(wrap(translate_words(summary, code)))
+
+    experience = [e for e in data.get("experience", []) if e.get("role") or e.get("company")]
+    if experience:
+        out.append(section(labels["experience"]))
+        for e in experience:
+            head = translate_words(e.get("role") or "Role", code)
+            if e.get("company"):
+                head += f" — {translate_words(e['company'], code)}"
+            out.append(head)
+            if e.get("dates"):
+                out.append(f"  ({e['dates']})")
+            b = bullets(translate_words(e.get("bullets"), code))
+            if b:
+                out.append(b)
+            out.append("")
+
+    education = [e for e in data.get("education", []) if e.get("degree") or e.get("school")]
+    if education:
+        out.append(section(labels["education"]))
+        for e in education:
+            head = translate_words(e.get("degree") or "Degree", code)
+            if e.get("school"):
+                head += f" — {translate_words(e['school'], code)}"
+            out.append(head)
+            if e.get("dates"):
+                out.append(f"  ({e['dates']})")
+        out.append("")
+
+    skills = data.get("skills")
+    if skills:
+        out.append(section(labels["skills"]))
+        out.append(wrap(translate_words(skills, code)))
+
+    if data.get("extra"):
+        out.append(section(labels["extra"]))
+        out.append(bullets(translate_words(data["extra"], code)))
+
+    dictionary = DICTIONARIES.get(code)
+    if dictionary:
+        out.append("")
+        out.append(labels["glossary_note"].format(n=len(dictionary)))
 
     return "\n".join(out).strip() + "\n"
 
@@ -361,6 +533,10 @@ FORMATTERS = {
     "ats": format_ats,
     "europass": format_europass,
     "japanese": format_japanese,
+    "spanish": lambda d: format_translated(d, "es"),
+    "french": lambda d: format_translated(d, "fr"),
+    "russian": lambda d: format_translated(d, "ru"),
+    "german": lambda d: format_translated(d, "de"),
 }
 
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Image Processing Lab — AI/ML</title>
-    <meta name="description" content="Brightness, contrast, blur, an RGB histogram, and from-scratch k-means color extraction — on your own image, entirely in the browser." />
+    <meta name="description" content="Brightness, contrast, blur, k-means color extraction, from-scratch pixel filters and convolution kernels, and a tiny coordinate MLP trained live in the browser — one page, three engines, all working on your own image." />
     <style>
       :root {
         --bg: #0b1020;
@@ -29,28 +29,43 @@
       .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
       .logo { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.95rem; }
       .logo span { color: var(--secondary); }
-      .nav-links { display: flex; gap: 20px; }
+      .nav-links { display: flex; gap: 20px; flex-wrap: wrap; }
       .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
       .nav-links a:hover { color: var(--secondary); }
 
       .hero { padding: 40px 0 6px; }
       .badge { display: inline-block; color: var(--secondary); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
       h1 { margin: 0 0 14px; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; }
-      .lead { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 720px; }
+      .lead { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 760px; }
       .lead code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
       .back-link { display: inline-block; margin-top: 18px; color: var(--muted); text-decoration: none; font-size: 0.82rem; }
       .back-link:hover { color: var(--secondary); }
       .back-link::before { content: '\2190 '; }
 
-      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+      .page-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+      .page-nav a {
+        font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--muted); text-decoration: none; padding: 7px 14px; border-radius: 999px;
+        border: 1px solid var(--line);
+      }
+      .page-nav a:hover { color: var(--secondary); border-color: var(--secondary); }
+
+      .btn { display: inline-block; padding: 13px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; border: 1px solid var(--line); cursor: pointer; font-size: 0.9rem; font-family: inherit; background: rgba(255,255,255,0.04); color: var(--text); }
+      .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #08111b; border: none; }
       .btn-secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
       .btn-ghost { border: 1px solid var(--line); color: var(--muted); background: transparent; }
+      .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .section-title { margin-bottom: 20px; }
+      .section-title h2 { margin: 0 0 8px; font-size: 1.3rem; }
+      .section-title p.lead { margin: 0; font-size: 0.88rem; }
+      .section-title .badge { margin-bottom: 10px; }
 
       .lab-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; margin-bottom: 20px; }
-      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .lab-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 20px; }
       .lab-panel h3 { margin: 0 0 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary); }
 
-      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .lab-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
       .lab-row .btn { padding: 9px 16px; font-size: 0.78rem; }
 
       .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 0.82rem; color: var(--muted); }
@@ -60,6 +75,8 @@
       .field input[type="range"] { width: 100%; accent-color: var(--secondary); background: transparent; }
       .field .range-row { display: flex; justify-content: space-between; align-items: baseline; }
       .field .range-row span.hint { font-size: 0.78rem; opacity: 1; color: var(--secondary); font-family: 'Consolas', monospace; }
+      .field-inline { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; color: var(--muted); }
+      .field-inline input, .field-inline select { width: 90px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 6px; color: var(--text); padding: 6px 8px; font-family: inherit; }
 
       .error-box { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.4); color: #fecaca; border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; margin-top: 8px; }
 
@@ -70,6 +87,22 @@
         overflow: auto; padding: 12px;
       }
       #imgCanvas { max-width: 100%; border-radius: 8px; display: block; }
+      #editorCanvas { border: 1px solid var(--line); border-radius: 8px; background: #1a1a1a; display: block; margin-top: 14px; max-width: 100%; image-rendering: pixelated; }
+      .empty-hint { color: var(--muted); font-size: 0.85rem; margin-top: 12px; }
+
+      .crop-fields { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-top: 6px; }
+      .crop-fields label { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; color: var(--muted); }
+      .crop-fields input { width: 70px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 6px; color: var(--text); padding: 6px 8px; font-family: inherit; }
+
+      .canvas-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 14px; }
+      .canvas-box { text-align: center; }
+      .canvas-box canvas { border: 1px solid var(--line); border-radius: 8px; background: #1a1a1a; image-rendering: pixelated; max-width: 100%; }
+      .canvas-box span { display: block; margin-top: 6px; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+      .loss-line { font-family: 'Consolas', monospace; font-size: 0.82rem; color: var(--muted); margin-top: 12px; min-height: 1.2em; }
+
+      .file-map { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 0.82rem; }
+      .file-map td, .file-map th { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; color: var(--muted); }
+      .file-map code { color: var(--text); background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 5px; }
 
       .legend-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75rem; color: var(--muted); }
       .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
@@ -80,8 +113,32 @@
       .swatch-color { width: 64px; height: 64px; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
       .swatch strong { color: var(--text); font-family: 'Consolas', monospace; font-size: 0.72rem; }
 
+      .swatch-compare { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; }
+      .swatch-compare .swatch-color { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; }
+      .test-pass, .test-fail {
+        display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
+      }
+      .test-pass { background: rgba(52,211,153,0.15); color: var(--good); border: 1px solid rgba(52,211,153,0.4); }
+      .test-fail { background: rgba(248,113,113,0.15); color: var(--bad); border: 1px solid rgba(248,113,113,0.4); }
+
       .offline-note { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--good); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
       .offline-note::before { content: '●'; }
+
+      .subtools { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+      .subtool {
+        display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .subtool:hover { border-color: var(--secondary); transform: translateY(-2px); }
+      .subtool h3 { margin: 0; font-size: 0.95rem; color: var(--secondary); }
+      .subtool p { margin: 0; font-size: 0.82rem; line-height: 1.65; color: var(--muted); }
+      .subtool .path { font-size: 0.7rem; color: var(--muted); opacity: 0.75; font-family: 'Consolas', monospace; }
+      .subtool .go { font-size: 0.78rem; font-weight: 700; color: var(--text); margin-top: auto; }
+      .section-sub { color: var(--muted); font-size: 0.88rem; line-height: 1.7; max-width: 760px; margin: 0 0 22px; }
+      .section-sub code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; font-size: 0.85em; }
+      h2.sec { margin: 0 0 10px; font-size: 1.3rem; }
 
       footer { padding: 26px 0 40px; border-top: 1px solid var(--line); }
       .footer-nav { display: flex; gap: 16px; margin-bottom: 10px; }
@@ -118,22 +175,31 @@
       <section class="hero">
         <div class="container">
           <div class="badge">Local Image Processing Lab</div>
-          <h1>Brightness, contrast, blur, and color extraction — on your own image.</h1>
+          <h1>Brightness, contrast, blur, filters, and a tiny neural net — all in one page.</h1>
           <p class="lead">
-            Upload any image — it never leaves this tab, there's no upload and no
-            server. Adjust brightness, contrast and blur live with the sliders below,
-            then pull out its dominant colors with a from-scratch k-means clustering
-            pass over the pixel data, in <code>image-engine.js</code> right in this folder.
-            Pick how many colors to extract yourself.
+            Upload any image — it never leaves this tab, there's no upload and no server.
+            This page is the whole Image Model: live brightness/contrast/blur with
+            k-means color extraction (<code>image-engine.js</code>), a from-scratch pixel
+            filter and convolution editor (<code>Image Editor/editor-engine.js</code>), and
+            a tiny coordinate MLP trained live by hand-written backprop
+            (<code>Image Genertaion/generator-engine.js</code>). Those two folders are
+            engines this page runs, not separate destinations — everything is reachable
+            right here.
           </p>
           <a class="back-link" href="../../index.html#imagelab">Back to AI / ML</a>
+          <div class="page-nav">
+            <a href="#core">Adjust &amp; extract colors</a>
+            <a href="#editor">Image Editor</a>
+            <a href="#generation">Image Generation</a>
+            <a href="#selftest">Self-test</a>
+          </div>
         </div>
       </section>
 
-      <section class="section" style="padding-top:14px;">
+      <section class="section" id="core" style="padding-top:14px;">
         <div class="container">
           <div class="lab-grid">
-            <div class="lab-panel">
+            <div class="lab-panel" style="margin-bottom:0;">
               <h3>1 · Image &amp; adjustments</h3>
               <div class="field">
                 <label for="imgUpload">Upload image</label>
@@ -180,7 +246,7 @@
               <div id="imgErrorBox" class="error-box" style="display:none;"></div>
             </div>
 
-            <div class="lab-panel lab-output">
+            <div class="lab-panel lab-output" style="margin-bottom:0;">
               <h3>2 · Preview</h3>
               <div id="imgCanvasWrap">
                 <canvas id="imgCanvas"></canvas>
@@ -199,9 +265,211 @@
             </div>
           </div>
 
-          <div class="lab-panel" id="paletteBox" style="display:none; margin-top:20px;">
+          <div class="lab-panel" id="paletteBox" style="display:none;">
             <h3>3 · Extracted palette (k-means, from scratch)</h3>
             <div id="paletteSwatches" class="palette-row"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="editor" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Engine: Image Editor</div>
+            <h2>Filters and convolution kernels, written by hand.</h2>
+            <p class="lead">
+              No canvas <code>filter</code> shorthand here — every effect below is a real
+              pixel-array algorithm in <code>Image Editor/editor-engine.js</code>: grayscale,
+              invert, sepia and threshold are per-pixel formulas; blur, sharpen and emboss
+              are 3x3 convolution kernels; edge detection is a genuine Sobel operator.
+              <code>Image Editor/editor_cli.py</code> runs the identical filters on real
+              <code>.ppm</code> files from a terminal — same maths, checked twice.
+            </p>
+          </div>
+
+          <div class="lab-panel">
+            <h3>1 · Load an image</h3>
+            <div class="lab-row">
+              <input type="file" id="editorImgUpload" accept="image/*" />
+              <button type="button" id="sampleBtn" class="btn btn-ghost">Use a generated sample image</button>
+              <button type="button" id="resetBtn" class="btn btn-ghost" disabled>Reset to original</button>
+            </div>
+            <p class="empty-hint" id="emptyHint">Upload an image, or click "Use a generated sample image" to try the filters right away.</p>
+            <canvas id="editorCanvas" style="display:none;"></canvas>
+            <div class="offline-note">Runs 100% locally — no network request is made</div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>2 · Filters (apply on top of the current image)</h3>
+            <div class="lab-row">
+              <button type="button" class="btn filter-btn" data-filter="grayscale">Grayscale</button>
+              <button type="button" class="btn filter-btn" data-filter="invert">Invert</button>
+              <button type="button" class="btn filter-btn" data-filter="sepia">Sepia</button>
+              <button type="button" class="btn filter-btn" data-filter="threshold">Threshold</button>
+              <button type="button" class="btn filter-btn" data-filter="blur">Box Blur</button>
+              <button type="button" class="btn filter-btn" data-filter="sharpen">Sharpen</button>
+              <button type="button" class="btn filter-btn" data-filter="emboss">Emboss</button>
+              <button type="button" class="btn filter-btn" data-filter="edges">Sobel Edges</button>
+              <button type="button" class="btn filter-btn" data-filter="flipH">Flip Horizontal</button>
+              <button type="button" class="btn filter-btn" data-filter="flipV">Flip Vertical</button>
+              <button type="button" class="btn filter-btn" data-filter="rotate90">Rotate 90°</button>
+            </div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>3 · Crop</h3>
+            <div class="crop-fields">
+              <label>X <input type="number" id="cropX" value="0" min="0" /></label>
+              <label>Y <input type="number" id="cropY" value="0" min="0" /></label>
+              <label>Width <input type="number" id="cropW" value="16" min="1" /></label>
+              <label>Height <input type="number" id="cropH" value="16" min="1" /></label>
+              <button type="button" id="cropBtn" class="btn">Apply Crop</button>
+            </div>
+          </div>
+
+          <div class="lab-panel" style="margin-bottom:0;">
+            <h3>4 · Save</h3>
+            <div class="lab-row">
+              <a id="editorDownloadLink" class="btn btn-primary" download="edited.png">Download PNG</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="generation" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Engine: Image Generation</div>
+            <h2>A small neural network, trained live, right here.</h2>
+            <p class="lead">
+              A real, if deliberately tiny, neural network: a plain feedforward MLP that
+              learns the function <code>(x, y) → (r, g, b)</code> for one target image,
+              trained by hand-written backpropagation in
+              <code>Image Genertaion/generator-engine.js</code> — no TensorFlow.js, no ONNX,
+              no pretrained weights. Because it learns a continuous function instead of
+              storing pixels, it can render at a higher resolution than it trained on, or be
+              sampled with the input coordinates jittered by Gaussian noise for a distorted
+              "variation". <code>generator_cli.py</code> trains the identical network in pure
+              Python. Honestly: this warps and upsamples one learned image, it does not
+              generate new scenes from a prompt the way a diffusion model does.
+            </p>
+          </div>
+
+          <div class="lab-panel">
+            <h3>1 · Target image</h3>
+            <div class="lab-row">
+              <input type="file" id="genImgUpload" accept="image/*" />
+              <button type="button" id="useProceduralBtn" class="btn btn-ghost">Use procedural target</button>
+              <label class="field-inline">Train size
+                <select id="trainSize">
+                  <option value="12">12×12</option>
+                  <option value="16" selected>16×16</option>
+                  <option value="20">20×20</option>
+                  <option value="24">24×24</option>
+                </select>
+              </label>
+            </div>
+            <div class="canvas-row">
+              <div class="canvas-box"><canvas id="targetCanvas" width="16" height="16"></canvas><span>Target</span></div>
+            </div>
+            <div class="offline-note">Runs 100% locally — no network request is made</div>
+          </div>
+
+          <div class="lab-panel">
+            <h3>2 · Train</h3>
+            <div class="lab-row">
+              <label class="field-inline">Hidden units <input type="number" id="hiddenUnits" value="16" min="4" max="32" /></label>
+              <label class="field-inline">Epochs <input type="number" id="epochCount" value="250" min="20" max="1000" step="10" /></label>
+              <label class="field-inline">Learning rate <input type="number" id="learningRate" value="0.3" min="0.01" max="1" step="0.01" /></label>
+              <button type="button" id="trainBtn" class="btn btn-primary">Train Network</button>
+            </div>
+            <div class="loss-line" id="lossLine">Not trained yet.</div>
+          </div>
+
+          <div class="lab-panel" style="margin-bottom:0;">
+            <h3>3 · Render</h3>
+            <div class="lab-row">
+              <label class="field-inline">Output size
+                <select id="outputSize">
+                  <option value="32">32×32</option>
+                  <option value="64" selected>64×64</option>
+                  <option value="128">128×128</option>
+                </select>
+              </label>
+              <button type="button" id="renderBtn" class="btn" disabled>Render Reconstruction</button>
+              <label class="field-inline">Variation noise <input type="range" id="variationNoise" min="0" max="40" value="15" /></label>
+              <button type="button" id="variationBtn" class="btn" disabled>Generate Variation</button>
+              <a id="genDownloadLink" class="btn btn-ghost" download="generated.png">Download PNG</a>
+            </div>
+            <div class="canvas-row">
+              <div class="canvas-box"><canvas id="outputCanvas"></canvas><span id="outputLabel">Output</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="selftest" style="padding-top:0;">
+        <div class="container">
+          <div class="section-title">
+            <div class="badge">Self-test</div>
+            <h2>Does the color extraction actually work? Let's check.</h2>
+            <p class="lead">
+              Not a demo — this builds pixels from three known, distinct colors and checks
+              whether k-means (<code>image-engine.js</code>) actually recovers all three
+              within a tight per-channel tolerance, which catches a clustering pass that
+              merely converges to something plausible rather than the real answer.
+            </p>
+          </div>
+          <div class="lab-panel" style="margin-bottom:0;">
+            <div class="lab-row" style="align-items:center; margin-bottom:14px;">
+              <button type="button" id="runColorTestBtn" class="btn btn-secondary">Run Self-Test</button>
+              <span class="hint" id="colorTestHint">Not run yet.</span>
+            </div>
+            <div id="colorTestResults" style="display:none;">
+              <div id="colorTestStatus"></div>
+              <div id="colorTestSwatches" style="margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="related" style="padding-top:0;">
+        <div class="container">
+          <h2 class="sec">Related models elsewhere</h2>
+          <p class="section-sub">
+            Other places on this site where the same pixels-and-maths work shows up.
+          </p>
+          <div class="subtools">
+            <a class="subtool" href="../NLP Models/Lab.html#extractor">
+              <h3>Image Extractor →</h3>
+              <p>
+                The bridge between images and text: renders a 5x7 bitmap font, damages
+                it, then reads it back with a nearest-neighbour classifier. Lives on the
+                NLP Model page, since it's a text-recognition engine, not an image one.
+              </p>
+              <span class="path">Assets/NLP Models/Lab.html#extractor</span>
+              <span class="go">Open the Image Extractor →</span>
+            </a>
+
+            <a class="subtool" href="../NLP Models/Lab.html">
+              <h3>NLP Model →</h3>
+              <p>
+                The text-side equivalent — sentiment scoring, keyword extraction, a
+                rule-based rewriter and a word-class slicer, all on one page.
+              </p>
+              <span class="path">Assets/NLP Models/</span>
+              <span class="go">Open the NLP Model →</span>
+            </a>
+
+            <a class="subtool" href="../../../CADCAMCAE/viewer.html">
+              <h3>CAD Part Viewer →</h3>
+              <p>
+                Same from-scratch rendering idea in another portfolio: an STL parser and
+                a WebGL renderer with a software rasteriser fallback, no library.
+              </p>
+              <span class="path">Portfoilos/CADCAMCAE/</span>
+              <span class="go">Open the viewer →</span>
+            </a>
           </div>
         </div>
       </section>
@@ -229,6 +497,13 @@
 
     <script type="module">
       import { kMeansColors, rgbToHex, computeHistogram } from './image-engine.js';
+      import {
+        toGrayscale, invert, sepia, threshold, flipHorizontal, flipVertical, rotate90,
+        crop, convolve3x3, sobelEdges, KERNELS, makeSampleImage
+      } from './Image Editor/editor-engine.js';
+      import {
+        createNetwork, trainEpoch, imageToSamples, renderNetwork, renderVariation, makeTargetImage
+      } from './Image Genertaion/generator-engine.js';
 
       function setCookie(name, value, days) {
         var expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
@@ -254,6 +529,8 @@
           banner.style.display = 'none';
         });
       })();
+
+      /* ============================= Core: adjust + extract ============================= */
 
       const imgUpload = document.getElementById('imgUpload');
       const brightnessSlider = document.getElementById('brightness');
@@ -473,6 +750,278 @@
           paletteSwatches.appendChild(swatch);
         });
         paletteBox.style.display = 'block';
+      });
+
+      /* ============================= Engine: Image Editor ============================= */
+
+      const editorImgUpload = document.getElementById('editorImgUpload');
+      const sampleBtn = document.getElementById('sampleBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const emptyHint = document.getElementById('emptyHint');
+      const editorCanvas = document.getElementById('editorCanvas');
+      const editorCtx = editorCanvas.getContext('2d');
+      const editorDownloadLink = document.getElementById('editorDownloadLink');
+
+      let originalImage = null; // { width, height, data }
+      let currentImage = null;
+
+      function toImageObject(imageData) {
+        return { width: imageData.width, height: imageData.height, data: imageData.data };
+      }
+
+      function drawEditor(image) {
+        editorCanvas.width = image.width;
+        editorCanvas.height = image.height;
+        editorCanvas.style.display = 'block';
+        emptyHint.style.display = 'none';
+        const imageData = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+        editorCtx.putImageData(imageData, 0, 0);
+        editorDownloadLink.href = editorCanvas.toDataURL('image/png');
+        resetBtn.disabled = false;
+      }
+
+      function setEditorImage(image, remember) {
+        currentImage = image;
+        if (remember) originalImage = { width: image.width, height: image.height, data: image.data.slice() };
+        drawEditor(currentImage);
+      }
+
+      sampleBtn.addEventListener('click', () => {
+        setEditorImage(makeSampleImage(48), true);
+      });
+
+      resetBtn.addEventListener('click', () => {
+        if (originalImage) setEditorImage({ width: originalImage.width, height: originalImage.height, data: originalImage.data.slice() }, false);
+      });
+
+      editorImgUpload.addEventListener('change', () => {
+        const file = editorImgUpload.files && editorImgUpload.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const off = document.createElement('canvas');
+            off.width = img.naturalWidth;
+            off.height = img.naturalHeight;
+            const offCtx = off.getContext('2d');
+            offCtx.drawImage(img, 0, 0);
+            const data = offCtx.getImageData(0, 0, off.width, off.height);
+            setEditorImage(toImageObject(data), true);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.querySelectorAll('.filter-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (!currentImage) return;
+          const filter = btn.dataset.filter;
+          let result;
+          switch (filter) {
+            case 'grayscale': result = toGrayscale(currentImage); break;
+            case 'invert': result = invert(currentImage); break;
+            case 'sepia': result = sepia(currentImage); break;
+            case 'threshold': result = threshold(currentImage, 128); break;
+            case 'blur': result = convolve3x3(currentImage, KERNELS.boxBlur); break;
+            case 'sharpen': result = convolve3x3(currentImage, KERNELS.sharpen); break;
+            case 'emboss': result = convolve3x3(currentImage, KERNELS.emboss); break;
+            case 'edges': result = sobelEdges(currentImage); break;
+            case 'flipH': result = flipHorizontal(currentImage); break;
+            case 'flipV': result = flipVertical(currentImage); break;
+            case 'rotate90': result = rotate90(currentImage); break;
+            default: return;
+          }
+          setEditorImage(result, false);
+        });
+      });
+
+      document.getElementById('cropBtn').addEventListener('click', () => {
+        if (!currentImage) return;
+        const x = parseInt(document.getElementById('cropX').value, 10) || 0;
+        const y = parseInt(document.getElementById('cropY').value, 10) || 0;
+        const w = parseInt(document.getElementById('cropW').value, 10) || 1;
+        const h = parseInt(document.getElementById('cropH').value, 10) || 1;
+        setEditorImage(crop(currentImage, x, y, w, h), false);
+      });
+
+      /* ============================= Engine: Image Generation ============================= */
+
+      const genImgUpload = document.getElementById('genImgUpload');
+      const useProceduralBtn = document.getElementById('useProceduralBtn');
+      const trainSizeSelect = document.getElementById('trainSize');
+      const targetCanvas = document.getElementById('targetCanvas');
+      const targetCtx = targetCanvas.getContext('2d');
+
+      const hiddenUnitsInput = document.getElementById('hiddenUnits');
+      const epochCountInput = document.getElementById('epochCount');
+      const learningRateInput = document.getElementById('learningRate');
+      const trainBtn = document.getElementById('trainBtn');
+      const lossLine = document.getElementById('lossLine');
+
+      const outputSizeSelect = document.getElementById('outputSize');
+      const renderBtn = document.getElementById('renderBtn');
+      const variationNoise = document.getElementById('variationNoise');
+      const variationBtn = document.getElementById('variationBtn');
+      const outputCanvas = document.getElementById('outputCanvas');
+      const outputCtx = outputCanvas.getContext('2d');
+      const genDownloadLink = document.getElementById('genDownloadLink');
+
+      let targetImage = makeTargetImage(Number(trainSizeSelect.value));
+      let network = null;
+
+      function drawToCanvas(canvas, ctx, image) {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const imageData = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      function setTarget(image) {
+        targetImage = image;
+        drawToCanvas(targetCanvas, targetCtx, image);
+        network = null;
+        renderBtn.disabled = true;
+        variationBtn.disabled = true;
+        lossLine.textContent = 'Not trained yet.';
+      }
+
+      setTarget(targetImage);
+
+      useProceduralBtn.addEventListener('click', () => {
+        setTarget(makeTargetImage(Number(trainSizeSelect.value)));
+      });
+
+      trainSizeSelect.addEventListener('change', () => {
+        setTarget(makeTargetImage(Number(trainSizeSelect.value)));
+      });
+
+      genImgUpload.addEventListener('change', () => {
+        const file = genImgUpload.files && genImgUpload.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const size = Number(trainSizeSelect.value);
+            const off = document.createElement('canvas');
+            off.width = size;
+            off.height = size;
+            const offCtx = off.getContext('2d');
+            offCtx.drawImage(img, 0, 0, size, size);
+            const data = offCtx.getImageData(0, 0, size, size);
+            setTarget({ width: size, height: size, data: data.data });
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      async function trainNetwork() {
+        trainBtn.disabled = true;
+        const hidden = Math.max(4, Math.min(32, Number(hiddenUnitsInput.value) || 16));
+        const epochs = Math.max(20, Math.min(1000, Number(epochCountInput.value) || 250));
+        const lr = Number(learningRateInput.value) || 0.3;
+
+        network = createNetwork([2, hidden, hidden, 3]);
+        const samples = imageToSamples(targetImage);
+
+        const chunkSize = 5;
+        for (let epoch = 0; epoch < epochs; epoch += chunkSize) {
+          let lastLoss = 0;
+          const end = Math.min(epoch + chunkSize, epochs);
+          for (let e = epoch; e < end; e += 1) lastLoss = trainEpoch(network, samples, lr);
+          lossLine.textContent = `epoch ${end}/${epochs} — mean squared error ${lastLoss.toFixed(5)}`;
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        renderBtn.disabled = false;
+        variationBtn.disabled = false;
+        trainBtn.disabled = false;
+        renderReconstruction();
+      }
+
+      function renderReconstruction() {
+        if (!network) return;
+        const size = Number(outputSizeSelect.value);
+        const image = renderNetwork(network, size, size);
+        drawToCanvas(outputCanvas, outputCtx, image);
+        document.getElementById('outputLabel').textContent = `Reconstruction (${size}×${size})`;
+        genDownloadLink.href = outputCanvas.toDataURL('image/png');
+      }
+
+      function renderNoisyVariation() {
+        if (!network) return;
+        const size = Number(outputSizeSelect.value);
+        const noiseStd = Number(variationNoise.value) / 100;
+        const image = renderVariation(network, size, size, noiseStd);
+        drawToCanvas(outputCanvas, outputCtx, image);
+        document.getElementById('outputLabel').textContent = `Variation (${size}×${size}, noise ${variationNoise.value}%)`;
+        genDownloadLink.href = outputCanvas.toDataURL('image/png');
+      }
+
+      trainBtn.addEventListener('click', trainNetwork);
+      renderBtn.addEventListener('click', renderReconstruction);
+      variationBtn.addEventListener('click', renderNoisyVariation);
+
+      /* ============================= Self-test: color extraction ============================= */
+
+      function testColorExtraction() {
+        const trueColors = [[230, 40, 40], [40, 200, 90], [50, 90, 230]];
+        const pixels = [];
+        for (const color of trueColors) {
+          for (let i = 0; i < 300; i += 1) pixels.push(color);
+        }
+        const clusters = kMeansColors(pixels, 3);
+        const matched = trueColors.map((trueColor) => {
+          let best = null;
+          let bestDist = Infinity;
+          for (const cluster of clusters) {
+            const d = Math.hypot(
+              cluster.color[0] - trueColor[0],
+              cluster.color[1] - trueColor[1],
+              cluster.color[2] - trueColor[2]
+            );
+            if (d < bestDist) { bestDist = d; best = cluster; }
+          }
+          return { trueColor, recovered: best ? best.color : null, error: bestDist };
+        });
+        const maxError = Math.max(...matched.map((m) => m.error));
+        return { passed: maxError < 5, clusterCount: clusters.length, matched, maxError };
+      }
+
+      const runColorTestBtn = document.getElementById('runColorTestBtn');
+      const colorTestHint = document.getElementById('colorTestHint');
+      const colorTestResults = document.getElementById('colorTestResults');
+      const colorTestStatus = document.getElementById('colorTestStatus');
+      const colorTestSwatches = document.getElementById('colorTestSwatches');
+
+      runColorTestBtn.addEventListener('click', () => {
+        colorTestHint.textContent = 'Running…';
+        setTimeout(() => {
+          const report = testColorExtraction();
+          colorTestStatus.innerHTML = `
+            <span class="${report.passed ? 'test-pass' : 'test-fail'}">${report.passed ? 'Pass' : 'Fail'} — max channel error ${report.maxError.toFixed(2)} (recovered ${report.clusterCount} of 3 clusters)</span>
+          `;
+          colorTestSwatches.innerHTML = '';
+          report.matched.forEach((m) => {
+            const trueHex = rgbToHex(m.trueColor);
+            const gotHex = m.recovered ? rgbToHex(m.recovered) : '#000000';
+            const row = document.createElement('div');
+            row.className = 'swatch-compare';
+            row.innerHTML = `
+              <span class="swatch-color" style="background:${trueHex};"></span>
+              <span>true ${trueHex}</span>
+              <span>→</span>
+              <span class="swatch-color" style="background:${gotHex};"></span>
+              <span>recovered ${gotHex} (error ${m.error.toFixed(2)})</span>
+            `;
+            colorTestSwatches.appendChild(row);
+          });
+          colorTestResults.style.display = 'block';
+          colorTestHint.textContent = 'Last run: just now.';
+        }, 10);
       });
     </script>
   </body>
