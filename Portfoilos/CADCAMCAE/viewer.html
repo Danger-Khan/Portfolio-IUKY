@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAD Part Viewer</title>
+    <meta name="description" content="An offline STL viewer — parser, renderer and orbit controls written from scratch, no external library and no network required.">
     <style>
         :root {
             --bg: #0a0e14;
@@ -12,6 +13,8 @@
             --accent: #38bdf8;
             --text: #e6edf3;
             --muted: rgba(230, 237, 243, 0.6);
+            --good: #34d399;
+            --warn: #fbbf24;
         }
         * { box-sizing: border-box; }
         html, body {
@@ -23,7 +26,9 @@
             color: var(--text);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+        canvas:active { cursor: grabbing; }
+
         #hud {
             position: fixed;
             inset: 0;
@@ -33,14 +38,17 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 18px;
+            gap: 12px;
         }
         .bar {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
             pointer-events: auto;
+            flex-wrap: wrap;
         }
+        .bar.bottom { align-items: flex-end; }
         .panel {
             background: var(--panel);
             border: 1px solid var(--line);
@@ -59,13 +67,14 @@
             align-items: center;
             gap: 8px;
         }
+        #back:hover { color: var(--accent); }
         #title {
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--accent);
-            max-width: 60vw;
+            max-width: 46vw;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -75,6 +84,39 @@
             color: var(--muted);
             letter-spacing: 0.04em;
         }
+
+        .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .tool {
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 7px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .tool:hover { color: var(--text); border-color: var(--accent); }
+        .tool.on { background: var(--accent); color: #06140f; border-color: transparent; }
+        .divider { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
+
+        #stats { font-size: 11px; line-height: 1.85; color: var(--muted); min-width: 210px; }
+        #stats .row { display: flex; justify-content: space-between; gap: 18px; }
+        #stats .row span:last-child { color: var(--text); font-variant-numeric: tabular-nums; }
+        #stats .seal-ok { color: var(--good); }
+        #stats .seal-no { color: var(--warn); }
+        #stats h4 {
+            margin: 0 0 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+        }
+        #renderer-note { font-size: 10px; opacity: 0.65; margin-top: 8px; line-height: 1.5; }
+
         #status {
             position: fixed;
             inset: 0;
@@ -86,11 +128,33 @@
             font-size: 13px;
             color: var(--muted);
             text-align: center;
-            padding: 20px;
+            padding: 24px;
+            z-index: 5;
         }
-        #status strong { color: var(--accent); }
+        #status strong { color: var(--accent); font-size: 15px; }
+        #status p { margin: 0; max-width: 520px; line-height: 1.7; }
         .hidden { display: none !important; }
-        #dl {
+
+        #dropzone {
+            border: 1px dashed var(--line);
+            border-radius: 16px;
+            padding: 26px 30px;
+            background: rgba(15, 20, 28, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        #dropzone.over { border-color: var(--accent); background: rgba(56, 189, 248, 0.08); }
+        code {
+            background: rgba(255,255,255,0.07);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.86em;
+            word-break: break-all;
+        }
+        .btn-accent {
             text-decoration: none;
             color: #06140f;
             background: var(--accent);
@@ -100,6 +164,23 @@
             letter-spacing: 0.06em;
             padding: 10px 16px;
             border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        #progress {
+            width: 220px;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        #progress i { display: block; height: 100%; width: 0%; background: var(--accent); transition: width 0.15s; }
+
+        @media (max-width: 720px) {
+            #stats { display: none; }
+            #title { max-width: 100%; }
+            #hint { display: none; }
         }
     </style>
     <style>
@@ -122,147 +203,262 @@
     </style>
 </head>
 <body>
+    <canvas id="c"></canvas>
+
     <div id="hud">
         <div class="bar">
             <a id="back" class="panel" href="index.html">← CAD/CAM/CAE Portfolio</a>
             <div id="title" class="panel">Loading…</div>
         </div>
-        <div class="bar">
-            <div id="hint" class="panel">Drag to orbit · Scroll to zoom · Right-drag to pan</div>
-            <a id="dl" href="#" download>Download File</a>
+
+        <div class="bar bottom">
+            <div class="panel tools" id="toolbar">
+                <button class="tool" data-view="iso" title="Isometric view">Iso</button>
+                <button class="tool" data-view="front" title="Front view">Front</button>
+                <button class="tool" data-view="top" title="Top view">Top</button>
+                <button class="tool" data-view="right" title="Right view">Right</button>
+                <span class="divider"></span>
+                <button class="tool" id="btnWire" title="Show triangle edges">Wireframe</button>
+                <button class="tool" id="btnSpin" title="Auto-rotate">Spin</button>
+                <button class="tool" id="btnAxis" title="Swap which axis points up">Y-up</button>
+                <span class="divider"></span>
+                <button class="tool" id="btnOpen" title="Open an STL from this computer">Open STL</button>
+                <button class="tool" id="btnShot" title="Save the current view as a PNG">Snapshot</button>
+                <a class="tool" id="dl" href="#" download title="Download the source file">Download</a>
+            </div>
+
+            <div class="panel" id="stats">
+                <h4>Mesh</h4>
+                <div id="stats-body"><div class="row"><span>waiting…</span><span></span></div></div>
+                <div id="renderer-note"></div>
+            </div>
+        </div>
+
+        <div class="bar" style="justify-content:center;">
+            <div id="hint" class="panel">Drag to orbit · Scroll to zoom · Right-drag (or Shift-drag) to pan</div>
         </div>
     </div>
 
     <div id="status">
         <strong id="status-text">Loading model…</strong>
-        <span id="status-sub">Large STL exports can take a moment on first load.</span>
+        <p id="status-sub">Large STL exports can take a moment on first load.</p>
+        <div id="progress" class="hidden"><i></i></div>
+
+        <div id="dropzone" class="hidden">
+            <p id="drop-msg">Drop an <code>.stl</code> file here, or pick one:</p>
+            <button class="btn-accent" id="dropPick">Choose STL file</button>
+        </div>
     </div>
 
-    <canvas id="c"></canvas>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
+    <input type="file" id="filePicker" accept=".stl,.STL,model/stl" class="hidden">
 
     <script type="module">
-        import * as THREE from 'three';
-        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import {
+        createViewer,
+        loadSTLFromURL,
+        loadSTLFromFile,
+        computeMass,
+        computeWatertight,
+        formatNumber,
+        STLError
+      } from './viewer-engine.js';
 
-        const params = new URLSearchParams(window.location.search);
-        const modelPath = params.get('model');
-        const titleText = params.get('title') || (modelPath ? modelPath.split('/').pop() : 'Untitled Part');
+      const params = new URLSearchParams(window.location.search);
+      const modelPath = params.get('model');
+      const titleText = params.get('title') || (modelPath ? decodeURIComponent(modelPath.split('/').pop()) : 'Untitled Part');
 
-        document.getElementById('title').textContent = titleText;
-        document.title = titleText + ' — CAD Viewer';
+      const el = (id) => document.getElementById(id);
+      const titleEl = el('title');
+      const statusEl = el('status');
+      const statusText = el('status-text');
+      const statusSub = el('status-sub');
+      const progress = el('progress');
+      const progressBar = progress.querySelector('i');
+      const dropzone = el('dropzone');
+      const dropMsg = el('drop-msg');
+      const picker = el('filePicker');
+      const dlLink = el('dl');
+      const statsBody = el('stats-body');
+      const rendererNote = el('renderer-note');
 
-        const dlLink = document.getElementById('dl');
-        const statusEl = document.getElementById('status');
-        const statusText = document.getElementById('status-text');
-        const statusSub = document.getElementById('status-sub');
+      titleEl.textContent = titleText;
+      document.title = titleText + ' — CAD Viewer';
 
+      if (modelPath) {
+        dlLink.href = modelPath;
+      } else {
+        dlLink.classList.add('hidden');
+      }
+
+      const viewer = createViewer(el('c'));
+      rendererNote.textContent = viewer.backend === 'webgl'
+        ? 'Rendering with WebGL.'
+        : 'WebGL unavailable — using the software renderer, which samples large meshes and redraws only when you let go.';
+
+      /* ---------------- stats ---------------- */
+
+      function showStats(mesh, size) {
+        const { area, volume } = computeMass(mesh);
+        const seal = computeWatertight(mesh);
+
+        const rows = [
+          ['Triangles', mesh.triangleCount.toLocaleString()],
+          ['Format', mesh.ascii ? 'ASCII STL' : 'Binary STL'],
+          ['Size X', formatNumber(size[0]) + ' mm'],
+          ['Size Y', formatNumber(size[1]) + ' mm'],
+          ['Size Z', formatNumber(size[2]) + ' mm'],
+          ['Surface', formatNumber(area / 100, 1) + ' cm²']
+        ];
+
+        if (seal.checked && seal.sealed) {
+          rows.push(['Volume', formatNumber(Math.abs(volume) / 1000, 1) + ' cm³']);
+          rows.push(['Watertight', '<span class="seal-ok">sealed</span>']);
+        } else if (seal.checked) {
+          rows.push(['Volume', formatNumber(Math.abs(volume) / 1000, 1) + ' cm³ ?']);
+          rows.push(['Watertight', `<span class="seal-no">${seal.openEdges.toLocaleString()} open edges</span>`]);
+        } else {
+          rows.push(['Volume', formatNumber(Math.abs(volume) / 1000, 1) + ' cm³']);
+          rows.push(['Watertight', 'not checked (large mesh)']);
+        }
+
+        if (mesh.degenerate) {
+          rows.push(['Fixed normals', mesh.degenerate.toLocaleString()]);
+        }
+
+        statsBody.innerHTML = rows
+          .map(([k, v]) => `<div class="row"><span>${k}</span><span>${v}</span></div>`)
+          .join('');
+      }
+
+      /* ---------------- loading ---------------- */
+
+      function showViewer(mesh, label) {
+        const info = viewer.load(mesh);
+        showStats(mesh, info.size);
+        statusEl.classList.add('hidden');
+        if (label) {
+          titleEl.textContent = label;
+          document.title = label + ' — CAD Viewer';
+        }
+      }
+
+      function offerFilePicker(headline, detail) {
+        statusEl.classList.remove('hidden');
+        progress.classList.add('hidden');
+        statusText.textContent = headline;
+        statusSub.innerHTML = detail;
+        dropzone.classList.remove('hidden');
         if (modelPath) {
-            dlLink.href = modelPath;
-        } else {
-            dlLink.classList.add('hidden');
+          dropMsg.innerHTML = `Drop <code>${decodeURIComponent(modelPath.split('/').pop())}</code> here, or pick it from disk:`;
         }
+      }
 
-        const canvas = document.getElementById('c');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
-        camera.position.set(80, 80, 120);
-
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-
-        scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x0a0e14, 1.1));
-        const key = new THREE.DirectionalLight(0xffffff, 1.4);
-        key.position.set(120, 180, 100);
-        scene.add(key);
-        const rim = new THREE.DirectionalLight(0x38bdf8, 0.6);
-        rim.position.set(-120, 60, -100);
-        scene.add(rim);
-
-        const grid = new THREE.GridHelper(400, 40, 0x2c3a4b, 0x1a2432);
-        grid.position.y = -0.01;
-        scene.add(grid);
-
-        function frameObject(object) {
-            const box = new THREE.Box3().setFromObject(object);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
-
-            object.position.x -= center.x;
-            object.position.y -= box.min.y;
-            object.position.z -= center.z;
-
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            const distance = maxDim * 2.2;
-            camera.position.set(distance * 0.7, distance * 0.6, distance * 0.9);
-            camera.near = maxDim / 100;
-            camera.far = maxDim * 50;
-            camera.updateProjectionMatrix();
-            controls.target.set(0, size.y / 2, 0);
-            controls.update();
-        }
-
-        if (!modelPath) {
-            statusText.textContent = 'No model specified.';
-            statusSub.textContent = 'Open this viewer from a project card in the CAD/CAM/CAE portfolio.';
-        } else {
-            const loader = new STLLoader();
-            loader.load(
-                modelPath,
-                (geometry) => {
-                    geometry.computeVertexNormals();
-                    const material = new THREE.MeshStandardMaterial({
-                        color: 0x9fb4c7,
-                        metalness: 0.25,
-                        roughness: 0.45
-                    });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.rotation.x = -Math.PI / 2;
-                    scene.add(mesh);
-                    frameObject(mesh);
-                    statusEl.classList.add('hidden');
-                },
-                (xhr) => {
-                    if (xhr.lengthComputable) {
-                        const pct = Math.round((xhr.loaded / xhr.total) * 100);
-                        statusText.textContent = `Loading model… ${pct}%`;
-                    }
-                },
-                (error) => {
-                    console.error('Failed to load STL:', error);
-                    statusText.textContent = 'Could not load this model.';
-                    statusSub.textContent = 'The file may be missing or the browser blocked a local file request — try the download link instead.';
-                }
+      async function loadFromPath(path) {
+        statusText.textContent = 'Loading model…';
+        statusSub.textContent = 'Large STL exports can take a moment on first load.';
+        progress.classList.remove('hidden');
+        try {
+          const mesh = await loadSTLFromURL(path, (fraction) => {
+            progressBar.style.width = Math.round(fraction * 100) + '%';
+          });
+          showViewer(mesh);
+        } catch (err) {
+          if (err instanceof STLError && err.message === 'blocked') {
+            // Almost always file:// — browsers refuse to read local files over
+            // XHR. That is a browser security rule, not something to hack past.
+            offerFilePicker(
+              'Your browser blocked the local file read',
+              'Opening this page straight from disk means the browser will not let it read ' +
+              '<code>' + decodeURIComponent(path) + '</code> on its own. Either drop the file in below, ' +
+              'or serve the folder over HTTP — <code>python3 -m http.server</code> in the portfolio root — and everything loads automatically.'
             );
+          } else {
+            offerFilePicker('Could not load this model', String(err.message || err));
+          }
         }
+      }
 
-        function animate() {
-            controls.update();
-            renderer.render(scene, camera);
-            requestAnimationFrame(animate);
+      if (!modelPath) {
+        offerFilePicker(
+          'No model specified',
+          'Open this viewer from a project card in the CAD/CAM/CAE portfolio, or load an STL from your own machine.'
+        );
+      } else {
+        loadFromPath(modelPath);
+      }
+
+      /* ---------------- local file input ---------------- */
+
+      async function acceptFile(file) {
+        if (!file) return;
+        statusText.textContent = 'Reading ' + file.name + '…';
+        statusSub.textContent = '';
+        dropzone.classList.add('hidden');
+        try {
+          const mesh = await loadSTLFromFile(file);
+          showViewer(mesh, file.name);
+          dlLink.classList.add('hidden');
+        } catch (err) {
+          offerFilePicker('That file did not parse', String(err.message || err));
         }
-        animate();
+      }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+      picker.addEventListener('change', () => acceptFile(picker.files[0]));
+      el('dropPick').addEventListener('click', () => picker.click());
+      el('btnOpen').addEventListener('click', () => picker.click());
+
+      ['dragenter', 'dragover'].forEach((type) => {
+        document.addEventListener(type, (ev) => {
+          ev.preventDefault();
+          dropzone.classList.add('over');
         });
+      });
+      ['dragleave', 'drop'].forEach((type) => {
+        document.addEventListener(type, (ev) => {
+          ev.preventDefault();
+          dropzone.classList.remove('over');
+        });
+      });
+      document.addEventListener('drop', (ev) => {
+        const file = ev.dataTransfer && ev.dataTransfer.files[0];
+        if (file) acceptFile(file);
+      });
+
+      /* ---------------- toolbar ---------------- */
+
+      document.querySelectorAll('[data-view]').forEach((btn) => {
+        btn.addEventListener('click', () => viewer.setView(btn.dataset.view));
+      });
+
+      el('btnWire').addEventListener('click', (ev) => {
+        ev.currentTarget.classList.toggle('on', viewer.setWireframe(!ev.currentTarget.classList.contains('on')));
+      });
+
+      el('btnSpin').addEventListener('click', (ev) => {
+        ev.currentTarget.classList.toggle('on', viewer.setSpin(!ev.currentTarget.classList.contains('on')));
+      });
+
+      el('btnAxis').addEventListener('click', (ev) => {
+        const axis = viewer.setUpAxis(viewer.upAxis === 'y' ? 'z' : 'y');
+        ev.currentTarget.textContent = axis === 'y' ? 'Y-up' : 'Z-up';
+        ev.currentTarget.classList.toggle('on', axis === 'z');
+      });
+
+      el('btnShot').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = (titleEl.textContent || 'part').replace(/[^\w.-]+/g, '_') + '.png';
+        link.href = viewer.snapshot();
+        link.click();
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.target.tagName === 'INPUT') return;
+        const keys = { r: () => viewer.resetView(), w: () => el('btnWire').click(), s: () => el('btnSpin').click() };
+        const action = keys[ev.key.toLowerCase()];
+        if (action) action();
+      });
     </script>
+
 <div class="cookie-banner" id="cookieBanner">
   <p>This site uses cookies to remember things like your saved settings in the interactive labs. Nothing is tracked and nothing is sent anywhere — it all stays in your browser.</p>
   <div class="cookie-actions">
