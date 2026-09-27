@@ -4,7 +4,10 @@
     <div> tags, broken local links/assets (href, src, and CAD viewer
     "model=" query parameters), invalid mailto: addresses, and - as a
     best-effort secondary pass - asset file paths referenced from inline
-    <script> blocks (e.g. Three.js loader.load('*.glb') calls).
+    <script> blocks (e.g. Three.js loader.load('*.glb') calls). A
+    download="whatever.png" attribute (or a JS `.download = '...'`
+    assignment) is excluded from that pass -- it's a save-as filename the
+    browser writes, not a file this repo needs to contain.
 
 .USAGE
     powershell -File validate.ps1
@@ -23,7 +26,7 @@ $htmlFiles = Get-ChildItem -Path $root -Recurse -Filter *.html -File |
 $assetExtensions = 'glb|gltf|stl|step|stp|igs|iges|sldprt|sldasm|dxf|png|jpg|jpeg|gif|svg|mp4|pdf|docx|xlsx|mp3|wav'
 $hrefDoubleQuoted = [regex]'(?:href|src)\s*=\s*"([^"]*)"'
 $hrefSingleQuoted = [regex]"(?:href|src)\s*=\s*'([^']*)'"
-$assetStringPattern = [regex]"['""]([^'""]+?\.(?:$assetExtensions))['""]"
+$assetStringPattern = [regex]"(?<!download\s{0,4}=\s{0,4})['""]([^'""]+?\.(?:$assetExtensions))['""]"
 
 $filesChecked = 0
 $totalIssues = 0
