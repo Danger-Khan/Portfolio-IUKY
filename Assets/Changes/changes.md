@@ -1291,3 +1291,250 @@ still references `Assets/ID/...` which is now `Assets/Data/...` (same
 rename-desync pattern as above, images not lost — just the paths).
 Left alone since the ask this round was specifically the Programming
 folder; worth a follow-up pass.
+
+## 2026-09-26 — cv.html: 4 real projects added, cleanup pass
+
+Added four projects to `Assets/resume/cv.html`'s Projects section, all
+real work named directly by the user rather than generated: the Jhagra
+Tailoring & Clothing Center Python ERP, an ArcGIS population-distribution
+project under AI Geo Navigators, a GIS + AI/ML remote-sensing body of
+work (Google Earth Engine + Colab) also under AI Geo Navigators, and an
+ESP32/Arduino IDE weather station publishing over an MQTT broker.
+
+Then did a general cleanup pass on the same file per an open-ended
+request: fixed a run of typos (Recylcing → Recycling, Envirnment →
+Environment, Wroked → Worked, Maintaince → Maintenance, Perfoemance →
+Performance, Monitering → Monitoring, Experince → Experience, Prinitng
+→ Printing, Mechincal → Mechanical, Managament → Management, Divinchi →
+DaVinci), removed a duplicate rPET Recycling card, removed two dead
+`<a href="">View Project</a>` links, a stray empty `<canvas>` block, and
+an unused `font-Grey` class reference.
+
+Verified: tag-balance check on the edited file, full `validate.ps1` run
+— same pre-existing CADCAMCAE-only baseline, nothing new.
+
+## 2026-09-27 — cv.html + root: all 67 real certifications, redesigned as cards
+
+Sourced `Assets/PDF Files/Imaad_Yameen_Certifications.pdf` (a genuine
+67-item LinkedIn certification export) and `Assets/PDF Files/
+Imaad_Yameen_Experience.pdf` (15 real LinkedIn positions) — both files
+the user added between sessions — and used them as the source of truth
+for two separate rebuilds rather than fabricating or padding either
+list:
+
+- **Certifications**, redesigned per the user's explicit choice (offered
+  three options — split into two sections, redesign as cards, or a
+  different section entirely — "redesign as cards" was picked) as
+  individual bordered cards (title / issue date / issuer), then rebuilt
+  again to show **all 67** real certifications once the PDF was
+  available. Moved the whole section out of the left sidebar into the
+  main column, positioned right after Projects, per a follow-up request.
+- **Root `index.html`'s** `Credentials_Archive.db` carousel got a
+  different, smaller treatment on purpose: a curated **36-item
+  "industrial-related"** subset of the same 67, categorized with colored
+  badges (Quality Management, Lean Six Sigma, CAD Designing, Supply
+  Chain, Project Management, etc.) — a personal detailed CV page and a
+  public-facing hub carousel have different jobs, so they got different
+  amounts of the same real data instead of forcing one design onto both.
+- **Work/Internship Experience** on `cv.html` was completely rebuilt
+  from the Experience PDF's 15 positions (5 Work Experience + 7
+  Internship cards, each with a `Skills:` line sourced from the PDF's
+  own named skills), replacing the previous hand-written version. Two
+  genuine data conflicts between sources (GPA 3.72 vs. 3.75; one
+  employer's location listed two different ways) were flagged to the
+  user rather than silently picking one.
+
+Large repetitive insertions (the 67-cert block, the 36-cert carousel,
+the 12-card experience rebuild) were done via a Python script matching
+exact unique start/end markers and splicing in the new HTML, rather than
+hand-editing blocks that size — lower risk of a dropped or duplicated
+tag than doing it by hand.
+
+Verified: a Python regex tag-balance script (`div`, `section`, `p`,
+`ul`, `li`, `a`) across every edited file, plus a full
+`Validation & Testing/qc_report.ps1` run — same 21-defect pre-existing
+baseline (19 Critical CADCAMCAE broken STL/SLDPRT links, 2 Minor
+heuristic false positives), no regressions from any of this.
+
+## 2026-09-27 — a genuine ATS-optimized resume page
+
+Built `Assets/resume/ATS_Resume.html` from scratch (triggered by an
+empty `ATS_RESUME.index` placeholder file the user had created), then
+iterated per two follow-up formatting requests: removed every `|`
+pipe separator, set true A4 page dimensions via an `@page` print rule,
+and applied `text-align: justify` so lines run edge-to-edge before
+wrapping. Contact info was restructured, per the user's exact spec,
+into labelled stacked lines (Email Address / Phone Number / Address /
+LinkedIn / Portfolio-GitHub) instead of a single bullet-joined line.
+Plain single-column layout, black-on-white, Calibri/Arial stack — the
+opposite of `cv.html`'s styled design, on purpose, since ATS parsers
+choke on multi-column layouts and decorative markup. Contains the same
+Summary, Education, Work Experience, Projects, Skills, and all 67
+certifications as `cv.html`, cross-linked both directions. Deleted the
+empty `ATS_RESUME.index` placeholder (wrong extension, 0 bytes) once
+the real file existed. Added an `ATS_Version` button next to
+`cv.html`'s existing `Generate_PDF` button.
+
+Verified: tag-balance check, full `qc_report.ps1` run — same
+pre-existing baseline, no regressions.
+
+## 2026-09-27 — certifications + CV pattern extended to 6 sub-portfolios
+
+Extended the certifications/CV pattern above into each field-specific
+sub-portfolio, filtering the 67 certifications down to what's actually
+relevant per field, each matching that portfolio's own existing design
+system rather than a generic bolted-on block. Full per-portfolio
+breakdown, cert lists, and the scope decision (applied to AI & ML,
+CADCAMCAE, 3D & Graphics Designer, Embedded Systems & Circuitry, GIS &
+Remote Sensing, and Programming; skipped Gamer and Claude Code as not
+being skills portfolios) are logged in full in
+[changes1.md](./changes1.md) rather than duplicated here.
+
+Notably: the Embedded Systems & Circuitry page shows only 2 certs, on
+purpose, with an explicit on-page note about the scarcity — resisted
+padding the section out with loosely-related certs just to make it look
+fuller.
+
+## 2026-09-27 — Resume/CV/Cover Letter Builder: single visible preview + Japanese glossary
+
+Two follow-up changes to the AI & ML portfolio's Résumé/CV/Cover Letter
+Builder (`Assets/Resume,CV & Cover Letter/`), on top of the ATS
+contact-block relabel described above being applied here too, in
+`Builder.js`'s `renderAts()` and mirrored in `Printer.py`'s
+`format_ats()`:
+
+- **Only the selected format is shown on screen.** Previously all six
+  format previews (resume, CV, cover letter, ATS, Europass, Japanese)
+  rendered stacked on the page at once. A single scoped
+  `@media screen { .preview-panel { display: none; } .preview-panel.is-
+  selected { display: block; } }` rule now hides the non-selected ones
+  — deliberately CSS-only: every format still re-renders live in the DOM
+  on every keystroke (so switching formats is instant, no re-render
+  delay), only the *display* is filtered. The existing `@media print`
+  logic (Print All vs. Print Selected via `body[data-print-only]`) was
+  untouched, since it lives in a separate media block.
+- **A small, honest Japanese word glossary.** Added
+  `translation/ja-dictionary.json` (73 EN→JA terms — job titles,
+  education words, common resume verbs/nouns), a hand-synced
+  `ja-dictionary.js` browser mirror (the tool runs from `file://`, which
+  can't reliably `fetch()` a sibling JSON file), and a
+  `translate_words()` / `translateWords()` pair in `Printer.py` and
+  `Builder.js` respectively that annotates recognized words in the
+  Japanese (履歴書 / rirekisho) preview with their translation in
+  parentheses, longest-match-first so multi-word terms like "full-time"
+  win over single-word overlaps. Applied to education/experience labels,
+  license bullets, and the personal-request text. Proper nouns (real
+  names, companies, schools) are correctly left untouched since they
+  never match the dictionary. Both the page and the CLI carry an
+  explicit disclaimer: "a plain word lookup, not machine translation."
+
+Verified: ran `Printer.py --type japanese` and `--type ats` directly
+against constructed test drafts — dictionary words got annotated,
+proper nouns (Acme, Imaad Yameen, Peshawar) stayed untouched, and the
+relabeled ATS contact block matched the JS version's format exactly.
+Full `qc_report.ps1` run: same pre-existing baseline.
+
+## 2026-09-27 — NLP Models: built out the empty Slicer folder (Word Library + Grammer Context + AI)
+
+The user had created three empty subfolders under `Assets/NLP Models/
+Slicer/` (`Word Library`, `Grammer Context`, `AI`) and asked for a word
+library split into separate .txt files by category (positive, negative,
+punctuation, abstract nouns, verbs, adverbs, pronouns, adjectives,
+interjections, prepositions) — then, once built, asked for all three
+folders to be genuinely used, not just populated with inert data. Built
+a real three-tier tool instead of just files:
+
+- **`Word Library/`** — 10 plain `.txt` word lists (~690 words total,
+  one per line, real English vocabulary), plus a generated `word-
+  lists.js` browser mirror (same file:// fetch limitation as the
+  Japanese dictionary above).
+- **`Grammer Context/disambiguation-rules.json`** — a small hand-written
+  table for 4 words deliberately left in two Word Library lists at once
+  (real ambiguity: "well" is both an adverb and an interjection; "like",
+  "close", and "present" are each split between two other categories),
+  resolved by checking only the category already assigned to the
+  previous token. Mirrored to `rules.js` for the browser.
+- **`AI/slicer-engine.js`** (browser) and **`AI/slicer_cli.py`**
+  (terminal) — the tagging engine itself: tokenizes text (words and
+  standalone punctuation), classifies each token against the Word
+  Library, and falls back to the disambiguation table only when a word
+  matches more than one list. Anything the Library doesn't recognize is
+  honestly labeled "Unclassified" rather than guessed at.
+- A new `Slicer/Index.html` page (there was no entry point before) with
+  a text box, live color-coded token tagging, per-category counts, and
+  a table explaining which file does what — linked from the AI & ML
+  hub's tools section.
+
+Verified via the Python CLI directly: fed it "I feel well, and I like
+the close, friendly team" and confirmed the disambiguation rules
+actually fired correctly — "well" tagged Adverb after the verb "feel"
+but would default to Interjection elsewhere, "like" tagged Verb after
+the pronoun "I", "close" tagged Adjective by default. Caught and fixed
+a real bug this way too: the new `Slicer/Index.html` page sits one
+folder level deeper than `Lab.html`, so its first draft's "back to
+portfolio" links (copied at the wrong `../` depth) were all broken —
+`qc_report.ps1` caught all four, corrected, re-ran clean. Full
+`qc_report.ps1` run afterward: same 21-defect pre-existing baseline.
+
+## 2026-09-27 — AI & ML Assets: built out Image Extractor, Image Editor, Image Generation
+
+Three more empty folders under `Assets/` (`NLP Models/Image Extractor`,
+`Image Models/Image Editor`, `Image Models/Image Genertaion`) completed
+per the same "use small AI/ML models, use as many languages as
+possible, keep it all complete, working, and offline" request —
+deliberately spread across JavaScript, Python, and (for the first one)
+Perl, since only those three interpreters are actually available to
+test in this environment; no untested compiled-language stub was added
+just to pad out a language count.
+
+- **Image Extractor** — a small, honest OCR pipeline, implemented
+  **three times independently**: `extractor-engine.js` (browser),
+  `extractor_cli.py` (Python), and `extractor.pl` (Perl, since this
+  module is genuinely text-processing work). All three read the same
+  hand-built 5×7 bitmap font (`Glyph Library/font-5x7.txt`, 37 glyphs:
+  0–9, A–Z, space). Text is rendered into a pixel grid, a slider flips a
+  percentage of pixels at random, and a nearest-neighbor classifier
+  (Hamming distance against every glyph — the templates are the model,
+  no training step) reads it back. Fixed-pitch, single font, single
+  line, by design — it reads text this tool rendered, not arbitrary
+  photos.
+- **Image Editor** — from-scratch pixel filters and 3×3 convolution
+  kernels in `editor-engine.js`: grayscale, invert, sepia, threshold,
+  flip/rotate/crop, box blur, sharpen, emboss, and a genuine Sobel edge
+  detector. `editor_cli.py` runs the identical math against real PPM
+  (P3) image files, no Pillow or numpy.
+- **Image Generation** — the one genuinely-trained small neural
+  network: `generator-engine.js` implements a coordinate MLP (a scaled-
+  down implicit neural representation, the same family of idea behind
+  SIREN/NeRF) that learns `(x, y) → (r, g, b)` for one target image via
+  hand-written backpropagation, no ML library. Because it learns a
+  continuous function rather than storing pixels, it renders at a
+  higher resolution than it trained on, or gets resampled with
+  Gaussian-jittered input coordinates for a distorted "variation."
+  `generator_cli.py` trains the identical architecture in pure Python
+  (no numpy) — confirmed actual learning by watching mean-squared error
+  drop from 0.0115 to 0.003 over 150 epochs on a 16×16 target,
+  finishing in about 3.5 seconds.
+
+All three got their own `Index.html` page (matching the existing dark-
+theme lab shell used by `Lab.html`/`Slicer/Index.html`) and a card in
+the AI & ML hub's tools section. Every Python CLI was actually executed
+end-to-end during this work, not just written and assumed correct —
+including a PPM round-trip test (render → save → reload → re-extract)
+for the OCR tool in both Python and Perl.
+
+**Repeated the same relative-link depth mistake twice** while building
+these (copying `Lab.html`'s `../../` link depth into pages that sit one
+folder deeper, same as the Slicer bug above) — `Image Extractor/
+Index.html` and `Image Editor/Index.html` both had it, both caught by
+`qc_report.ps1` and fixed the same way (corrected to `../../../` and
+`../../../../../`), confirmed clean on re-run. Final state: same
+21-defect pre-existing CADCAMCAE-only baseline, no regressions from any
+of this session's work. All `__pycache__` build artifacts removed
+before finishing.
+
+**Not committed:** all of today's work (2026-09-27) — the certification
+rebuilds, the ATS resume, the sub-portfolio extensions, the Resume
+Builder changes, and all three new AI & ML modules — is left uncommitted
+per the user's standing "I'll push it myself" instruction from earlier
+in the session.
