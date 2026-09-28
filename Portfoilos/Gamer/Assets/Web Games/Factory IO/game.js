@@ -11,7 +11,17 @@
  * cell both are the same failure: the part did not end up where it belonged.
  */
 
-import { clamp, text, rand, randInt, roundRect } from '../engine.js';
+import { clamp, text, rand, randInt, roundRect, loadSprites, drawSprite } from '../engine.js';
+
+// Kenney CC0 crates from Images/ (see Images/CREDITS.md), used for the square
+// parts only. A part's colour is what the sorting puzzle is played on, so the
+// crate never replaces it -- the colour is redrawn as a thick outline over the
+// art, which stays readable at this size. Round parts keep their plain disc,
+// because the square/round distinction is also gameplay.
+const SPR = loadSprites({
+  crate: 'Images/crate.png',
+  crate_alt: 'Images/crate_alt.png'
+});
 
 const W = 620;
 const H = 480;
@@ -175,6 +185,14 @@ export default {
 
     function drawPart(ctx, p) {
       ctx.fillStyle = p.color;
+      if (p.square && SPR.crate) {
+        drawSprite(ctx, SPR.crate, p.x, p.y, PART_R * 2, PART_R * 2);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 3;
+        roundRect(ctx, p.x - PART_R, p.y - PART_R, PART_R * 2, PART_R * 2, 3);
+        ctx.stroke();
+        return;
+      }
       if (p.square) {
         roundRect(ctx, p.x - PART_R, p.y - PART_R, PART_R * 2, PART_R * 2, 3);
         ctx.fill();

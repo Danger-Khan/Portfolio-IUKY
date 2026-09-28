@@ -6,7 +6,19 @@
  * right as it looks like it is getting easier.
  */
 
-import { clamp, text, rand, randInt, circleHit } from '../engine.js';
+import { clamp, text, rand, randInt, circleHit, loadSprites, drawSprite } from '../engine.js';
+
+// Kenney CC0 art from Images/ (see Images/CREDITS.md). Every use is guarded, so
+// an empty Images/ folder just falls back to the original vector drawing.
+const SPR = loadSprites({
+  ship: 'Images/ship.png',
+  meteor: 'Images/meteor.png',
+  background: 'Images/background.png'
+});
+
+// Kenney's ship art points up; this game's angle 0 points right.
+const SHIP_ART_OFFSET = Math.PI / 2;
+let bgPattern = null;
 
 const W = 640;
 const H = 560;
@@ -243,7 +255,14 @@ export default {
     }
 
     function draw(ctx) {
-      ctx.fillStyle = '#05070f';
+      if (SPR.background) {
+        // Tiled rather than stretched: it's a 256px seamless star tile, and
+        // scaling it to the canvas would smear the stars.
+        if (!bgPattern) bgPattern = ctx.createPattern(SPR.background, 'repeat');
+        ctx.fillStyle = bgPattern;
+      } else {
+        ctx.fillStyle = '#05070f';
+      }
       ctx.fillRect(0, 0, W, H);
 
       // Deterministic starfield — no array to keep, same sky every run.
@@ -256,6 +275,10 @@ export default {
       }
 
       for (const rock of rocks) {
+        if (SPR.meteor) {
+          drawSprite(ctx, SPR.meteor, rock.x, rock.y, rock.r * 2.3, rock.r * 2.3, rock.angle);
+          continue;
+        }
         ctx.save();
         ctx.translate(rock.x, rock.y);
         ctx.rotate(rock.angle);
@@ -280,7 +303,13 @@ export default {
       ctx.fillStyle = '#fbbf24';
       for (const b of bullets) ctx.fillRect(b.x - 2, b.y - 2, 4, 4);
 
-      if (respawnTimer <= 0) {
+      if (respawnTimer <= 0 && SPR.ship) {
+        ctx.save();
+        // Blink while invulnerable so the state is visible, not just felt.
+        ctx.globalAlpha = invulnerable > 0 ? (Math.floor(invulnerable * 10) % 2 ? 0.35 : 1) : 1;
+        drawSprite(ctx, SPR.ship, ship.x, ship.y, SHIP_R * 2.6, SHIP_R * 2.6, ship.angle + SHIP_ART_OFFSET);
+        ctx.restore();
+      } else if (respawnTimer <= 0) {
         ctx.save();
         ctx.translate(ship.x, ship.y);
         ctx.rotate(ship.angle);

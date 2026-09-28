@@ -9,7 +9,18 @@
  * a slow shot — that is what makes the frost tower worth its cost.
  */
 
-import { clamp, text, roundRect } from '../engine.js';
+import { clamp, text, roundRect, loadSprites, drawSprite } from '../engine.js';
+
+// Kenney CC0 art from Images/ (see Images/CREDITS.md). Only the tower *base* is
+// swapped: the type colour and the rotating barrel are still drawn on top, so
+// which tower is which stays just as readable as before.
+const SPR = loadSprites({
+  tower_00: 'Images/tower_00.png',
+  tower_01: 'Images/tower_01.png',
+  tower_02: 'Images/tower_02.png'
+});
+
+const TOWER_ART = ['tower_00', 'tower_01', 'tower_02'];
 
 const CELL = 40;
 const COLS = 16;
@@ -395,9 +406,14 @@ export default {
       // Towers
       for (const tower of towers) {
         const def = TOWER_TYPES[tower.type];
-        ctx.fillStyle = 'rgba(15,23,42,0.75)';
-        roundRect(ctx, tower.x - 15, tower.y - 15, 30, 30, 6);
-        ctx.fill();
+        const baseImg = SPR[TOWER_ART[tower.type % TOWER_ART.length]];
+        if (baseImg) {
+          drawSprite(ctx, baseImg, tower.x, tower.y, 34, 34);
+        } else {
+          ctx.fillStyle = 'rgba(15,23,42,0.75)';
+          roundRect(ctx, tower.x - 15, tower.y - 15, 30, 30, 6);
+          ctx.fill();
+        }
         ctx.fillStyle = def.color;
         ctx.beginPath();
         ctx.arc(tower.x, tower.y, 9, 0, Math.PI * 2);

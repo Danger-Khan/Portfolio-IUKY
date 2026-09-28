@@ -261,6 +261,48 @@ export function circleHit(ax, ay, ar, bx, by, br) {
   return dx * dx + dy * dy <= r * r;
 }
 
+/**
+ * Loads the art in a game's Images/ folder, e.g.
+ *   const SPR = loadSprites({ bird: 'Images/bird.png' });
+ *
+ * Sprites are strictly an upgrade, never a dependency. A key is only set once
+ * that file has actually decoded, so the caller guards every use with
+ * `if (SPR.bird)` and keeps its procedural drawing as the else branch. That
+ * means a missing, renamed or still-loading file just falls back to the shapes
+ * the game already drew -- it cannot produce a half-drawn frame, and the games
+ * still run with the Images/ folder emptied out.
+ *
+ * Decoded pixel dimensions are whatever the artist exported, so callers pass
+ * their own draw size rather than assuming; `pixelated` turns off smoothing for
+ * low-res pixel art that would otherwise blur when scaled up.
+ */
+export function loadSprites(map, { pixelated = false } = {}) {
+  const sprites = { total: Object.keys(map).length, settled: 0, failed: [], pixelated };
+  for (const [key, src] of Object.entries(map)) {
+    const img = new Image();
+    img.addEventListener('load', () => {
+      sprites[key] = img;
+      sprites.settled++;
+    });
+    img.addEventListener('error', () => {
+      // Leave sprites[key] unset so the caller's fallback path stays in charge.
+      sprites.failed.push(key);
+      sprites.settled++;
+    });
+    img.src = src;
+  }
+  return sprites;
+}
+
+/** Draws a sprite centred on (x, y) at the given size, optionally rotated. */
+export function drawSprite(ctx, img, x, y, w, h, rotation = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (rotation) ctx.rotate(rotation);
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+
 /** Rounded rectangle path — used constantly and not worth repeating. */
 export function roundRect(ctx, x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2);

@@ -7,7 +7,17 @@
  * need it most.
  */
 
-import { clamp, roundRect, text } from '../engine.js';
+import { clamp, roundRect, text, loadSprites, drawSprite } from '../engine.js';
+
+// Kenney CC0 art from Images/ (see Images/CREDITS.md). Every use below is
+// guarded -- with the folder empty the game draws its original shapes instead.
+// No background image on purpose: the Kenney sky layer is a single flat colour,
+// which loses the gradient this draws below. Sprites are only worth it where
+// they beat the procedural version.
+const SPR = loadSprites({
+  bird: 'Images/bird.png',
+  cloud: 'Images/cloud.png'
+});
 
 const W = 420;
 const H = 620;
@@ -163,6 +173,10 @@ export default {
       for (let i = 0; i < 6; i++) {
         const cx = wrapMod(i * 190 - scrollX * 0.25, W + 220) - 110;
         const cy = 70 + ((i * 97) % 170);
+        if (SPR.cloud) {
+          drawSprite(ctx, SPR.cloud, cx, cy, 104, 54);
+          continue;
+        }
         ctx.beginPath();
         ctx.arc(cx, cy, 26, 0, Math.PI * 2);
         ctx.arc(cx + 26, cy + 6, 20, 0, Math.PI * 2);
@@ -186,31 +200,35 @@ export default {
       }
 
       // Bird
-      ctx.save();
-      ctx.translate(bird.x, bird.y);
-      ctx.rotate(bird.angle);
-      ctx.fillStyle = '#facc15';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, BIRD_R + 3, BIRD_R, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f97316';
-      ctx.beginPath();
-      ctx.moveTo(BIRD_R + 1, -2);
-      ctx.lineTo(BIRD_R + 11, 1);
-      ctx.lineTo(BIRD_R + 1, 4);
-      ctx.closePath();
-      ctx.fill();
-      // Wing angle tracks vertical speed, so it flaps because of the physics
-      // rather than on a timer.
-      ctx.fillStyle = '#fde68a';
-      ctx.beginPath();
-      ctx.ellipse(-3, 1, 8, clamp(6 - bird.vy / 160, 2.5, 9), 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(5, -5, 2.6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      if (SPR.bird) {
+        drawSprite(ctx, SPR.bird, bird.x, bird.y, BIRD_R * 2.8, BIRD_R * 2.8, bird.angle);
+      } else {
+        ctx.save();
+        ctx.translate(bird.x, bird.y);
+        ctx.rotate(bird.angle);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, BIRD_R + 3, BIRD_R, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(BIRD_R + 1, -2);
+        ctx.lineTo(BIRD_R + 11, 1);
+        ctx.lineTo(BIRD_R + 1, 4);
+        ctx.closePath();
+        ctx.fill();
+        // Wing angle tracks vertical speed, so it flaps because of the physics
+        // rather than on a timer.
+        ctx.fillStyle = '#fde68a';
+        ctx.beginPath();
+        ctx.ellipse(-3, 1, 8, clamp(6 - bird.vy / 160, 2.5, 9), 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(5, -5, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
       text(ctx, String(Math.floor(api.score)), W / 2, 58, { size: 42, align: 'center', color: '#ffffff' });
       ctx.globalAlpha = 0.45;

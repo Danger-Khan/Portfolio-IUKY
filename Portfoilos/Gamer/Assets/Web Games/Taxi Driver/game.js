@@ -6,7 +6,32 @@
  * into traffic to keep going.
  */
 
-import { clamp, text, rand, randInt, pick, aabb, roundRect } from '../engine.js';
+import { clamp, text, rand, randInt, pick, aabb, roundRect, loadSprites, drawSprite } from '../engine.js';
+
+// Kenney CC0 cars from Images/ (see Images/CREDITS.md). These are from the
+// Racing Pack, which is drawn top-down and already nose-up -- the pixel car
+// pack was tried first and is side-view, so rotating it into a top-down lane
+// just laid the car on its side. Guarded at every use: empty the folder and
+// the original drawn cars come back.
+const SPR = loadSprites({
+  taxi: 'Images/taxi.png',
+  traffic_black: 'Images/traffic_black.png',
+  traffic_blue: 'Images/traffic_blue.png',
+  traffic_green: 'Images/traffic_green.png',
+  traffic_red: 'Images/traffic_red.png'
+});
+
+const TRAFFIC_SPRITES = ['traffic_black', 'traffic_blue', 'traffic_green', 'traffic_red'];
+
+/** Picks a traffic sprite from the car's colour, so a given car keeps the same
+ *  body for its whole run without having to store one on the spawn. Indexed off
+ *  TRAFFIC_COLORS rather than hashing the string: hashing bunched three of the
+ *  six palette colours onto the same car and never produced the black one. */
+function trafficSprite(color) {
+  const i = TRAFFIC_COLORS.indexOf(color);
+  const key = TRAFFIC_SPRITES[(i < 0 ? 0 : i) % TRAFFIC_SPRITES.length];
+  return SPR[key];
+}
 
 const W = 460;
 const H = 660;
@@ -169,6 +194,13 @@ export default {
     }
 
     function drawCar(ctx, x, y, w, h, color, isPlayer) {
+      const img = isPlayer ? SPR.taxi : trafficSprite(color);
+      if (img) {
+        // Already drawn top-down and nose-up, so it maps straight onto the
+        // car's own footprint -- no rotation, no axis swap.
+        drawSprite(ctx, img, x, y, w, h);
+        return;
+      }
       ctx.fillStyle = color;
       roundRect(ctx, x - w / 2, y - h / 2, w, h, 7);
       ctx.fill();
