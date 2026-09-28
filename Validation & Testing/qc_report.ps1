@@ -1,10 +1,11 @@
 <#
 .SYNOPSIS
     A QA/QC-style inspection report for the site, built on top of validate.ps1
-    (structural/link checks) and index_test.ps1 (content-quality checks).
-    Doesn't reinvent either check — runs both, then classifies every finding
-    by severity (Critical / Major / Minor) and issues a batch disposition,
-    the same shape as a real incoming-inspection QC report:
+    (structural/link checks), index_test.ps1 (content-quality checks) and
+    games_test.ps1 (Web Games sprite/asset checks).
+    Doesn't reinvent any of those checks — runs all three, then classifies
+    every finding by severity (Critical / Major / Minor) and issues a batch
+    disposition, the same shape as a real incoming-inspection QC report:
 
         Critical  - breaks the page for a visitor (dead link, broken model
                     reference, unbalanced markup, a duplicate id silently
@@ -56,6 +57,12 @@ function Get-Severity {
     if ($Text -match 'Unbalanced <div>') { return 'Critical' }
     if ($Text -match 'Broken link|Broken viewer model reference') { return 'Critical' }
     if ($Text -match 'Duplicate id attribute') { return 'Critical' }
+    # Web Games (games_test.ps1)
+    if ($Text -match 'but that file is not there') { return 'Critical' }
+    if ($Text -match 'Missing index.html next to game.js') { return 'Critical' }
+    if ($Text -match 'No in-stage fullscreen exit control') { return 'Major' }
+    if ($Text -match 'no CREDITS.md') { return 'Major' }
+    if ($Text -match 'dead art') { return 'Minor' }
     if ($Text -match 'Invalid mailto address') { return 'Major' }
     if ($Text -match 'Missing or near-empty <title>|Missing <meta name="description">|Missing <meta name="viewport">') { return 'Major' }
     if ($Text -match '<img> tag\(s\) missing alt text') { return 'Major' }
@@ -67,25 +74,28 @@ Write-Output "================================================================"
 Write-Output "  QUALITY CONTROL INSPECTION REPORT"
 Write-Output "================================================================"
 Write-Output "Report ID     : QC-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-Write-Output "Inspected By  : validate.ps1 + index_test.ps1 (automated, 100% inspection)"
+Write-Output "Inspected By  : validate.ps1 + index_test.ps1 + games_test.ps1 (automated, 100% inspection)"
 Write-Output "Facility      : $root"
 Write-Output ""
 
 $rawFindings = @()
 $rawFindings += Get-Findings -ScriptPath (Join-Path $here 'validate.ps1')
 $rawFindings += Get-Findings -ScriptPath (Join-Path $here 'index_test.ps1')
+$rawFindings += Get-Findings -ScriptPath (Join-Path $here 'games_test.ps1')
 
 $htmlFileCount = (Get-ChildItem -Path $root -Recurse -Filter *.html -File |
     Where-Object { $_.FullName -notmatch '\\node_modules\\' }).Count
 
-$defects = foreach ($f in $rawFindings) {
+# @(...) forces an array: with exactly one finding the foreach returns a bare
+# PSCustomObject, whose .Count is $null, and the summary printed a blank total.
+$defects = @(foreach ($f in $rawFindings) {
     $parts = $f.Split('|', 2)
     [PSCustomObject]@{
         File     = $parts[0]
         Issue    = $parts[1]
         Severity = Get-Severity -Text $parts[1]
     }
-}
+})
 
 $critical = @($defects | Where-Object { $_.Severity -eq 'Critical' })
 $major    = @($defects | Where-Object { $_.Severity -eq 'Major' })
